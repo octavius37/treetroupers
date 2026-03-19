@@ -1,0 +1,48 @@
+{
+  "name": "tree-troupers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "NODE_ENV=production node .output/server/index.mjs",
+    "typecheck": "nuxt typecheck",
+    "lint:fix": "eslint . --fix",
+    "lint": "oxlint --deny-warnings -D correctness -D suspicious -D perf && eslint --max-warnings 0 .",
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/supabase": "^2.0.4",
+    "@trpc/client": "^11.6.0",
+    "@trpc/server": "^11.6.0",
+    "nuxt": "4.1.2",
+    "superjson": "^2.2.2",
+    "trpc-nuxt": "^1.2.0",
+    "vue": "3.5.22",
+    "vue-router": "4.5.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^5.4.1",
+    "@bg-dev/nuxt-naiveui": "2.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@sidebase/nuxt-auth": "^1.1.0",
+    "eslint": "^9.37.0",
+    "oxlint": "^1.20.0",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.1.1"
+  },
+  "peerDependencies": {
+    "next-auth": "4.21.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "overrides": {
+    "@supabase/ssr": {
+      "cookie": "0.7.2"
+    }
+  }
+}
