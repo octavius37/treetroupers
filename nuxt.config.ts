@@ -20,6 +20,9 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true
   },
+  auth: {
+    baseURL: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
+  },
   supabase: {
     redirect: false
   }
