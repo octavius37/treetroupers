@@ -8,8 +8,16 @@ export default defineNuxtConfig({
   ],
   build: {
     transpile: [
-      'trpc-nuxt'
+      'trpc-nuxt',
+      'payload',
+      '@payloadcms/db-postgres',
     ]
+  },
+  nitro: {
+    // Prevent Nitro from trying to bundle Payload's native deps
+    externals: {
+      inline: ['payload', '@payloadcms/db-postgres'],
+    },
   },
   vite: {
     optimizeDeps: {

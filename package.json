@@ -15,9 +15,11 @@
   },
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.4",
+    "@payloadcms/db-postgres": "^3.80.0",
     "@trpc/client": "^11.6.0",
     "@trpc/server": "^11.6.0",
     "nuxt": "4.1.2",
+    "payload": "^3.80.0",
     "superjson": "^2.2.2",
     "trpc-nuxt": "^1.2.0",
     "vue": "3.5.22",
