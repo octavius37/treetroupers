@@ -1,8 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
-const supabase = useSupabaseClient()
-
 const trees = ref<any[]>([])
 const loading = ref(true)
 const filterVerified = ref<'all' | 'verified' | 'pending'>('all')
@@ -10,43 +8,30 @@ const error = ref('')
 
 async function loadTrees() {
   loading.value = true
-  let query = supabase
-    .from('trees')
-    .select('*, tree_species(common_name), profiles!planted_by(display_name), communities(name)')
-    .order('created_at', { ascending: false })
-
-  if (filterVerified.value === 'verified') {
-    query = query.eq('verified', true)
-  }
-  else if (filterVerified.value === 'pending') {
-    query = query.eq('verified', false)
-  }
-
-  const { data } = await query
-  trees.value = data || []
+  trees.value = await $fetch('/api/cms/trees', { query: { filter: filterVerified.value } })
   loading.value = false
 }
 
 async function toggleVerified(tree: any) {
-  const newVal = !tree.verified
-  const { error: err } = await supabase
-    .from('trees')
-    .update({ verified: newVal })
-    .eq('id', tree.id)
-  if (err) {
-    error.value = err.message
+  try {
+    await $fetch(`/api/cms/trees/${tree.id}`, { method: 'PATCH', body: { verified: !tree.verified } })
+    tree.verified = !tree.verified
   }
-  else {
-    tree.verified = newVal
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to update'
   }
 }
 
 async function handleDelete(id: string) {
   // eslint-disable-next-line no-alert -- admin action requires user confirmation
   if (!confirm('Delete this tree record permanently?')) { return }
-  const { error: err } = await supabase.from('trees').delete().eq('id', id)
-  if (err) { error.value = err.message }
-  else { await loadTrees() }
+  try {
+    await $fetch(`/api/cms/trees/${id}`, { method: 'DELETE' })
+    await loadTrees()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to delete'
+  }
 }
 
 watch(filterVerified, () => loadTrees())

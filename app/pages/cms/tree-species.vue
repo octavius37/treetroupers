@@ -1,8 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
-const supabase = useSupabaseClient()
-
 const species = ref<any[]>([])
 const loading = ref(true)
 const showForm = ref(false)
@@ -19,11 +17,7 @@ const form = reactive({
 
 async function loadSpecies() {
   loading.value = true
-  const { data } = await supabase
-    .from('tree_species')
-    .select('*')
-    .order('common_name')
-  species.value = data || []
+  species.value = await $fetch('/api/cms/tree-species')
   loading.value = false
 }
 
@@ -64,18 +58,16 @@ async function handleSave() {
   }
   try {
     if (editingId.value) {
-      const { error: err } = await supabase.from('tree_species').update(payload).eq('id', editingId.value)
-      if (err) { throw err }
+      await $fetch(`/api/cms/tree-species/${editingId.value}`, { method: 'PUT', body: payload })
     }
     else {
-      const { error: err } = await supabase.from('tree_species').insert(payload)
-      if (err) { throw err }
+      await $fetch('/api/cms/tree-species', { method: 'POST', body: payload })
     }
     closeForm()
     await loadSpecies()
   }
   catch (e: any) {
-    error.value = e.message || 'Failed to save'
+    error.value = e.data?.message || e.message || 'Failed to save'
   }
   saving.value = false
 }
@@ -83,9 +75,13 @@ async function handleSave() {
 async function handleDelete(id: string) {
   // eslint-disable-next-line no-alert -- admin action requires user confirmation
   if (!confirm('Delete this species? Trees referencing it will keep their existing species_id.')) { return }
-  const { error: err } = await supabase.from('tree_species').delete().eq('id', id)
-  if (err) { error.value = err.message }
-  else { await loadSpecies() }
+  try {
+    await $fetch(`/api/cms/tree-species/${id}`, { method: 'DELETE' })
+    await loadSpecies()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to delete'
+  }
 }
 
 onMounted(loadSpecies)

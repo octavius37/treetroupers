@@ -1,8 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
-const supabase = useSupabaseClient()
-
 const profiles = ref<any[]>([])
 const loading = ref(true)
 const showForm = ref(false)
@@ -18,11 +16,7 @@ const form = reactive({
 
 async function loadUsers() {
   loading.value = true
-  const { data } = await supabase
-    .from('profiles')
-    .select('*')
-    .order('created_at', { ascending: false })
-  profiles.value = data || []
+  profiles.value = await $fetch('/api/cms/users')
   loading.value = false
 }
 
@@ -46,20 +40,19 @@ async function handleSave() {
   saving.value = true
   error.value = ''
   try {
-    const { error: err } = await supabase
-      .from('profiles')
-      .update({
+    await $fetch(`/api/cms/users/${editingId.value}`, {
+      method: 'PUT',
+      body: {
         display_name: form.display_name || null,
         bio: form.bio || null,
         total_points: form.total_points,
-      })
-      .eq('id', editingId.value)
-    if (err) { throw err }
+      },
+    })
     closeForm()
     await loadUsers()
   }
   catch (e: any) {
-    error.value = e.message || 'Failed to save'
+    error.value = e.data?.message || e.message || 'Failed to save'
   }
   saving.value = false
 }

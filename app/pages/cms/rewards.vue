@@ -1,8 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
-const supabase = useSupabaseClient()
-
 const rewards = ref<any[]>([])
 const loading = ref(true)
 const showForm = ref(false)
@@ -19,11 +17,7 @@ const form = reactive({
 
 async function loadRewards() {
   loading.value = true
-  const { data } = await supabase
-    .from('rewards')
-    .select('*')
-    .order('points_required')
-  rewards.value = data || []
+  rewards.value = await $fetch('/api/cms/rewards')
   loading.value = false
 }
 
@@ -64,18 +58,16 @@ async function handleSave() {
   }
   try {
     if (editingId.value) {
-      const { error: err } = await supabase.from('rewards').update(payload).eq('id', editingId.value)
-      if (err) { throw err }
+      await $fetch(`/api/cms/rewards/${editingId.value}`, { method: 'PUT', body: payload })
     }
     else {
-      const { error: err } = await supabase.from('rewards').insert(payload)
-      if (err) { throw err }
+      await $fetch('/api/cms/rewards', { method: 'POST', body: payload })
     }
     closeForm()
     await loadRewards()
   }
   catch (e: any) {
-    error.value = e.message || 'Failed to save'
+    error.value = e.data?.message || e.message || 'Failed to save'
   }
   saving.value = false
 }
@@ -83,18 +75,23 @@ async function handleSave() {
 async function handleDelete(id: string) {
   // eslint-disable-next-line no-alert -- admin action requires user confirmation
   if (!confirm('Delete this reward?')) { return }
-  const { error: err } = await supabase.from('rewards').delete().eq('id', id)
-  if (err) { error.value = err.message }
-  else { await loadRewards() }
+  try {
+    await $fetch(`/api/cms/rewards/${id}`, { method: 'DELETE' })
+    await loadRewards()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to delete'
+  }
 }
 
 async function toggleActive(reward: any) {
-  const { error: err } = await supabase
-    .from('rewards')
-    .update({ active: !reward.active })
-    .eq('id', reward.id)
-  if (err) { error.value = err.message }
-  else { reward.active = !reward.active }
+  try {
+    await $fetch(`/api/cms/rewards/${reward.id}`, { method: 'PATCH', body: { active: !reward.active } })
+    reward.active = !reward.active
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to update'
+  }
 }
 
 onMounted(loadRewards)

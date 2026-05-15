@@ -36,18 +36,15 @@ async function handleSave() {
   saving.value = true
   saved.value = false
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      display_name: form.display_name,
-      bio: form.bio,
+  try {
+    await $fetch('/api/dashboard/profile', {
+      method: 'PUT',
+      body: { display_name: form.display_name, bio: form.bio },
     })
-    .eq('id', profile.value.id)
-
-  if (!error) {
     saved.value = true
     setTimeout(() => saved.value = false, 3000)
   }
+  catch {}
   saving.value = false
 }
 

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
-const supabase = useSupabaseClient()
-
 const communities = ref<any[]>([])
 const loading = ref(true)
 const showForm = ref(false)
@@ -19,11 +17,7 @@ const form = reactive({
 
 async function loadCommunities() {
   loading.value = true
-  const { data } = await supabase
-    .from('communities')
-    .select('*')
-    .order('name')
-  communities.value = data || []
+  communities.value = await $fetch('/api/cms/communities')
   loading.value = false
 }
 
@@ -64,18 +58,16 @@ async function handleSave() {
   }
   try {
     if (editingId.value) {
-      const { error: err } = await supabase.from('communities').update(payload).eq('id', editingId.value)
-      if (err) { throw err }
+      await $fetch(`/api/cms/communities/${editingId.value}`, { method: 'PUT', body: payload })
     }
     else {
-      const { error: err } = await supabase.from('communities').insert(payload)
-      if (err) { throw err }
+      await $fetch('/api/cms/communities', { method: 'POST', body: payload })
     }
     closeForm()
     await loadCommunities()
   }
   catch (e: any) {
-    error.value = e.message || 'Failed to save'
+    error.value = e.data?.message || e.message || 'Failed to save'
   }
   saving.value = false
 }
@@ -83,9 +75,13 @@ async function handleSave() {
 async function handleDelete(id: string) {
   // eslint-disable-next-line no-alert -- admin action requires user confirmation
   if (!confirm('Are you sure you want to delete this community? This will also remove all member associations.')) { return }
-  const { error: err } = await supabase.from('communities').delete().eq('id', id)
-  if (err) { error.value = err.message }
-  else { await loadCommunities() }
+  try {
+    await $fetch(`/api/cms/communities/${id}`, { method: 'DELETE' })
+    await loadCommunities()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to delete'
+  }
 }
 
 onMounted(loadCommunities)

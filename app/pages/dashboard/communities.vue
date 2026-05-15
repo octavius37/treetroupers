@@ -31,27 +31,21 @@ onMounted(async () => {
 })
 
 async function joinCommunity(communityId: string) {
-  if (!profile.value) { return }
-  const { error } = await supabase
-    .from('community_members')
-    .insert({ community_id: communityId, profile_id: profile.value.id })
-  if (!error) {
+  try {
+    await $fetch('/api/dashboard/community-members', { method: 'POST', body: { community_id: communityId } })
     myCommunityIds.value = new Set([...myCommunityIds.value, communityId])
   }
+  catch {}
 }
 
 async function leaveCommunity(communityId: string) {
-  if (!profile.value) { return }
-  const { error } = await supabase
-    .from('community_members')
-    .delete()
-    .eq('community_id', communityId)
-    .eq('profile_id', profile.value.id)
-  if (!error) {
+  try {
+    await $fetch(`/api/dashboard/community-members/${communityId}`, { method: 'DELETE' })
     const next = new Set(myCommunityIds.value)
     next.delete(communityId)
     myCommunityIds.value = next
   }
+  catch {}
 }
 </script>
 

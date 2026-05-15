@@ -62,25 +62,25 @@ function resetForm() {
 }
 
 async function handleSubmit() {
-  if (!profile.value) { return }
   error.value = ''
   submitting.value = true
 
-  const { error: err } = await supabase.from('trees').insert({
-    planted_by: profile.value.id,
-    species_id: form.species_id || null,
-    community_id: form.community_id || null,
-    lat: Number.parseFloat(form.lat),
-    lng: Number.parseFloat(form.lng),
-    notes: form.notes,
-    planted_at: form.planted_at,
-  })
-
-  if (err) {
-    error.value = err.message
-  }
-  else {
+  try {
+    await $fetch('/api/dashboard/trees', {
+      method: 'POST',
+      body: {
+        species_id: form.species_id || null,
+        community_id: form.community_id || null,
+        lat: Number.parseFloat(form.lat),
+        lng: Number.parseFloat(form.lng),
+        notes: form.notes,
+        planted_at: form.planted_at,
+      },
+    })
     success.value = true
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to save'
   }
   submitting.value = false
 }
