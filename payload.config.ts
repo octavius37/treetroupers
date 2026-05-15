@@ -8,6 +8,10 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
+      // Close idle connections before Supabase PgBouncer forcibly resets them
+      idleTimeoutMillis: 20000,
+      connectionTimeoutMillis: 5000,
+      keepAlive: true,
     },
     schemaName: 'payload',
   }),
