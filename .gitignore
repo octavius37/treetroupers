@@ -31,3 +31,4 @@ prisma/schema_old.prisma
 prisma/enums
 prisma/client
 .vercel
+.mcp.json

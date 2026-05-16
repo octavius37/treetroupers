@@ -51,7 +51,7 @@ The database has these core tables (types defined in `app/types/database.types.t
 - **profiles** — linked to `auth.users` via `auth_user_id`. Stores display_name, avatar_url, bio, total_points
 - **communities** — name, slug, description, geojson_area (jsonb), self-referencing `parent_community_id`
 - **community_members** — join table (profile_id, community_id, role)
-- **tree_species** — common_name, scientific_name, avg_co2_per_year_kg
+- **tree_species** — common_name, scientific_name, avg_co2_kg_per_year
 - **trees** — planted_by (profile), species_id, community_id, lat/lng, notes, verified flag, photo_url
 - **tree_updates** — social feed posts: author_id, tree_id, content, photo_url
 - **point_events** — ledger of earned points: profile_id, action_type, points, reference_id
