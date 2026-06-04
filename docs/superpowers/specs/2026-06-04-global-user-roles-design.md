@@ -36,7 +36,9 @@ A Supabase migration that:
 1. Creates a Postgres enum `user_role` with values `'admin'` and `'user'`.
 2. Adds column `role user_role NOT NULL DEFAULT 'user'` to `profiles`.
 3. Seeds `role = 'admin'` for the bootstrap admin
-   `p.bollerman@eceoffshore.com`, resolved by joining
+   `paulbollerman@gmail.com` (the account that actually exists in the DB;
+   the originally-specified `p.bollerman@eceoffshore.com` had no profile),
+   resolved by joining
    `profiles.auth_user_id` → `auth.users.id` and matching `auth.users.email`.
 4. Updates RLS so that the `role` column can be changed **only** by the service role.
    A user must never be able to update their own `role` (no self-promotion). Admin

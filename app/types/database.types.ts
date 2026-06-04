@@ -207,6 +207,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"]
           total_points: number
         }
         Insert: {
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           total_points?: number
         }
         Update: {
@@ -225,6 +227,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           total_points?: number
         }
         Relationships: []
@@ -1486,7 +1489,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1621,6 +1624,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "user"],
+    },
   },
 } as const
