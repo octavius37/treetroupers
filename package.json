@@ -11,16 +11,14 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "patch-package && nuxt prepare"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.4",
-    "@payloadcms/db-postgres": "^3.84.1",
     "@trpc/client": "^11.6.0",
     "@trpc/server": "^11.6.0",
     "next-auth": "4.21.1",
     "nuxt": "4.1.2",
-    "payload": "^3.84.1",
     "superjson": "^2.2.2",
     "trpc-nuxt": "^1.2.0",
     "vue": "3.5.22",
@@ -34,8 +32,6 @@
     "@sidebase/nuxt-auth": "^1.1.0",
     "eslint": "^9.37.0",
     "oxlint": "^1.20.0",
-    "patch-package": "^8.0.1",
-    "postinstall-postinstall": "^2.1.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.1"
   },

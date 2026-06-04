@@ -18,8 +18,8 @@ const form = reactive({
 async function loadPages() {
   loading.value = true
   try {
-    const data = await $fetch('/api/payload/pages', { query: { limit: 100 } })
-    pages.value = (data as any).docs || []
+    const data = await $fetch('/api/cms/pages')
+    pages.value = (data as any[]) || []
   }
   catch { pages.value = [] }
   loading.value = false
@@ -56,13 +56,13 @@ async function handleSave() {
   error.value = ''
   try {
     if (editingId.value) {
-      await $fetch(`/api/payload/pages/${editingId.value}`, {
+      await $fetch(`/api/cms/pages/${editingId.value}`, {
         method: 'PATCH',
         body: { title: form.title, slug: form.slug, content: form.content, status: form.status },
       })
     }
     else {
-      await $fetch('/api/payload/pages', {
+      await $fetch('/api/cms/pages', {
         method: 'POST',
         body: { title: form.title, slug: form.slug, content: form.content, status: form.status },
       })
@@ -80,7 +80,7 @@ async function handleDelete(id: string) {
   // eslint-disable-next-line no-alert -- admin action requires user confirmation
   if (!confirm('Are you sure you want to delete this page?')) { return }
   try {
-    await $fetch(`/api/payload/pages/${id}`, { method: 'DELETE' })
+    await $fetch(`/api/cms/pages/${id}`, { method: 'DELETE' })
     await loadPages()
   }
   catch (e: any) {
