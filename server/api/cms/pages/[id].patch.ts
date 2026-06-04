@@ -10,6 +10,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const client = serverSupabaseServiceRole(event)
 
+  // Prevent a page from being its own parent (one-level cycle guard).
+  const parentId = body.parent_id === id ? null : (body.parent_id || null)
+
   const { data, error } = await client
     .from('pages')
     .update({
@@ -17,6 +20,9 @@ export default defineEventHandler(async (event) => {
       slug: body.slug,
       content: body.content ?? null,
       status: body.status,
+      parent_id: parentId,
+      nav_order: body.nav_order ?? 0,
+      show_in_nav: body.show_in_nav ?? true,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

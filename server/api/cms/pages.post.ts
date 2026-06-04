@@ -16,6 +16,9 @@ export default defineEventHandler(async (event) => {
       slug: body.slug,
       content: body.content || null,
       status: body.status || 'draft',
+      parent_id: body.parent_id || null,
+      nav_order: body.nav_order ?? 0,
+      show_in_nav: body.show_in_nav ?? true,
     })
     .select()
     .single()

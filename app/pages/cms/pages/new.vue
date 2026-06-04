@@ -3,10 +3,26 @@ definePageMeta({ middleware: 'cms-auth' })
 
 const router = useRouter()
 const reloadPages = inject<() => Promise<void>>('reloadPages')
+const { pages, ensureLoaded } = useCmsPages()
 const saving = ref(false)
 const errorMsg = ref('')
 
-async function handleSave(payload: { title: string, slug: string, status: 'draft' | 'published', html: string }) {
+// Any existing page can be a parent for the new one.
+const parentOptions = computed(() => pages.value.map(p => ({ id: p.id, title: p.title })))
+
+onMounted(ensureLoaded)
+
+interface SavePayload {
+  title: string
+  slug: string
+  status: 'draft' | 'published'
+  html: string
+  parent_id: string | null
+  nav_order: number
+  show_in_nav: boolean
+}
+
+async function handleSave(payload: SavePayload) {
   saving.value = true
   errorMsg.value = ''
   try {
@@ -17,6 +33,9 @@ async function handleSave(payload: { title: string, slug: string, status: 'draft
         slug: payload.slug,
         status: payload.status,
         content: payload.html,
+        parent_id: payload.parent_id,
+        nav_order: payload.nav_order,
+        show_in_nav: payload.show_in_nav,
       },
     })
     await reloadPages?.()
@@ -36,6 +55,7 @@ async function handleSave(payload: { title: string, slug: string, status: 'draft
         title=""
         slug=""
         status="draft"
+        :parent-options="parentOptions"
         :saving="saving"
         @save="handleSave"
       />

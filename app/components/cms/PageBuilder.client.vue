@@ -4,21 +4,43 @@ import grapesjs from 'grapesjs'
 import gjsBlocksBasic from 'grapesjs-blocks-basic'
 import 'grapesjs/dist/css/grapes.min.css'
 
+interface NavOption {
+  id: string
+  title: string
+}
+
 interface Props {
   initialHtml?: string
   title: string
   slug: string
   status: 'draft' | 'published'
+  parentId?: string | null
+  navOrder?: number
+  showInNav?: boolean
+  // Other pages that can be picked as a parent (excludes the current page).
+  parentOptions?: NavOption[]
   saving?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialHtml: '',
+  parentId: null,
+  navOrder: 0,
+  showInNav: true,
+  parentOptions: () => [],
   saving: false,
 })
 
 const emit = defineEmits<{
-  save: [payload: { title: string, slug: string, status: 'draft' | 'published', html: string }]
+  save: [payload: {
+    title: string
+    slug: string
+    status: 'draft' | 'published'
+    html: string
+    parent_id: string | null
+    nav_order: number
+    show_in_nav: boolean
+  }]
 }>()
 
 const canvasRef = ref<HTMLDivElement>()
@@ -31,15 +53,22 @@ const editor = ref<Editor>()
 const titleModel = ref(props.title)
 const slugModel = ref(props.slug)
 const statusModel = ref<'draft' | 'published'>(props.status)
+const parentIdModel = ref<string | null>(props.parentId)
+const navOrderModel = ref<number>(props.navOrder)
+const showInNavModel = ref<boolean>(props.showInNav)
 
 const tab = ref<'blocks' | 'layers' | 'styles'>('blocks')
 const activeDevice = ref<'Desktop' | 'Tablet' | 'Mobile'>('Desktop')
 const canUndo = ref(false)
 const canRedo = ref(false)
+const settingsOpen = ref(false)
 
 watch(() => props.title, v => (titleModel.value = v))
 watch(() => props.slug, v => (slugModel.value = v))
 watch(() => props.status, v => (statusModel.value = v))
+watch(() => props.parentId, v => (parentIdModel.value = v))
+watch(() => props.navOrder, v => (navOrderModel.value = v))
+watch(() => props.showInNav, v => (showInNavModel.value = v))
 
 function smartBlockMarkerHtml(kind: 'stats-counter' | 'communities-carousel', label: string, hint: string) {
   // Marker uses only <span> children so the server-side replacer can match the
@@ -256,6 +285,9 @@ function handleSave() {
     slug: slugModel.value,
     status: statusModel.value,
     html,
+    parent_id: parentIdModel.value || null,
+    nav_order: Number(navOrderModel.value) || 0,
+    show_in_nav: showInNavModel.value,
   })
 }
 
@@ -371,6 +403,84 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </button>
 
           <div class="mx-2 h-5 w-px bg-gray-200" />
+
+          <!-- Page / nav settings -->
+          <div class="relative">
+            <button
+              type="button"
+              class="p-1.5 rounded-md transition-colors"
+              :class="settingsOpen ? 'text-green-700 bg-green-50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'"
+              title="Page settings"
+              @click="settingsOpen = !settingsOpen"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+
+            <!-- Settings popover -->
+            <div
+              v-if="settingsOpen"
+              class="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 space-y-4"
+            >
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Navigation
+              </div>
+
+              <!-- Show in nav -->
+              <label class="flex items-center justify-between gap-3 cursor-pointer">
+                <span class="text-sm text-gray-700">Show in menu bar</span>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="showInNavModel"
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0"
+                  :class="showInNavModel ? 'bg-green-600' : 'bg-gray-200'"
+                  @click="showInNavModel = !showInNavModel"
+                >
+                  <span
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                    :class="showInNavModel ? 'translate-x-4' : 'translate-x-0.5'"
+                  />
+                </button>
+              </label>
+
+              <!-- Parent page -->
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Parent page</label>
+                <div class="relative">
+                  <select
+                    v-model="parentIdModel"
+                    class="w-full appearance-none text-sm pl-3 pr-8 py-1.5 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500/30 focus:border-green-500 outline-none transition-colors"
+                  >
+                    <option :value="null">
+                      — Top level —
+                    </option>
+                    <option v-for="opt in parentOptions" :key="opt.id" :value="opt.id">
+                      {{ opt.title || 'Untitled' }}
+                    </option>
+                  </select>
+                  <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Order -->
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Menu order</label>
+                <input
+                  v-model.number="navOrderModel"
+                  type="number"
+                  class="w-full text-sm px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/30 focus:border-green-500 outline-none transition-colors"
+                >
+                <p class="text-xs text-gray-400 mt-1">
+                  Lower numbers appear first.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div class="relative">
             <select
