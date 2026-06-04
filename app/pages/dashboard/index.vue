@@ -144,11 +144,16 @@ onMounted(async () => {
               {{ new Date(tree.planted_at).toLocaleDateString() }}
             </div>
           </div>
-          <div v-if="tree.verified" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-            Verified
-          </div>
-          <div v-else class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
-            Pending
+          <div
+            class="text-xs px-2 py-1 rounded-full capitalize"
+            :class="{
+              'bg-amber-100 text-amber-700': tree.status === 'planted',
+              'bg-blue-100 text-blue-700': tree.status === 'growing',
+              'bg-green-100 text-green-700': tree.status === 'mature',
+              'bg-red-100 text-red-500': tree.status === 'removed',
+            }"
+          >
+            {{ tree.status }}
           </div>
         </div>
       </div>

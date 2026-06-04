@@ -66,7 +66,7 @@ onMounted(async () => {
           {{ update.content }}
         </p>
 
-        <div v-if="update.photo_url" class="mb-3">
+        <div v-if="update.photo_urls?.length" class="mb-3">
           <div class="w-full h-48 bg-gradient-to-br from-green-100 to-emerald-50 rounded-lg flex items-center justify-center text-gray-400 text-sm">
             [Update photo placeholder]
           </div>

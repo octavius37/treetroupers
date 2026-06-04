@@ -21,8 +21,7 @@ export default defineEventHandler(async (event) => {
       planted_by: profile.id,
       species_id: body.species_id || null,
       community_id: body.community_id || null,
-      lat: body.lat,
-      lng: body.lng,
+      location: `SRID=4326;POINT(${body.lng} ${body.lat})`,
       notes: body.notes,
       planted_at: body.planted_at,
     })

@@ -72,12 +72,20 @@ onMounted(async () => {
             <div class="text-sm text-gray-500">
               Planted by {{ tree.profiles?.display_name || 'Unknown' }} · {{ new Date(tree.planted_at).toLocaleDateString() }}
             </div>
-            <div v-if="tree.lat && tree.lng" class="text-xs text-gray-400 mt-1">
+            <div v-if="tree.lat != null && tree.lng != null" class="text-xs text-gray-400 mt-1">
               📍 {{ Number(tree.lat).toFixed(4) }}, {{ Number(tree.lng).toFixed(4) }}
             </div>
           </div>
-          <div v-if="tree.verified" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex-shrink-0">
-            Verified
+          <div
+            class="text-xs px-2 py-1 rounded-full capitalize flex-shrink-0"
+            :class="{
+              'bg-amber-100 text-amber-700': tree.status === 'planted',
+              'bg-blue-100 text-blue-700': tree.status === 'growing',
+              'bg-green-100 text-green-700': tree.status === 'mature',
+              'bg-red-100 text-red-500': tree.status === 'removed',
+            }"
+          >
+            {{ tree.status }}
           </div>
         </div>
       </div>

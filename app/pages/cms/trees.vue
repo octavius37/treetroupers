@@ -3,19 +3,27 @@ definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
 const trees = ref<any[]>([])
 const loading = ref(true)
-const filterVerified = ref<'all' | 'verified' | 'pending'>('all')
+const filterStatus = ref<'all' | 'planted' | 'growing' | 'mature' | 'removed'>('all')
 const error = ref('')
 
 async function loadTrees() {
   loading.value = true
-  trees.value = await $fetch('/api/cms/trees', { query: { filter: filterVerified.value } })
+  trees.value = await $fetch('/api/cms/trees', { query: { filter: filterStatus.value } })
   loading.value = false
 }
 
-async function toggleVerified(tree: any) {
+const STATUS_CYCLE: Record<string, string> = {
+  planted: 'growing',
+  growing: 'mature',
+  mature: 'removed',
+  removed: 'planted',
+}
+
+async function cycleStatus(tree: any) {
+  const next = STATUS_CYCLE[tree.status] ?? 'planted'
   try {
-    await $fetch(`/api/cms/trees/${tree.id}`, { method: 'PATCH', body: { verified: !tree.verified } })
-    tree.verified = !tree.verified
+    await $fetch(`/api/cms/trees/${tree.id}`, { method: 'PATCH', body: { status: next } })
+    tree.status = next
   }
   catch (e: any) {
     error.value = e.data?.message || e.message || 'Failed to update'
@@ -34,7 +42,7 @@ async function handleDelete(id: string) {
   }
 }
 
-watch(filterVerified, () => loadTrees())
+watch(filterStatus, () => loadTrees())
 onMounted(loadTrees)
 </script>
 
@@ -49,15 +57,15 @@ onMounted(loadTrees)
           View, verify, and manage planted trees.
         </p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <button
-          v-for="f in (['all', 'pending', 'verified'] as const)"
+          v-for="f in (['all', 'planted', 'growing', 'mature', 'removed'] as const)"
           :key="f"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
-          :class="filterVerified === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'"
-          @click="filterVerified = f"
+          class="px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize"
+          :class="filterStatus === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'"
+          @click="filterStatus = f"
         >
-          {{ f === 'all' ? 'All' : f === 'pending' ? 'Pending' : 'Verified' }}
+          {{ f === 'all' ? 'All' : f }}
         </button>
       </div>
     </div>
@@ -112,7 +120,7 @@ onMounted(loadTrees)
                 {{ tree.communities?.name || '—' }}
               </td>
               <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
-                <template v-if="tree.lat && tree.lng">
+                <template v-if="tree.lat != null && tree.lng != null">
                   {{ Number(tree.lat).toFixed(3) }}, {{ Number(tree.lng).toFixed(3) }}
                 </template>
                 <template v-else>
@@ -121,11 +129,16 @@ onMounted(loadTrees)
               </td>
               <td class="px-6 py-4">
                 <button
-                  class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors"
-                  :class="tree.verified ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'"
-                  @click="toggleVerified(tree)"
+                  class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors capitalize"
+                  :class="{
+                    'bg-amber-100 text-amber-700 hover:bg-amber-200': tree.status === 'planted',
+                    'bg-blue-100 text-blue-700 hover:bg-blue-200': tree.status === 'growing',
+                    'bg-green-100 text-green-700 hover:bg-green-200': tree.status === 'mature',
+                    'bg-red-100 text-red-700 hover:bg-red-200': tree.status === 'removed',
+                  }"
+                  @click="cycleStatus(tree)"
                 >
-                  {{ tree.verified ? 'Verified ✓' : 'Pending' }}
+                  {{ tree.status }}
                 </button>
               </td>
               <td class="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">

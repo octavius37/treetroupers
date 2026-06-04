@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await client
     .from('trees')
-    .update({ verified: body.verified })
+    .update({ status: body.status })
     .eq('id', id)
     .select()
     .single()

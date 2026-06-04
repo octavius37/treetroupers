@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await client
     .from('rewards')
     .insert({
-      name: body.name,
+      title: body.title,
       description: body.description || null,
       points_required: body.points_required,
       active: body.active ?? true,

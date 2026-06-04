@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       common_name: body.common_name,
       scientific_name: body.scientific_name,
       description: body.description || null,
-      avg_co2_per_year_kg: body.avg_co2_per_year_kg ?? null,
+      avg_co2_kg_per_year: body.avg_co2_kg_per_year ?? null,
     })
     .select()
     .single()

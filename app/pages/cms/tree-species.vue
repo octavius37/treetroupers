@@ -12,7 +12,7 @@ const form = reactive({
   common_name: '',
   scientific_name: '',
   description: '',
-  avg_co2_per_year_kg: null as number | null,
+  avg_co2_kg_per_year: null as number | null,
 })
 
 async function loadSpecies() {
@@ -26,7 +26,7 @@ function openCreate() {
   form.common_name = ''
   form.scientific_name = ''
   form.description = ''
-  form.avg_co2_per_year_kg = null
+  form.avg_co2_kg_per_year = null
   showForm.value = true
   error.value = ''
 }
@@ -36,7 +36,7 @@ function openEdit(sp: any) {
   form.common_name = sp.common_name
   form.scientific_name = sp.scientific_name
   form.description = sp.description || ''
-  form.avg_co2_per_year_kg = sp.avg_co2_per_year_kg
+  form.avg_co2_kg_per_year = sp.avg_co2_kg_per_year
   showForm.value = true
   error.value = ''
 }
@@ -54,7 +54,7 @@ async function handleSave() {
     common_name: form.common_name,
     scientific_name: form.scientific_name,
     description: form.description || null,
-    avg_co2_per_year_kg: form.avg_co2_per_year_kg,
+    avg_co2_kg_per_year: form.avg_co2_kg_per_year,
   }
   try {
     if (editingId.value) {
@@ -154,7 +154,7 @@ onMounted(loadSpecies)
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Avg CO₂ per year (kg)</label>
             <input
-              v-model.number="form.avg_co2_per_year_kg"
+              v-model.number="form.avg_co2_kg_per_year"
               type="number"
               step="0.1"
               min="0"
@@ -219,7 +219,7 @@ onMounted(loadSpecies)
               {{ sp.scientific_name }}
             </td>
             <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
-              {{ sp.avg_co2_per_year_kg != null ? sp.avg_co2_per_year_kg : '—' }}
+              {{ sp.avg_co2_kg_per_year != null ? sp.avg_co2_kg_per_year : '—' }}
             </td>
             <td class="px-6 py-4 text-right space-x-3">
               <button class="text-sm text-green-600 hover:text-green-700 font-medium" @click="openEdit(sp)">

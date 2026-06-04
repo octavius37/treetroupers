@@ -9,7 +9,7 @@ const saving = ref(false)
 const error = ref('')
 
 const form = reactive({
-  name: '',
+  title: '',
   description: '',
   points_required: 100,
   active: true,
@@ -23,7 +23,7 @@ async function loadRewards() {
 
 function openCreate() {
   editingId.value = null
-  form.name = ''
+  form.title = ''
   form.description = ''
   form.points_required = 100
   form.active = true
@@ -33,7 +33,7 @@ function openCreate() {
 
 function openEdit(reward: any) {
   editingId.value = reward.id
-  form.name = reward.name
+  form.title = reward.title
   form.description = reward.description || ''
   form.points_required = reward.points_required
   form.active = reward.active
@@ -51,7 +51,7 @@ async function handleSave() {
   saving.value = true
   error.value = ''
   const payload = {
-    name: form.name,
+    title: form.title,
     description: form.description || null,
     points_required: form.points_required,
     active: form.active,
@@ -134,9 +134,9 @@ onMounted(loadRewards)
             {{ error }}
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
-              v-model="form.name"
+              v-model="form.title"
               type="text"
               required
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
@@ -205,7 +205,7 @@ onMounted(loadRewards)
         <thead>
           <tr class="border-b border-gray-200 text-left">
             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Name
+              Title
             </th>
             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">
               Description
@@ -224,7 +224,7 @@ onMounted(loadRewards)
         <tbody class="divide-y divide-gray-100">
           <tr v-for="reward in rewards" :key="reward.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 text-sm font-medium text-gray-900">
-              {{ reward.name }}
+              {{ reward.title }}
             </td>
             <td class="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell max-w-xs truncate">
               {{ reward.description || '—' }}
