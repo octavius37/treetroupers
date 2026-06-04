@@ -8,12 +8,19 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
-      // Close idle connections before Supabase PgBouncer forcibly resets them
-      idleTimeoutMillis: 20000,
+      // Close idle connections well before NAT/PgBouncer forcibly resets them
+      idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 5000,
-      keepAlive: true,
+      // keepAlive sends TCP probes through PgBouncer which triggers resets; leave off
+      keepAlive: false,
+      max: 3,
     },
     schemaName: 'payload',
+    // Skip auto schema push on every dev boot — the drizzle-kit introspection
+    // routine leaks unhandled rejections on transient connection drops, which
+    // restarts the Nuxt dev server. Run `payload migrate` manually after
+    // changing Payload collections.
+    push: false,
   }),
   collections: [Users, Pages],
   // Disable admin panel — Local API only, no Next.js routes
