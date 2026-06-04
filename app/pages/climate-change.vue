@@ -10,13 +10,17 @@ definePageMeta({ layout: 'default' })
         <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);" />
       </div>
       <div class="relative z-10 flex items-center justify-center h-full px-6">
-        <h1 class="text-4xl md:text-5xl text-white text-center font-bold">Climate Change &amp; Trees</h1>
+        <h1 class="text-4xl md:text-5xl text-white text-center font-bold">
+          Climate Change &amp; Trees
+        </h1>
       </div>
     </section>
 
     <section class="py-16 px-4">
       <div class="max-w-3xl mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">The Climate Crisis</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          The Climate Crisis
+        </h2>
         <p class="text-gray-600 leading-relaxed mb-6">
           Climate change represents one of the most significant challenges of our time. Rising global temperatures,
           extreme weather events, and loss of biodiversity threaten ecosystems and communities worldwide.
@@ -28,13 +32,17 @@ definePageMeta({ layout: 'default' })
           </div>
         </div>
 
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Why Trees Matter</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          Why Trees Matter
+        </h2>
         <p class="text-gray-600 leading-relaxed mb-6">
           Trees are one of nature's most effective carbon capture systems. A single mature tree can absorb
           up to 22kg of CO₂ per year, while releasing enough oxygen for two people to breathe.
         </p>
 
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">The Power of Trees</h3>
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+          The Power of Trees
+        </h3>
         <ul class="space-y-3 mb-8">
           <li class="flex gap-3 text-gray-600">
             <span class="text-green-600 font-bold">•</span>
@@ -68,7 +76,9 @@ definePageMeta({ layout: 'default' })
           </div>
         </div>
 
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Community Action</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          Community Action
+        </h2>
         <p class="text-gray-600 leading-relaxed mb-4">
           While systemic change is essential, community-level action creates immediate, tangible impact.
           When communities come together to plant and care for trees, they build social bonds while directly

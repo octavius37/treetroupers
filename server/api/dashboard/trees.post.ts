@@ -2,7 +2,7 @@ import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, message: 'Unauthorized' })
+  if (!user) { throw createError({ statusCode: 401, message: 'Unauthorized' }) }
 
   const body = await readBody(event)
   const client = serverSupabaseServiceRole(event)
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     .eq('auth_user_id', user.id)
     .single()
 
-  if (profileError || !profile) throw createError({ statusCode: 404, message: 'Profile not found' })
+  if (profileError || !profile) { throw createError({ statusCode: 404, message: 'Profile not found' }) }
 
   const { data, error } = await client
     .from('trees')
@@ -28,6 +28,6 @@ export default defineEventHandler(async (event) => {
     .select()
     .single()
 
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) { throw createError({ statusCode: 500, message: error.message }) }
   return data
 })
