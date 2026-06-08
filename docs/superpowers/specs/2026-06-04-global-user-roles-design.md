@@ -44,6 +44,15 @@ A Supabase migration that:
    A user must never be able to update their own `role` (no self-promotion). Admin
    role changes flow exclusively through server endpoints using the service role.
 
+   The `profiles: own update` policy's `WITH CHECK` pins `role` to its committed
+   value via a correlated subquery. **Correlation note:** the subquery table must be
+   aliased and compared to the outer table by name —
+   `role = (select p2.role from public.profiles p2 where p2.id = profiles.id)`.
+   An unqualified `id` inside the subquery binds to the subquery's own table
+   (`profiles_1.id = profiles_1.id`), which is uncorrelated and, with more than one
+   profile row, makes every self-update error out. This was caught in final review
+   and fixed by the `fix_profiles_self_update_role_guard` migration.
+
 After applying the migration, regenerate `app/types/database.types.ts` so `role` is
 typed on the `profiles` Row/Insert/Update types.
 
