@@ -8,6 +8,35 @@ const editingId = ref<string | null>(null)
 const saving = ref(false)
 const error = ref('')
 
+const supaUser = useSupabaseUser()
+const roleSavingId = ref<string | null>(null)
+
+async function changeRole(profile: any, newRole: string) {
+  if (profile.role === newRole) { return }
+  roleSavingId.value = profile.id
+  error.value = ''
+  try {
+    await $fetch(`/api/cms/users/${profile.id}/role`, {
+      method: 'PUT',
+      body: { role: newRole },
+    })
+    await loadUsers()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to update role'
+    // Re-sync the select back to server truth: with :value binding, a rejected
+    // change would otherwise leave the dropdown showing the failed selection.
+    await loadUsers()
+  }
+  finally {
+    roleSavingId.value = null
+  }
+}
+
+function isSelf(profile: any) {
+  return profile.auth_user_id === supaUser.value?.id
+}
+
 const form = reactive({
   display_name: '',
   bio: '',
@@ -69,6 +98,10 @@ onMounted(loadUsers)
       <p class="text-gray-600 mt-1">
         View and manage user profiles. Users are created via Supabase Auth signup.
       </p>
+    </div>
+
+    <div v-if="error" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {{ error }}
     </div>
 
     <!-- Edit Modal -->
@@ -156,6 +189,9 @@ onMounted(loadUsers)
             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
               Joined
             </th>
+            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Role
+            </th>
             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
               Actions
             </th>
@@ -181,6 +217,26 @@ onMounted(loadUsers)
             </td>
             <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
               {{ new Date(profile.created_at).toLocaleDateString() }}
+            </td>
+            <td class="px-6 py-4">
+              <span
+                v-if="isSelf(profile)"
+                class="text-sm font-medium text-gray-700 capitalize"
+                title="You cannot change your own role"
+              >
+                {{ profile.role }}
+              </span>
+              <select
+                v-else
+                :value="profile.role"
+                :disabled="roleSavingId === profile.id"
+                :aria-label="`Role for ${profile.display_name || 'user'}`"
+                class="text-sm border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none disabled:opacity-50"
+                @change="changeRole(profile, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
             </td>
             <td class="px-6 py-4 text-right">
               <button class="text-sm text-green-600 hover:text-green-700 font-medium" @click="openEdit(profile)">

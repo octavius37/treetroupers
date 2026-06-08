@@ -1,6 +1,8 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
+
   const client = serverSupabaseServiceRole(event)
 
   const [profiles, communities, trees, species, rewards] = await Promise.all([

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const { isAdmin } = useUserRole()
 const mobileMenuOpen = ref(false)
 
 interface NavItem {
@@ -95,7 +96,7 @@ async function handleLogout() {
         <!-- Auth Actions -->
         <div class="hidden lg:flex items-center gap-4">
           <template v-if="user">
-            <NuxtLink to="/cms" class="text-sm text-gray-600 hover:text-gray-900">
+            <NuxtLink v-if="isAdmin" to="/cms" class="text-sm text-gray-600 hover:text-gray-900">
               CMS
             </NuxtLink>
             <button class="text-sm text-gray-600 hover:text-gray-900" @click="handleLogout">

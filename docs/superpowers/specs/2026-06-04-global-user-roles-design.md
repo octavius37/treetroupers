@@ -36,11 +36,22 @@ A Supabase migration that:
 1. Creates a Postgres enum `user_role` with values `'admin'` and `'user'`.
 2. Adds column `role user_role NOT NULL DEFAULT 'user'` to `profiles`.
 3. Seeds `role = 'admin'` for the bootstrap admin
-   `p.bollerman@eceoffshore.com`, resolved by joining
+   `paulbollerman@gmail.com` (the account that actually exists in the DB;
+   the originally-specified `p.bollerman@eceoffshore.com` had no profile),
+   resolved by joining
    `profiles.auth_user_id` → `auth.users.id` and matching `auth.users.email`.
 4. Updates RLS so that the `role` column can be changed **only** by the service role.
    A user must never be able to update their own `role` (no self-promotion). Admin
    role changes flow exclusively through server endpoints using the service role.
+
+   The `profiles: own update` policy's `WITH CHECK` pins `role` to its committed
+   value via a correlated subquery. **Correlation note:** the subquery table must be
+   aliased and compared to the outer table by name —
+   `role = (select p2.role from public.profiles p2 where p2.id = profiles.id)`.
+   An unqualified `id` inside the subquery binds to the subquery's own table
+   (`profiles_1.id = profiles_1.id`), which is uncorrelated and, with more than one
+   profile row, makes every self-update error out. This was caught in final review
+   and fixed by the `fix_profiles_self_update_role_guard` migration.
 
 After applying the migration, regenerate `app/types/database.types.ts` so `role` is
 typed on the `profiles` Row/Insert/Update types.

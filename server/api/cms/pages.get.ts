@@ -1,10 +1,7 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
-  if (!user) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
-  }
+  await requireAdmin(event)
 
   const client = serverSupabaseServiceRole(event)
   const { data, error } = await client.from('pages').select('*').order('created_at', { ascending: false })
