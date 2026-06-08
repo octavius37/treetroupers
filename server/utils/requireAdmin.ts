@@ -19,6 +19,9 @@ export async function requireAdmin(event: H3Event) {
     .single()
 
   if (error || !profile) {
+    // Distinguish a real lookup failure (logged for ops) from a genuinely
+    // missing profile; respond 403 either way so we never leak internals.
+    if (error) { console.error('requireAdmin profile lookup failed:', error) }
     throw createError({ statusCode: 403, message: 'Forbidden' })
   }
   if (profile.role !== 'admin') {
