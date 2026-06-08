@@ -24,8 +24,13 @@ async function changeRole(profile: any, newRole: string) {
   }
   catch (e: any) {
     error.value = e.data?.message || e.message || 'Failed to update role'
+    // Re-sync the select back to server truth: with :value binding, a rejected
+    // change would otherwise leave the dropdown showing the failed selection.
+    await loadUsers()
   }
-  roleSavingId.value = null
+  finally {
+    roleSavingId.value = null
+  }
 }
 
 function isSelf(profile: any) {
@@ -214,13 +219,18 @@ onMounted(loadUsers)
               {{ new Date(profile.created_at).toLocaleDateString() }}
             </td>
             <td class="px-6 py-4">
-              <span v-if="isSelf(profile)" class="text-sm font-medium text-gray-700 capitalize">
+              <span
+                v-if="isSelf(profile)"
+                class="text-sm font-medium text-gray-700 capitalize"
+                title="You cannot change your own role"
+              >
                 {{ profile.role }}
               </span>
               <select
                 v-else
                 :value="profile.role"
                 :disabled="roleSavingId === profile.id"
+                :aria-label="`Role for ${profile.display_name || 'user'}`"
                 class="text-sm border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none disabled:opacity-50"
                 @change="changeRole(profile, ($event.target as HTMLSelectElement).value)"
               >
