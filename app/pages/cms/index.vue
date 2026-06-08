@@ -1,11 +1,15 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 
+// Forward browser cookies so the Supabase session is available when this fetch
+// runs during SSR; without it serverSupabaseUser can't resolve the user.
 const { data: stats, status } = useFetch<{
   counts: { profiles: number, communities: number, trees: number, species: number, rewards: number }
   recentTrees: any[]
   recentUsers: any[]
-}>('/api/cms/stats')
+}>('/api/cms/stats', {
+  headers: useRequestHeaders(['cookie']),
+})
 </script>
 
 <template>

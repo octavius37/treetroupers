@@ -2,7 +2,7 @@
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const authUserId = useAuthUserId()
 
 const allCommunities = ref<any[]>([])
 const myCommunityIds = ref<Set<string>>(new Set())
@@ -10,12 +10,12 @@ const profile = ref<any>(null)
 const loading = ref(true)
 
 onMounted(async () => {
-  if (!user.value?.id) { return }
+  if (!authUserId.value) { return }
 
   const { data: profileData } = await supabase
     .from('profiles')
     .select('*')
-    .eq('auth_user_id', user.value.id)
+    .eq('auth_user_id', authUserId.value)
     .single()
   profile.value = profileData
 

@@ -2,7 +2,7 @@
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const authUserId = useAuthUserId()
 
 const species = ref<any[]>([])
 const communities = ref<any[]>([])
@@ -22,11 +22,11 @@ const form = reactive({
 })
 
 onMounted(async () => {
-  if (!user.value?.id) { return }
+  if (!authUserId.value) { return }
 
   const [speciesRes, profileRes] = await Promise.all([
     supabase.from('tree_species').select('*').order('common_name'),
-    supabase.from('profiles').select('*').eq('auth_user_id', user.value.id).single(),
+    supabase.from('profiles').select('*').eq('auth_user_id', authUserId.value).single(),
   ])
 
   species.value = speciesRes.data || []

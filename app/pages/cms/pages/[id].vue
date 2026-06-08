@@ -15,7 +15,10 @@ const { data: page, error: fetchError } = await useFetch<{
   parent_id: string | null
   nav_order: number
   show_in_nav: boolean
-}>(() => `/api/cms/pages/${id.value}`)
+}>(() => `/api/cms/pages/${id.value}`, {
+  // Forward cookies so the Supabase session is available during SSR.
+  headers: useRequestHeaders(['cookie']),
+})
 
 // Other pages can be parents; exclude the current page to prevent self-parenting.
 const parentOptions = computed(() =>

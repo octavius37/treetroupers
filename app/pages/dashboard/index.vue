@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const user = useSupabaseUser()
+const authUserId = useAuthUserId()
 const supabase = useSupabaseClient()
 
 const profile = ref<any>(null)
@@ -10,12 +10,12 @@ const recentTrees = ref<any[]>([])
 const loading = ref(true)
 
 onMounted(async () => {
-  if (!user.value?.id) { return }
+  if (!authUserId.value) { return }
 
   const { data: profileData } = await supabase
     .from('profiles')
     .select('*')
-    .eq('auth_user_id', user.value.id)
+    .eq('auth_user_id', authUserId.value)
     .single()
   profile.value = profileData
 

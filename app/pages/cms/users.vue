@@ -8,7 +8,7 @@ const editingId = ref<string | null>(null)
 const saving = ref(false)
 const error = ref('')
 
-const supaUser = useSupabaseUser()
+const authUserId = useAuthUserId()
 const roleSavingId = ref<string | null>(null)
 
 async function changeRole(profile: any, newRole: string) {
@@ -34,7 +34,7 @@ async function changeRole(profile: any, newRole: string) {
 }
 
 function isSelf(profile: any) {
-  return profile.auth_user_id === supaUser.value?.id
+  return profile.auth_user_id === authUserId.value
 }
 
 const form = reactive({
