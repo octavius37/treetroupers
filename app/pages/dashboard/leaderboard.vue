@@ -2,7 +2,7 @@
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const authUserId = useAuthUserId()
 
 const leaders = ref<any[]>([])
 const loading = ref(true)
@@ -16,8 +16,8 @@ onMounted(async () => {
     .limit(50)
   leaders.value = data || []
 
-  if (user.value) {
-    const idx = leaders.value.findIndex(l => l.auth_user_id === user.value!.id)
+  if (authUserId.value) {
+    const idx = leaders.value.findIndex(l => l.auth_user_id === authUserId.value)
     if (idx >= 0) { currentUserRank.value = idx + 1 }
   }
 
@@ -49,7 +49,7 @@ onMounted(async () => {
           v-for="(leader, index) in leaders"
           :key="leader.id"
           class="px-6 py-4 flex items-center gap-4"
-          :class="leader.auth_user_id === user?.id ? 'bg-green-50' : ''"
+          :class="leader.auth_user_id === authUserId ? 'bg-green-50' : ''"
         >
           <!-- Rank -->
           <div class="w-8 text-center flex-shrink-0">
@@ -68,7 +68,7 @@ onMounted(async () => {
           <div class="flex-1 min-w-0">
             <div class="font-medium text-gray-900 truncate">
               {{ leader.display_name || 'Anonymous' }}
-              <span v-if="leader.auth_user_id === user?.id" class="text-xs text-green-600 font-normal">(you)</span>
+              <span v-if="leader.auth_user_id === authUserId" class="text-xs text-green-600 font-normal">(you)</span>
             </div>
           </div>
 

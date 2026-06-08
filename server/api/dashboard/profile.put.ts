@@ -1,8 +1,8 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
-  if (!user) { throw createError({ statusCode: 401, message: 'Unauthorized' }) }
+  const uid = await authUserId(event)
+  if (!uid) { throw createError({ statusCode: 401, message: 'Unauthorized' }) }
 
   const body = await readBody(event)
   const client = serverSupabaseServiceRole(event)
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       display_name: body.display_name,
       bio: body.bio,
     })
-    .eq('auth_user_id', user.id)
+    .eq('auth_user_id', uid)
     .select()
     .single()
 

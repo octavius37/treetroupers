@@ -3,6 +3,7 @@ definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const authUserId = useAuthUserId()
 
 const profile = ref<any>(null)
 const loading = ref(true)
@@ -15,12 +16,12 @@ const form = reactive({
 })
 
 onMounted(async () => {
-  if (!user.value?.id) { return }
+  if (!authUserId.value) { return }
 
   const { data } = await supabase
     .from('profiles')
     .select('*')
-    .eq('auth_user_id', user.value.id)
+    .eq('auth_user_id', authUserId.value)
     .single()
 
   profile.value = data
