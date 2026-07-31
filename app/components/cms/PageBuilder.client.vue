@@ -139,6 +139,12 @@ onMounted(() => {
         { name: 'Extra', open: false, buildProps: ['transition', 'perspective', 'transform'] },
       ],
     },
+    assetManager: {
+      upload: '/api/cms/upload',
+      uploadName: 'files',
+      multiUpload: true,
+      autoAdd: true,
+    },
     selectorManager: { appendTo: styleSelectorsRef.value },
     layerManager: { appendTo: layersRef.value },
     panels: { defaults: [] },
