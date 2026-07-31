@@ -4,12 +4,7 @@ definePageMeta({ layout: 'default' })
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 
-const { data: page, error } = await useFetch<{
-  id: string
-  title: string
-  slug: string
-  html: string
-}>(() => `/api/public/pages/${slug.value}`)
+const { data: page, error } = await usePublicPage(slug)
 
 if (error.value || !page.value) {
   throw createError({ statusCode: 404, message: 'Page not found', fatal: true })
