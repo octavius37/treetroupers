@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
-const { pages, loading: pagesLoading, reload: reloadPages, ensureLoaded } = useCmsPages()
+const { pages, loading: pagesLoading, loadError: pagesLoadError, reload: reloadPages, ensureLoaded } = useCmsPages()
 
 const sidebarCollapsed = ref(false)
 
@@ -118,6 +118,12 @@ watch(onPagesSection, (inSection) => {
               <div v-if="!sidebarCollapsed && onPagesSection" class="mt-0.5 ml-3 pl-2 border-l border-gray-200 space-y-0.5">
                 <div v-if="pagesLoading && pages.length === 0" class="px-2 py-1.5 text-xs text-gray-400">
                   Loading…
+                </div>
+                <div v-else-if="pagesLoadError" class="px-2 py-1.5 text-xs text-red-500">
+                  Couldn't load pages —
+                  <button type="button" class="underline hover:text-red-600" @click="reloadPages">
+                    retry
+                  </button>
                 </div>
                 <div v-else-if="pages.length === 0" class="px-2 py-1.5 text-xs text-gray-400">
                   No pages yet
