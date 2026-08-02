@@ -1,0 +1,75 @@
+# Local development stack for Tree Troupers.
+#
+# The Supabase services themselves are managed by the Supabase CLI, which is
+# itself a Docker Compose orchestrator (~10 containers: Postgres, GoTrue,
+# PostgREST, Realtime, Storage, Studio, Kong, Inbucket...). Re-declaring those
+# here would mean maintaining a second copy of a compose file the CLI already
+# generates and version-matches to your migrations. So this file does not
+# reimplement Supabase — the `supabase` service below drives the CLI, giving a
+# single `docker compose up` entrypoint for anyone who only knows Docker.
+#
+#   docker compose up            # start Supabase + the Nuxt dev server
+#   docker compose up supabase   # database only
+#   docker compose down          # stop the Nuxt app (see note below)
+#
+# Note: `docker compose down` stops the containers defined here. The Supabase
+# containers are owned by the CLI, so stop those with `npm run db:stop`.
+
+name: tree-troupers
+
+services:
+  # Brings up the local Supabase stack, applies all migrations, loads seed.sql,
+  # then exits 0. Everything downstream waits for that clean exit.
+  supabase:
+    image: node:24-alpine
+    working_dir: /workspace
+    # git is required by the Supabase CLI; docker-cli lets it drive the host
+    # daemon through the mounted socket.
+    command: >
+      sh -c "apk add --no-cache git docker-cli >/dev/null &&
+             npx --yes supabase@latest start &&
+             npx --yes supabase@latest db reset --local"
+    environment:
+      # The CLI shells out to the host Docker daemon rather than nesting one.
+      DOCKER_HOST: unix:///var/run/docker.sock
+      SUPABASE_WORKDIR: /workspace
+    volumes:
+      - ./supabase:/workspace/supabase
+      - /var/run/docker.sock:/var/run/docker.sock
+      - supabase-cli-cache:/root/.cache
+    # Not a long-running service: it configures the stack and exits.
+    restart: "no"
+
+  app:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "yarn install --frozen-lockfile && yarn dev --host 0.0.0.0"
+    ports:
+      - "3000:3000"
+    environment:
+      # host.docker.internal resolves to the host, where the CLI published the
+      # Supabase ports from supabase/config.toml.
+      SUPABASE_URL: http://host.docker.internal:54421
+      # Fixed local demo keys, verified via `supabase status -o env`. Not secrets:
+      # the local stack signs with a published JWT secret, so these are the same
+      # on every machine and worthless against any hosted project.
+      SUPABASE_KEY: ${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU}
+      NUXT_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET:-local-development-only-secret-min-32-chars}
+      # Nuxt's file watcher needs polling for bind mounts on some hosts.
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      # Keep container node_modules separate: the host tree may hold
+      # platform-specific binaries built for a different libc.
+      - app-node-modules:/app/node_modules
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      supabase:
+        condition: service_completed_successfully
+
+volumes:
+  supabase-cli-cache:
+  app-node-modules:
