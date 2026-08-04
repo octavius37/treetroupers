@@ -254,31 +254,31 @@ ${statsCounterBlock}
         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">[Organization logo placeholder]</div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">One Tree Planted</h3>
         <p class="text-gray-600 leading-relaxed mb-4">Perhaps the most accessible option, operating on a simple model of $1 per tree planted across projects in over 80 countries. Founded in 2014 to create a straightforward avenue for individuals and businesses to give back and aid in global reforestation.</p>
-        <span class="text-green-600 font-medium text-sm">[Add website link]</span>
+        <a href="https://www.onetreeplanted.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
       </div>
       <div class="border border-gray-200 rounded-2xl p-6">
         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">[Organization logo placeholder]</div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">Eden: People + Planet</h3>
         <p class="text-gray-600 leading-relaxed mb-4">Takes a broader approach, supporting community-led restoration activities including indigenous tree planting, fire prevention, and sustainable agriculture training in some of the world's most important ecosystems.</p>
-        <span class="text-green-600 font-medium text-sm">[Add website link]</span>
+        <a href="https://www.eden-plus.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
       </div>
       <div class="border border-gray-200 rounded-2xl p-6">
         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">[Organization logo placeholder]</div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">WeForest</h3>
         <p class="text-gray-600 leading-relaxed mb-4">Focuses on science-led landscape restoration, working in partnership with governments, local organisations, and communities on the ground in tropical regions and biodiversity hotspots — with the goal not merely of planting trees but of restoring entire landscapes and protecting them from deforestation over the long term.</p>
-        <span class="text-green-600 font-medium text-sm">[Add website link]</span>
+        <a href="https://www.weforest.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
       </div>
       <div class="border border-gray-200 rounded-2xl p-6">
         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">[Organization logo placeholder]</div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">TreeSisters</h3>
         <p class="text-gray-600 leading-relaxed mb-4">Channels donations specifically into tropical reforestation, funding ethical, community-led planting projects that empower women and support local and indigenous communities, with 80% of monthly donations going directly to reforestation partner programmes.</p>
-        <span class="text-green-600 font-medium text-sm">[Add website link]</span>
+        <a href="https://www.treesisters.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
       </div>
       <div class="border border-gray-200 rounded-2xl p-6 col-span-2">
         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">[Organization logo placeholder]</div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">Trees for the Future</h3>
         <p class="text-gray-600 leading-relaxed mb-4">Links tree planting to poverty alleviation, training farmers across Sub-Saharan Africa to plant, protect, and grow trees as a route to sustainable livelihoods — having already planted over 190 million trees and improved food security for over 150,000 people.</p>
-        <span class="text-green-600 font-medium text-sm">[Add website link]</span>
+        <a href="https://trees.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
       </div>
     </div>
     <p class="text-gray-500 text-sm italic text-center mt-12">The Tree Troupe platform provides our analysis of the best bang for your buck in tree-planting efforts globally.</p>
