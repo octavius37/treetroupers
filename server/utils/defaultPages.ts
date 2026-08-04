@@ -121,42 +121,55 @@ ${statsCounterBlock}
   {
     slug: 'climate-change',
     title: 'Climate Change & Trees',
-    content: `<section class="relative h-[400px] overflow-hidden">
-  <div class="absolute inset-0 bg-gradient-to-r from-amber-900 to-green-900">
-    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);"></div>
-  </div>
-  <div class="relative z-10 flex items-center justify-center h-full px-6">
-    <h1 class="text-4xl md:text-5xl text-white text-center font-bold">Climate Change &amp; Trees</h1>
+    content: `<section class="relative h-[400px] overflow-hidden bg-gradient-to-b from-sky-300 via-sky-100 to-slate-200">
+  <div class="relative z-10 h-full max-w-6xl mx-auto px-6 pt-10 flex items-start justify-between gap-6 flex-wrap">
+    <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-2xl leading-snug">Read on to discover how tree troupe can help you plant trees individually and collectively, and to track your progress!</h1>
+    <a href="/what-can-i-do" class="shrink-0 inline-block bg-green-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-700 transition-colors">What can I do?</a>
   </div>
 </section>
-<section class="py-16 px-4">
-  <div class="max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">The Climate Crisis</h2>
-    <p class="text-gray-600 leading-relaxed mb-6">Climate change represents one of the most significant challenges of our time. Rising global temperatures, extreme weather events, and loss of biodiversity threaten ecosystems and communities worldwide.</p>
-    <div class="bg-gray-50 rounded-2xl p-8 my-8">
-      <div class="w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl flex items-center justify-center text-gray-400 text-sm">[Climate data visualization placeholder]</div>
+<section class="py-12 px-4 bg-green-600 text-center">
+  <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">Contact us</h2>
+  <p class="text-green-100 mb-6 max-w-xl mx-auto">Got a question about planting with your community? We would love to hear from you.</p>
+  <a href="/contact" class="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">Get in touch</a>
+</section>
+<section class="py-16 px-4 bg-gray-100">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">The climate crisis and action paralysis</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div class="h-48 rounded-lg bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider text-center px-4">Photo placeholder: Earth in climate crisis</div>
+      <div class="h-48 rounded-lg bg-gradient-to-br from-amber-200 to-yellow-100 flex items-center justify-center text-gray-600 text-xs font-semibold uppercase tracking-wider text-center px-4">Photo placeholder: International climate summit</div>
+      <div class="h-48 rounded-lg bg-gradient-to-br from-sky-300 to-slate-200 flex items-center justify-center text-gray-600 text-xs font-semibold uppercase tracking-wider text-center px-4">Photo placeholder: Climate justice protest</div>
     </div>
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Why Trees Matter</h2>
-    <p class="text-gray-600 leading-relaxed mb-6">Trees are one of nature's most effective carbon capture systems. A single mature tree can absorb up to 22kg of CO₂ per year, while releasing enough oxygen for two people to breathe.</p>
-    <h3 class="text-xl font-semibold text-gray-900 mb-3">The Power of Trees</h3>
-    <ul class="space-y-3 mb-8">
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Carbon sequestration</strong> — Trees absorb CO₂ from the atmosphere and store it as biomass</span></li>
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Air quality</strong> — Trees filter pollutants and produce clean oxygen</span></li>
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Biodiversity</strong> — Trees provide habitat for countless species</span></li>
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Water management</strong> — Tree roots prevent soil erosion and regulate water cycles</span></li>
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Urban cooling</strong> — Trees reduce the urban heat island effect by up to 5°C</span></li>
-      <li class="flex gap-3 text-gray-600"><span class="text-green-600 font-bold">•</span><span><strong class="text-gray-900">Mental health</strong> — Access to green spaces improves wellbeing and reduces stress</span></li>
-    </ul>
-    <div class="bg-green-50 rounded-2xl p-8 my-8">
-      <div class="w-full h-48 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center text-gray-400 text-sm">[Forest ecosystem infographic placeholder]</div>
-    </div>
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Community Action</h2>
-    <p class="text-gray-600 leading-relaxed mb-4">While systemic change is essential, community-level action creates immediate, tangible impact. When communities come together to plant and care for trees, they build social bonds while directly improving their local environment.</p>
-    <p class="text-gray-600 leading-relaxed mb-8">Research shows that community-led environmental initiatives are more sustainable and impactful than top-down approaches, because they create a sense of ownership and shared purpose.</p>
-    <div class="text-center">
-      <a href="/what-can-i-do" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">Find out what you can do →</a>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="border-t-4 border-gray-900 pt-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Climate change</h3>
+        <p class="text-gray-600 leading-relaxed">Climate change, driven by human greenhouse gas emissions, is a fact. It is driving terrestrial and marine warming, extreme weather events, and biodiversity loss.</p>
+      </div>
+      <div class="border-t-4 border-gray-900 pt-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Collective helplessness</h3>
+        <p class="text-gray-600 leading-relaxed">Global governments are taking action to tackle climate change, but scientists agree that progress is too slow. Individual citizens are frustrated, with over 80% of people globally wanting their governments to do more.</p>
+      </div>
+      <div class="border-t-4 border-gray-900 pt-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Personal action gap</h3>
+        <p class="text-gray-600 leading-relaxed">50% of people feel they are personally doing too little to combat climate change. But it's hard to know what to do to tackle such a pervasive and massive problem. Even motivated individuals do not know how best to act.</p>
+      </div>
     </div>
   </div>
+</section>
+<section class="relative py-24 px-6 bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 overflow-hidden">
+  <span class="absolute top-4 right-4 z-10 text-xs font-semibold uppercase tracking-wider bg-gray-900 text-white px-3 py-1 rounded-full">Photo placeholder: Autumn forest &amp; lake</span>
+  <div class="absolute inset-0 bg-gray-900 opacity-40"></div>
+  <div class="relative z-10 max-w-4xl mx-auto">
+    <h2 class="text-3xl md:text-5xl font-bold text-white mb-12 leading-tight">A simple solution: plant more trees!</h2>
+    <ul class="space-y-6">
+      <li class="flex gap-3 text-white text-lg leading-relaxed"><span class="text-green-400 font-bold">•</span><span><strong class="text-white">Nature's carbon capture</strong>: Trees sequester carbon dioxide effectively. There is no need for expensive technological fixes.</span></li>
+      <li class="flex gap-3 text-white text-lg leading-relaxed"><span class="text-green-400 font-bold">•</span><span><strong class="text-white">Tangible individual impact</strong>: Planting trees provides a direct and visible environmental impact that is driven by the community, not politics.</span></li>
+      <li class="flex gap-3 text-white text-lg leading-relaxed"><span class="text-green-400 font-bold">•</span><span><strong class="text-white">Emotional connection</strong>: Planting trees gives communities a personal stake in climate action where green spaces are treasured.</span></li>
+    </ul>
+  </div>
+</section>
+<section class="py-16 px-4 bg-white text-center">
+  <a href="/what-can-i-do" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">Find out what you can do →</a>
 </section>`,
   },
   {
