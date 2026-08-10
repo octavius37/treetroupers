@@ -92,7 +92,66 @@
         </div>
       </div>
 
-      <div class="border-t border-gray-800 mt-10 pt-8 text-center text-gray-500 text-sm">
+      <!-- Location & Contact -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-gray-800 mt-10 pt-10">
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wider mb-4">
+            Location
+          </h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            The Tree Troupe team is based in The Hague, the Netherlands
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wider mb-4">
+            Contact
+          </h3>
+          <a href="mailto:treetroupe@protonmail.com" class="text-gray-400 hover:text-white text-sm transition-colors">
+            treetroupe@protonmail.com
+          </a>
+        </div>
+      </div>
+
+      <!-- Social links -->
+      <div class="flex items-center gap-4 mt-8">
+        <a
+          href="https://www.instagram.com/treetroupers/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          class="w-9 h-9 rounded-full bg-gray-800 hover:bg-green-600 flex items-center justify-center transition-colors"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <circle cx="12" cy="12" r="5" />
+            <circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
+          </svg>
+        </a>
+        <a
+          href="https://www.facebook.com/groups/2678344062524121"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+          class="w-9 h-9 rounded-full bg-gray-800 hover:bg-green-600 flex items-center justify-center transition-colors"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6v1.9H16l-.4 2.9h-2.1v7A10 10 0 0 0 22 12z" />
+          </svg>
+        </a>
+        <a
+          href="https://x.com/treetroupe"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="X (Twitter)"
+          class="w-9 h-9 rounded-full bg-gray-800 hover:bg-green-600 flex items-center justify-center transition-colors"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M4 4l16 16M20 4L4 20" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
         &copy; {{ new Date().getFullYear() }} Tree Troupe. All rights reserved.
       </div>
     </div>

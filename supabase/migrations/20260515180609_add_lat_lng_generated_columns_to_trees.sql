@@ -1,0 +1,3 @@
+ALTER TABLE trees
+  ADD COLUMN IF NOT EXISTS lat float8 GENERATED ALWAYS AS (ST_Y(location::geometry)) STORED,
+  ADD COLUMN IF NOT EXISTS lng float8 GENERATED ALWAYS AS (ST_X(location::geometry)) STORED;
