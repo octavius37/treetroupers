@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ['cookie']
+      include: ['cookie', 'grapesjs']
     }
   },
   compatibilityDate: '2025-07-15',
