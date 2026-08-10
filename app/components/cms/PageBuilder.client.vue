@@ -95,6 +95,13 @@ const LIST_CSS = `
   li { margin: 0.25em 0; }
 `
 
+// queryCommandState is the only API that reports list state inside a
+// contenteditable; deprecated in the TS DOM lib but still the standard
+// approach every WYSIWYG editor uses.
+function listState(command: string) {
+  return (_rte: any, doc: Document) => ((doc as any).queryCommandState(command) ? 1 : 0)
+}
+
 onMounted(() => {
   if (!canvasRef.value) {
     return
@@ -161,11 +168,6 @@ onMounted(() => {
   // execCommand('insert*List') toggles the list on/off and `state` lights the
   // button when the cursor is already inside that list type.
   const rte = editor.value.RichTextEditor
-  // queryCommandState is the only API that reports list state inside a
-  // contenteditable; deprecated in the TS DOM lib but still the standard
-  // approach every WYSIWYG editor uses.
-  const listState = (command: string) => (_rte: any, doc: Document) =>
-    (doc as any).queryCommandState(command) ? 1 : 0
 
   rte.add('unorderedList', {
     icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/><rect x="8" y="5" width="12" height="2" rx="1"/><rect x="8" y="11" width="12" height="2" rx="1"/><rect x="8" y="17" width="12" height="2" rx="1"/></svg>`,
