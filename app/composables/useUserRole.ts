@@ -36,7 +36,9 @@ export function useUserRole() {
 
   // Keep the cached role in sync with the logged-in user, client-side only.
   if (import.meta.client) {
-    watch(authUserId, () => { fetchRole() }, { immediate: role.value === null })
+    watch(authUserId, () => {
+      fetchRole()
+    }, { immediate: role.value === null })
   }
 
   const isAdmin = computed(() => role.value === 'admin')
