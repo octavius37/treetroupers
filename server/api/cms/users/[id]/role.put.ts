@@ -1,5 +1,5 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 const VALID_ROLES = ['admin', 'user'] as const
 type Role = (typeof VALID_ROLES)[number]
