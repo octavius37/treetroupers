@@ -59,6 +59,45 @@ The database has these core tables (types defined in `app/types/database.types.t
 
 PostGIS is enabled for spatial queries. Triggers auto-create profiles on signup and auto-increment total_points on point_events insert.
 
+## Package Manager — use yarn, not npm
+
+**`yarn.lock` is the committed lockfile. Install and add dependencies with
+`yarn`.** CI installs via `nci` (`@antfu/ni`), which detects `yarn.lock` and runs
+`yarn install`, so the lockfile has to stay in yarn's format.
+
+```bash
+yarn install                 # not `npm install`
+yarn add <pkg>               # not `npm install <pkg>`
+yarn add -D <pkg>            # dev dependency
+```
+
+`npm run <script>` is fine — it's only *installing* that matters.
+
+Running `npm install` **rewrites the whole of `yarn.lock`** into npm's own
+formatting and resolution order. It still works, but it turned a 4-dependency
+change into a 4215-line diff once, which buries the real change in review. If it
+happens again, don't hand-edit the file — restore it and redo the install:
+
+```bash
+git checkout origin/main -- yarn.lock   # or HEAD, whichever is the good copy
+yarn install                            # replays package.json additively
+```
+
+### The `cookie` override is inert under yarn
+
+`package.json` carries an npm `overrides` block pinning `@supabase/ssr > cookie`
+to `0.7.2`. **Yarn 1 does not read `overrides`** — its equivalent field is
+`resolutions`, which this project does not have. Verified on a clean
+`yarn install`: `@supabase/ssr` gets a nested `cookie@1.1.1`, not `0.7.2`.
+
+So the pin only ever applied to npm installs, and the thing actually keeping the
+named-export problem away on yarn is `vite.optimizeDeps.include: ['cookie']` in
+`nuxt.config.ts`. Build, tests and the Vercel preview all pass this way.
+
+Leave it alone unless you hit a `cookie` export error. If you do, the fix is a
+`resolutions` entry mirroring the `overrides` one — but that changes the installed
+version, so re-check auth and SSR afterwards.
+
 ## Key Conventions
 
 - **Auth**: Supabase Auth for user-facing login/signup (`useSupabaseClient()`, `useSupabaseUser()`). The `@sidebase/nuxt-auth` module is a leftover from the sidebase template and is only used for demo purposes.
@@ -66,7 +105,7 @@ PostGIS is enabled for spatial queries. Triggers auto-create profiles on signup 
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
 - **Database types**: Keep `app/types/database.types.ts` in sync with the Supabase schema. Each table must include a `Relationships: []` array to satisfy the postgrest-js type system.
-- **Cookie override**: `package.json` has an npm `overrides` entry pinning `@supabase/ssr > cookie` to `0.7.2` to fix a named export incompatibility with cookie v1.x.
+- **Cookie override**: `package.json` has an npm `overrides` entry pinning `@supabase/ssr > cookie` to `0.7.2` to fix a named export incompatibility with cookie v1.x. Note this has **no effect under yarn**, which is how the project installs — see "Package Manager" above.
 
 ## Local Database (read this before touching the schema)
 
