@@ -29,4 +29,11 @@ export default antfu({
     'curly': ['error', 'all'],
     'node/prefer-global/process': ['error', 'always'],
   },
+}, {
+  files: ['test/**/*.ts'],
+  rules: {
+    // Test titles name HTTP verbs and components — `POST /api/...` and
+    // `AppHeader` read correctly; the autofix turns them into `pOST`/`appHeader`.
+    'test/prefer-lowercase-title': 'off',
+  },
 })

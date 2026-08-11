@@ -169,6 +169,11 @@ npm run typecheck  # TypeScript check (vue-tsc via nuxi)
 npm run lint       # oxlint + eslint
 npm run lint:fix   # Auto-fix lint issues
 
+npm test           # Run the whole test suite once
+npm run test:watch # Re-run affected tests on change
+npx vitest run --project server   # Server tests only (~0.4s)
+npx vitest run --project app      # Nuxt-environment tests only
+
 npm run db:start   # Start local Supabase
 npm run db:stop    # Stop local Supabase
 npm run db:status  # Show local URLs and keys
@@ -179,6 +184,75 @@ npm run db:diff    # Diff local DB against migrations
 npm run db:types   # Regenerate database.types.ts from local DB
 npm run db:push    # Push migrations to the hosted project
 ```
+
+## Testing
+
+Vitest, split into two projects because server and app code need different
+environments. `npm test` runs both; CI runs it on every push and PR.
+
+| Project | Environment | Tests | Speed |
+|---------|-------------|-------|-------|
+| `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
+| `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/` | ~4s (one Nuxt build) |
+
+Everything is a unit test. Nothing touches a database, a network or a browser,
+so the suite needs no Docker, no `.env` and no secrets.
+
+```
+test/
+  helpers/supabase-mock.ts   chainable Supabase query-builder double
+  helpers/nitro.ts           fake H3Event + Nitro auto-import globals
+  mocks/supabase-server.ts   stands in for the `#supabase/server` virtual module
+  setup/                     per-project setup files
+  server/…  app/…            the tests themselves
+```
+
+**Writing server tests.** Server code depends on two things that only exist
+inside a Nitro build. `#supabase/server` is aliased in `vitest.config.ts` to
+`test/mocks/supabase-server.ts` — import that file by *relative path* in tests so
+it type-checks, and the code under test reaches the same module instance through
+the alias. The auto-imported h3 helpers (`defineEventHandler`, `createError`,
+`readBody`, `getRouterParam`) are installed as globals by `test/setup/server.ts`;
+use `setRequestBody()` / `setRouterParams()` from `test/helpers/nitro.ts` to
+drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
+stubbed per test via `Object.assign(globalThis, …)`.
+
+`createSupabaseMock({ table: { data, error, count } })` returns `{ client, calls }`.
+It records each chain, so assert on **what was queried** — filters, `limit`,
+whether the query ran at all — not only on the response. Several tests depend on
+this: that a missing user never reaches the database, that a page read filters
+`status = 'published'`, that a profile is never looked up with `undefined`.
+
+**Writing app tests.** Use `mockNuxtImport` for auto-imports and `mountSuspended`
+for components. Two traps:
+
+- `mockNuxtImport` factories are hoisted above module-scope `const`s. If the
+  factory *returns* the mock directly (`() => navigateTo`), wrap it in
+  `vi.hoisted()`. Closing over a `ref` lazily (`() => () => user`) is fine.
+- Composables that register a `watch` (`useUserRole`) leak it across tests when
+  called at top level, and the watcher then races the next test. Run them inside
+  an `effectScope()` and `stop()` it in `afterEach`. Anything cached in
+  `useState` needs resetting in `beforeEach` too.
+
+**The authorization guard.** `test/server/api/authorization-guards.test.ts` reads
+the source of every `server/api/**` handler and asserts the CMS ones `await
+requireAdmin` before their first query, and the dashboard ones establish a user.
+Every endpoint queries with `serverSupabaseServiceRole`, which bypasses RLS
+entirely, so a handler that forgets its guard is an unauthenticated write path
+rather than a 403. This covers endpoints added later that nobody wrote a test
+for — leave it in place.
+
+**Two caveats worth knowing.**
+
+1. `npm run lint` and `npm run typecheck` were **already failing on `main`**
+   before the suite existed (803 eslint errors repo-wide; two `TS2321` errors in
+   `app/composables/useCmsPages.ts`). The suite adds none of these — it is at
+   parity with that baseline. Don't read a red `lint`/`typecheck` as something
+   the tests broke.
+2. `test/` is outside the include list of every generated `.nuxt/tsconfig*.json`,
+   so `nuxt typecheck` does not check the test files. To check them, point
+   `vue-tsc` at a tsconfig that extends `./.nuxt/tsconfig.json` and includes
+   `test/**/*.ts` alongside `app/**/*` and `server/**/*`.
 
 ## Known Schema Issues
 
@@ -260,5 +334,11 @@ Verified directly against the hosted project:
 - AR tree overlay
 - Directus or Payload CMS content fully wired to public info pages
 - Contact form email backend
-- Test suite (CI placeholder exists but no tests)
+- **Database integration tests** — the unit suite mocks Supabase entirely, so
+  nothing verifies RLS policies, the `handle_new_user` trigger,
+  `sync_total_points`, or the `leaderboard` view. That is the same class of bug
+  as everything under "Known Schema Issues", and it needs the local stack (and
+  therefore Docker in CI). The natural next step.
+- **End-to-end tests** — no browser coverage of login → plant a tree →
+  leaderboard, or of the admin CMS gate.
 - Tree species database seeding
