@@ -113,14 +113,41 @@ npm run db:types            # regenerate app/types/database.types.ts
 ```
 
 Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote).
+against remote) — **but read "Remote migration history" below first: a plain
+`db:push` currently fails.**
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
 LEVEL SECURITY`, and at least one policy per operation you intend to allow.
 The baseline migration sets default privileges, so grants are usually automatic —
-but **RLS with zero policies denies everything**, which is the current state of
+but **RLS with zero policies denies everything**, which is what went wrong with
 `pages` (see "Known Schema Issues").
+
+### Remote migration history (read before `db:push`)
+
+The hosted project predates migration tracking, so its history does **not**
+contain the baseline. `db:push` pushes every local migration absent from remote
+history — including `20260515180000_baseline_schema.sql`, whose `create table
+public.profiles` fails immediately against a database where that table already
+exists. The push aborts; nothing is applied.
+
+The baseline must therefore be marked as applied-without-running, once:
+
+```bash
+supabase link --project-ref <ref>
+supabase migration repair --status applied 20260515180000
+npm run db:push
+```
+
+`migration repair` only writes a history row — it never executes the SQL, which
+is correct here because the hosted schema already matches the baseline.
+
+Check what remote actually has before pushing; do not assume repo and remote
+agree:
+
+```bash
+supabase migration list --linked   # side-by-side local vs remote
+```
 
 ## Commands
 
@@ -164,8 +191,45 @@ Found while extracting the schema into migrations.
    exposure is harmless. If you ever want it out of the API surface, remove
    `public` from the exposed schemas rather than trying to enable RLS.
 
+3. **`leaderboard` is a `SECURITY DEFINER` view** (Supabase advisory, ERROR).
+   Postgres 15+ makes views run as their owner unless created with
+   `security_invoker = true`, so the view ignores the caller's RLS. Verified
+   harmless today: it reads only `profiles`, `trees` and `tree_updates`, all of
+   which already have `public read` policies. The risk is future drift — a column
+   or join added later would bypass RLS silently. Fix with
+   `alter view public.leaderboard set (security_invoker = true);` after checking
+   the dashboard still renders.
+
+4. **Four functions have a mutable `search_path`** (WARN): `handle_new_user`,
+   `sync_total_points`, `insert_tree`, `trees_near_point`. Pin it
+   (`set search_path = public, extensions`) when you next touch them. Of these
+   only `handle_new_user` is `SECURITY DEFINER`, which makes it the one that
+   matters: a mutable `search_path` on a definer-rights function is the classic
+   privilege-escalation shape.
+
+5. **`handle_new_user` is callable over the API** (WARN) — it is `SECURITY
+   DEFINER` and `anon`/`authenticated` hold `EXECUTE`, so it is reachable at
+   `/rest/v1/rpc/handle_new_user`. It is only ever meant to run as the
+   `on_auth_user_created` trigger. It would fail without a trigger record, but it
+   has no business being exposed: `revoke execute on function
+   public.handle_new_user() from anon, authenticated;`
+
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
+
+### Current remote state (2026-08-02)
+
+Verified directly against the hosted project:
+
+- `pages: public read` **is applied on remote**, recorded as history version
+  `20260802000000` so it matches the repo file exactly. The corresponding
+  Supabase advisory is cleared.
+- Remote history is **missing the baseline** `20260515180000` — see "Remote
+  migration history" above before running `db:push`.
+- The four `20260804*` page-content migrations from PR #6 are **committed but not
+  applied to remote**; the hosted project has no `global-organizations` page.
+  They will go out with the next successful `db:push`, which changes live page
+  content — review that content before pushing rather than after.
 
 ## What's Not Done Yet
 
