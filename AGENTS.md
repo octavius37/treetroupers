@@ -113,8 +113,8 @@ npm run db:types            # regenerate app/types/database.types.ts
 ```
 
 Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote) — **but read "Remote migration history" below first: a plain
-`db:push` currently fails.**
+against remote) — **but read "Remote migration history" below first: the only
+migrations it would send overwrite live page content.**
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
@@ -125,22 +125,32 @@ but **RLS with zero policies denies everything**, which is what went wrong with
 
 ### Remote migration history (read before `db:push`)
 
-The hosted project predates migration tracking, so its history does **not**
-contain the baseline. `db:push` pushes every local migration absent from remote
-history — including `20260515180000_baseline_schema.sql`, whose `create table
-public.profiles` fails immediately against a database where that table already
-exists. The push aborts; nothing is applied.
+The hosted project predates migration tracking, so its history never contained
+the baseline. Because `db:push` pushes every local migration absent from remote
+history, it would try to run `20260515180000_baseline_schema.sql` — whose
+`create table public.profiles` fails against a database that already has that
+table — and abort without applying anything.
 
-The baseline must therefore be marked as applied-without-running, once:
+**Already resolved:** the baseline is now recorded in remote history as applied,
+with no SQL executed (the hosted schema already matched it). Nothing to re-run.
 
-```bash
-supabase link --project-ref <ref>
-supabase migration repair --status applied 20260515180000
-npm run db:push
+If you need the same repair again, note that `supabase migration repair` may fail
+while provisioning its temporary login role:
+
+```
+unexpected login role status 400: permission denied to alter role
 ```
 
-`migration repair` only writes a history row — it never executes the SQL, which
-is correct here because the hosted schema already matches the baseline.
+That is the CLI trying to `alter role cli_login_postgres` — not a problem with
+the repair itself. Bypass the login role by connecting directly:
+
+```bash
+supabase migration repair --status applied <version> \
+  --db-url "postgresql://postgres:<db-password>@db.<project-ref>.supabase.co:5432/postgres"
+```
+
+The same `--db-url` flag works for `db push` and `migration list`. Get the
+password from Dashboard → Settings → Database. Never commit it.
 
 Check what remote actually has before pushing; do not assume repo and remote
 agree:
@@ -224,12 +234,23 @@ Verified directly against the hosted project:
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
   Supabase advisory is cleared.
-- Remote history is **missing the baseline** `20260515180000` — see "Remote
-  migration history" above before running `db:push`.
+- The baseline `20260515180000` has been **marked applied on remote** (the
+  `migration repair` equivalent — a history row, no SQL executed), so `db:push`
+  no longer aborts on it.
 - The four `20260804*` page-content migrations from PR #6 are **committed but not
-  applied to remote**; the hosted project has no `global-organizations` page.
-  They will go out with the next successful `db:push`, which changes live page
-  content — review that content before pushing rather than after.
+  applied to remote**, and are now the only thing a `db:push` would send. They
+  are idempotent upserts keyed on `slug`, so they cannot error — but they
+  **overwrite live page content**:
+
+  | Slug | Remote now | After push |
+  |------|-----------|------------|
+  | `climate-change` | 2220 chars (updated 2026-08-01) | 5060 chars |
+  | `what-can-i-do` | 4134 chars | 6369 chars |
+  | `global-tree-planting-organizations` | does not exist | created |
+
+  `climate-change` carries a more recent `updated_at` than the others. If that
+  was a CMS edit made after PR #6 was written, pushing replaces it. Check that
+  page in the CMS before pushing — an upsert gives no warning and keeps no copy.
 
 ## What's Not Done Yet
 
