@@ -93,18 +93,18 @@ ${statsCounterBlock}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Team Member 1</h3>
-        <p class="text-sm text-gray-500">Role / Title</p>
+        <h3 class="font-semibold text-gray-900">Jessica Howley</h3>
+        <p class="text-sm text-gray-500">Founder, Climate enthusiast, Rhodes Scholar, former UN staffer, international lawyer</p>
       </div>
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Team Member 2</h3>
-        <p class="text-sm text-gray-500">Role / Title</p>
+        <h3 class="font-semibold text-gray-900">Charlotte Howley</h3>
+        <p class="text-sm text-gray-500">Media specialist</p>
       </div>
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Team Member 3</h3>
-        <p class="text-sm text-gray-500">Role / Title</p>
+        <h3 class="font-semibold text-gray-900">Paul Bollerman</h3>
+        <p class="text-sm text-gray-500">Software expert</p>
       </div>
     </div>
     <h2 class="text-2xl font-bold text-gray-900 text-center mb-10">Our Values</h2>
