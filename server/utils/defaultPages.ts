@@ -25,9 +25,20 @@ export const DEFAULT_PAGES: DefaultPage[] = [
   </div>
 </section>
 <section class="py-20 px-4">
-  <div class="max-w-7xl mx-auto text-center">
-    <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
-    <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">Tree Troupe connects communities around the world to plant, track, and celebrate trees together. We believe that collective action starts locally — one tree, one neighbourhood, one community at a time.</p>
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-900 text-center mb-6">Our Mission</h2>
+    <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed text-center mb-12">Tree Troupe connects communities around the world to plant, track, and celebrate trees together. We believe that collective action starts locally — one tree, one neighbourhood, one community at a time.</p>
+    <h3 class="text-xl font-semibold text-gray-900 mb-3">The Climate Emergency</h3>
+    <p class="text-gray-600 leading-relaxed mb-8">It is difficult to overstate the seriousness of the climate crisis and the urgency of taking action to mitigate its effects. The burning of fossil fuels is driving unprecedented and accelerating changes in the Earth's climate system, with the critical 1.5°C global temperature increase threshold breached in 2024. Without immediate and deep emissions cuts, the long-term average is likely to surpass 1.5°C within this decade, posing direct threats to human well-being and planetary health: more frequent extreme weather events, rising sea levels, serious disruption to ecosystems and biodiversity, and widespread risks to food and water security.</p>
+    <h3 class="text-xl font-semibold text-gray-900 mb-3">Harnessing Climate Helplessness</h3>
+    <p class="text-gray-600 leading-relaxed mb-4">Many people do not just worry about climate change — they feel a sense of helplessness about their ability to change the status quo. A substantial proportion of people believe governments are failing to respond adequately, but also that they are personally doing too little to address climate change.</p>
+    <p class="text-gray-600 leading-relaxed mb-4">Enter Tree Troupe.</p>
+    <p class="text-gray-600 leading-relaxed mb-4">Tree Troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. Tree Troupers harness collective helplessness to drive climate ambition. Tree Troupe is founded on three key tenets:</p>
+    <ol class="space-y-2 pl-6 text-gray-600">
+      <li>Planting trees is one of the easiest, most effective ways to combat climate change;</li>
+      <li>Tree planting on a mass scale could be a game-changer for our planet's health</li>
+      <li>Tree-planting is something anyone can do - individually, collectively or globally.</li>
+    </ol>
   </div>
 </section>
 <section class="py-10 px-4 bg-gray-50">
