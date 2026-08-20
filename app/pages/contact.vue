@@ -10,12 +10,18 @@ const form = reactive({
 
 const submitted = ref(false)
 const submitting = ref(false)
+const errorMsg = ref('')
 
 async function handleSubmit() {
   submitting.value = true
-  // TODO: Connect to email service or Supabase function
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  submitted.value = true
+  errorMsg.value = ''
+  try {
+    await $fetch('/api/contact', { method: 'POST', body: form })
+    submitted.value = true
+  }
+  catch (e: any) {
+    errorMsg.value = e.data?.message || 'Something went wrong sending your message. Please try again.'
+  }
   submitting.value = false
 }
 </script>
@@ -94,6 +100,9 @@ async function handleSubmit() {
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition resize-none"
             />
           </div>
+          <p v-if="errorMsg" class="text-center text-red-600 text-sm">
+            {{ errorMsg }}
+          </p>
           <div class="text-center">
             <button
               type="submit"

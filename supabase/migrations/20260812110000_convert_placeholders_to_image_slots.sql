@@ -1,81 +1,16 @@
-// Starting content for the CMS pages that replaced the old hardcoded routes
-// (see app/pages/index.vue and the deleted who-we-are/climate-change/what-can-i-do
-// pages). Used by server/api/cms/seed-default-pages.post.ts to populate the
-// `pages` table on first run so the site isn't blank right after this migration
-// — after that, admins edit this content entirely through the CMS.
-export interface DefaultPage {
-  slug: string
-  title: string
-  content: string
-}
-
-const statsCounterBlock = `<div data-block="stats-counter" class="my-8 py-12 px-6 rounded-2xl border-2 border-dashed border-green-400 bg-green-50 text-center"><span class="block text-xs uppercase tracking-wider text-green-700 font-semibold mb-2">Smart Block · Stats Counter</span><span class="block text-sm text-gray-600">Shows live tree, community &amp; member counts</span><span class="block text-xs text-gray-400 mt-2">Renders live data on the public page.</span></div>`
-
-export const DEFAULT_PAGES: DefaultPage[] = [
-  {
-    slug: 'home',
-    title: 'Home',
-    content: `<section class="relative h-[400px] overflow-hidden">
-  <div class="absolute inset-0 bg-gradient-to-b from-green-950 via-green-800 to-green-600">
-    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255,255,255,0.06) 0%, transparent 60%);"></div>
-    <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(90deg, white 0px, transparent 2px, transparent 60px);"></div>
-  </div>
-  <div class="relative z-10 flex items-center justify-center h-full px-6">
-    <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white text-center italic font-light max-w-4xl leading-snug" style="font-family: Georgia, 'Times New Roman', serif;">Transforming climate helplessness into empowered action through community tree planting</h1>
-  </div>
-</section>
-<section class="py-20 px-4">
-  <div class="max-w-4xl mx-auto">
-    <h2 class="text-3xl font-bold text-gray-900 text-center mb-6">Our Mission</h2>
-    <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed text-center mb-12">Tree Troupe connects communities around the world to plant, track, and celebrate trees together. We believe that collective action starts locally — one tree, one neighbourhood, one community at a time.</p>
-    <h3 class="text-xl font-semibold text-gray-900 mb-3">The Climate Emergency</h3>
-    <p class="text-gray-600 leading-relaxed mb-8">It is difficult to overstate the seriousness of the climate crisis and the urgency of taking action to mitigate its effects. The burning of fossil fuels is driving unprecedented and accelerating changes in the Earth's climate system, with the critical 1.5°C global temperature increase threshold breached in 2024. Without immediate and deep emissions cuts, the long-term average is likely to surpass 1.5°C within this decade, posing direct threats to human well-being and planetary health: more frequent extreme weather events, rising sea levels, serious disruption to ecosystems and biodiversity, and widespread risks to food and water security.</p>
-    <h3 class="text-xl font-semibold text-gray-900 mb-3">Harnessing Climate Helplessness</h3>
-    <p class="text-gray-600 leading-relaxed mb-4">Many people do not just worry about climate change — they feel a sense of helplessness about their ability to change the status quo. A substantial proportion of people believe governments are failing to respond adequately, but also that they are personally doing too little to address climate change.</p>
-    <p class="text-gray-600 leading-relaxed mb-4">Enter Tree Troupe.</p>
-    <p class="text-gray-600 leading-relaxed mb-4">Tree Troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. Tree Troupers harness collective helplessness to drive climate ambition. Tree Troupe is founded on three key tenets:</p>
-    <ol class="space-y-2 pl-6 text-gray-600">
-      <li>Planting trees is one of the easiest, most effective ways to combat climate change;</li>
-      <li>Tree planting on a mass scale could be a game-changer for our planet's health</li>
-      <li>Tree-planting is something anyone can do - individually, collectively or globally.</li>
-    </ol>
-  </div>
-</section>
-<section class="py-10 px-4 bg-gray-50">
-  <div class="max-w-7xl mx-auto">
-    <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">How It Works</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="text-center p-8">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">Join a Community</h3>
-        <p class="text-gray-600">Find or create a local tree troupe in your area and connect with fellow planters.</p>
-      </div>
-      <div class="text-center p-8">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">Plant &amp; Log Trees</h3>
-        <p class="text-gray-600">Plant a tree and log it with a photo and GPS location to add it to our global map.</p>
-      </div>
-      <div class="text-center p-8">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">Earn &amp; Celebrate</h3>
-        <p class="text-gray-600">Earn points for planting and verifying trees. Climb the leaderboard and unlock rewards.</p>
-      </div>
-    </div>
-  </div>
-</section>
-${statsCounterBlock}
-<section class="py-20 px-4 bg-green-600">
-  <div class="max-w-3xl mx-auto text-center">
-    <h2 class="text-3xl font-bold text-white mb-6">Ready to make a difference?</h2>
-    <p class="text-green-100 text-lg mb-8">Join Tree Troupe and start planting trees with your local community today.</p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="/register" class="bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">Get Started</a>
-      <a href="/what-can-i-do" class="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">Learn More</a>
-    </div>
-  </div>
-</section>`,
-  },
-  {
-    slug: 'who-we-are',
-    title: 'Who We Are',
-    content: `<section class="relative h-[400px] overflow-hidden">
+-- Converts every gradient-div "photo placeholder" and "[Organization logo
+-- placeholder]" block across the CMS default pages into a real <img> tag
+-- (with a neutral inline SVG placeholder graphic as its src). GrapesJS
+-- treats any <img> element as an Image component, so admins can now
+-- double-click straight into the asset manager to upload a real photo in
+-- place, rather than having to delete a div and drag in a new Image block.
+-- Also adds a Tailwind safelist entry for object-cover/object-contain
+-- (see tailwind.config.ts) since these images rely on it.
+insert into public.pages (title, slug, content, status, show_in_nav, nav_order)
+values (
+  'Who We Are',
+  'who-we-are',
+  $page$<section class="relative h-[400px] overflow-hidden">
   <div class="absolute inset-0 bg-gradient-to-r from-green-900 to-emerald-800">
     <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 60%);"></div>
   </div>
@@ -93,18 +28,18 @@ ${statsCounterBlock}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Jessica Howley</h3>
-        <p class="text-sm text-gray-500">Founder, Climate enthusiast, Rhodes Scholar, former UN staffer, international lawyer</p>
+        <h3 class="font-semibold text-gray-900">Team Member 1</h3>
+        <p class="text-sm text-gray-500">Role / Title</p>
       </div>
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Charlotte Howley</h3>
-        <p class="text-sm text-gray-500">Media specialist</p>
+        <h3 class="font-semibold text-gray-900">Team Member 2</h3>
+        <p class="text-sm text-gray-500">Role / Title</p>
       </div>
       <div class="text-center">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100">
-        <h3 class="font-semibold text-gray-900">Paul Bollerman</h3>
-        <p class="text-sm text-gray-500">Software expert</p>
+        <h3 class="font-semibold text-gray-900">Team Member 3</h3>
+        <p class="text-sm text-gray-500">Role / Title</p>
       </div>
     </div>
     <h2 class="text-2xl font-bold text-gray-900 text-center mb-10">Our Values</h2>
@@ -127,12 +62,20 @@ ${statsCounterBlock}
       </div>
     </div>
   </div>
-</section>`,
-  },
-  {
-    slug: 'climate-change',
-    title: 'Climate Change & Trees',
-    content: `<section class="py-16 px-4 bg-gray-100">
+</section>$page$,
+  'published',
+  false,
+  0
+)
+on conflict (slug) do update
+  set content = excluded.content,
+      updated_at = now();
+
+insert into public.pages (title, slug, content, status, show_in_nav, nav_order)
+values (
+  'Climate Change & Trees',
+  'climate-change',
+  $page$<section class="py-16 px-4 bg-gray-100">
   <div class="max-w-6xl mx-auto">
     <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">The climate crisis and action paralysis</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -182,12 +125,20 @@ ${statsCounterBlock}
 </section>
 <section class="py-16 px-4 bg-white text-center">
   <a href="/what-can-i-do" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">Find out what you can do →</a>
-</section>`,
-  },
-  {
-    slug: 'what-can-i-do',
-    title: 'What Can I Do?',
-    content: `<section class="relative py-32 px-6 overflow-hidden">
+</section>$page$,
+  'published',
+  false,
+  0
+)
+on conflict (slug) do update
+  set content = excluded.content,
+      updated_at = now();
+
+insert into public.pages (title, slug, content, status, show_in_nav, nav_order)
+values (
+  'What Can I Do?',
+  'what-can-i-do',
+  $page$<section class="relative py-32 px-6 overflow-hidden">
   <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Photo placeholder: Lit lightbulb close-up" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-gray-900 opacity-60"></div>
   <div class="relative z-10 max-w-6xl mx-auto">
@@ -248,12 +199,20 @@ ${statsCounterBlock}
       <path d="M0,60 C360,0 1080,120 1440,40 L1440,90 L0,90 Z" fill="#16a34a"></path>
     </svg>
   </div>
-</section>`,
-  },
-  {
-    slug: 'global-tree-planting-organizations',
-    title: 'Global tree planting organizations',
-    content: `<section class="py-16 px-4 bg-gray-200">
+</section>$page$,
+  'published',
+  false,
+  0
+)
+on conflict (slug) do update
+  set content = excluded.content,
+      updated_at = now();
+
+insert into public.pages (title, slug, content, status, show_in_nav, nav_order)
+values (
+  'Global tree planting organizations',
+  'global-tree-planting-organizations',
+  $page$<section class="py-16 px-4 bg-gray-200">
   <div class="max-w-4xl mx-auto">
     <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Global tree planting organizations</h1>
     <p class="text-green-700 leading-relaxed max-w-3xl">There are a large number of organizations engaged in reforestation and conservation globally. We've done our research and these are some of our favourites, which we consider give the most bang for buck in terms of climate impacts.</p>
@@ -300,12 +259,20 @@ ${statsCounterBlock}
 <section class="py-16 px-4 bg-green-600 text-center">
   <h2 class="text-2xl md:text-3xl font-bold text-white mb-6">Ready to track your own tree planting?</h2>
   <a href="/register" class="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">Join tree troupe</a>
-</section>`,
-  },
-  {
-    slug: 'planting-trees-doing-everyday-tasks',
-    title: 'Planting trees doing everyday tasks',
-    content: `<section class="py-16 px-4 bg-gray-200">
+</section>$page$,
+  'published',
+  false,
+  0
+)
+on conflict (slug) do update
+  set content = excluded.content,
+      updated_at = now();
+
+insert into public.pages (title, slug, content, status, show_in_nav, nav_order)
+values (
+  'Planting trees doing everyday tasks',
+  'planting-trees-doing-everyday-tasks',
+  $page$<section class="py-16 px-4 bg-gray-200">
   <div class="max-w-4xl mx-auto">
     <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Planting trees doing everyday tasks</h1>
     <p class="text-green-700 leading-relaxed max-w-3xl">But you can also take advantage of options offered by a vast number of technology companies to earn trees through everyday digital experiences, converting digital engagement into real-world impact with minimal lifestyle changes.</p>
@@ -368,6 +335,11 @@ ${statsCounterBlock}
 <section class="py-16 px-4 bg-green-600 text-center">
   <h2 class="text-2xl md:text-3xl font-bold text-white mb-6">Ready to track your own tree planting?</h2>
   <a href="/register" class="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">Join tree troupe</a>
-</section>`,
-  },
-]
+</section>$page$,
+  'published',
+  false,
+  0
+)
+on conflict (slug) do update
+  set content = excluded.content,
+      updated_at = now();
