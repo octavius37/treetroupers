@@ -240,7 +240,7 @@ ${statsCounterBlock}
   <h2 class="text-3xl font-bold text-green-700 mb-10">Global actions</h2>
   <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ccircle cx='140' cy='110' r='30' fill='%239ca3af'/%3E%3Cpath d='M0 260 L120 150 L200 220 L280 130 L400 260 Z' fill='%239ca3af'/%3E%3C/svg%3E" alt="Photo placeholder: Seedling trays" class="max-w-2xl mx-auto h-64 w-full rounded-lg object-cover mb-16">
   <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">Contribute to global tree planting efforts</h2>
-  <p class="text-green-700 max-w-2xl mx-auto mb-10 leading-relaxed">Many organizations engage in mass restoration, reforestation, and conservation efforts around the world. See our review of different organizations <a href="/global-tree-planting-organizations" class="underline hover:text-green-900">here</a>. Track your contributions with your friends by joining tree troupe.</p>
+  <p class="text-green-700 max-w-2xl mx-auto mb-10 leading-relaxed">Many organizations engage in mass restoration, reforestation, and conservation efforts around the world. See our review of different organizations below. Track your contributions with your friends by joining tree troupe.</p>
   <a href="/global-tree-planting-organizations" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">Learn More</a>
   <div style="position:absolute; left:0; right:0; bottom:0; height:90px; overflow:hidden;">
     <svg viewBox="0 0 1440 90" preserveAspectRatio="none" style="width:100%; height:100%; display:block;">
