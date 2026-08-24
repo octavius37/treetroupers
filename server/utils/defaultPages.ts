@@ -18,7 +18,6 @@ export const DEFAULT_PAGES: DefaultPage[] = [
     content: `<section class="relative h-[400px] overflow-hidden">
   <div class="absolute inset-0 bg-gradient-to-b from-green-950 via-green-800 to-green-600">
     <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255,255,255,0.06) 0%, transparent 60%);"></div>
-    <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(90deg, white 0px, transparent 2px, transparent 60px);"></div>
   </div>
   <div class="relative z-10 flex items-center justify-center h-full px-6">
     <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white text-center italic font-light max-w-4xl leading-snug" style="font-family: Georgia, 'Times New Roman', serif;">Transforming climate helplessness into empowered action through community tree planting</h1>
