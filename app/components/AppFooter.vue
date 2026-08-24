@@ -4,13 +4,8 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Brand -->
         <div class="md:col-span-1">
-          <div class="flex items-center gap-2 mb-4">
-            <svg viewBox="0 0 40 50" class="w-6 h-8 text-green-400" fill="currentColor">
-              <path d="M20 50 L20 26" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" />
-              <path d="M20 22 Q14 14 17 4 Q20 10 20 18Z" />
-              <path d="M20 20 Q26 12 23 2 Q20 8 20 16Z" />
-            </svg>
-            <span class="text-sm font-medium tracking-wide">tree troupe</span>
+          <div class="flex items-center mb-4">
+            <img src="/logo.png" alt="tree troupe" class="h-11 w-auto">
           </div>
           <p class="text-gray-400 text-sm leading-relaxed">
             Transforming climate helplessness into empowered action through community tree planting.
