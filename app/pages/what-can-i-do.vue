@@ -104,6 +104,7 @@ useHead({ title: 'What Can I Do?' })
         Contribute to global tree planting efforts
       </h2>
       <p class="text-green-700 max-w-2xl mx-auto mb-10 leading-relaxed">
+        <!-- eslint-disable-next-line vue/singleline-html-element-content-newline -- inline link in flowing text; a line break would collapse to a space before the full stop -->
         Many organizations engage in mass restoration, reforestation, and conservation efforts around the world. See our review of different organizations <NuxtLink to="/global-tree-planting-organizations" class="underline hover:text-green-900">here</NuxtLink>. Track your contributions with your friends by joining tree troupe.
       </p>
       <NuxtLink to="/global-tree-planting-organizations" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
