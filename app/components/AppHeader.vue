@@ -16,6 +16,9 @@ const staticLinks: NavItem[] = [
   { to: '/climate-change', label: 'Climate change & trees', children: [] },
   { to: '/what-can-i-do', label: 'What can I do?', children: [] },
   { to: '/who-we-are', label: 'Who we are', children: [] },
+  // Was the only CMS page with show_in_nav; now a code route, so its nav entry
+  // has to be static too.
+  { to: '/mission', label: 'Our Mission', children: [] },
   { to: '/contact', label: 'Contact', children: [] },
 ]
 
