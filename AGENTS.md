@@ -113,8 +113,8 @@ npm run db:types            # regenerate app/types/database.types.ts
 ```
 
 Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote) — **but read "Remote migration history" below first: the only
-migrations it would send overwrite live page content.**
+against remote). Every local migration is already applied on remote, so a push
+today sends nothing — see "Current remote state" below before assuming otherwise.
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
@@ -227,7 +227,7 @@ Found while extracting the schema into migrations.
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
 
-### Current remote state (2026-08-02)
+### Current remote state (2026-08-25)
 
 Verified directly against the hosted project:
 
@@ -237,20 +237,48 @@ Verified directly against the hosted project:
 - The baseline `20260515180000` has been **marked applied on remote** (the
   `migration repair` equivalent — a history row, no SQL executed), so `db:push`
   no longer aborts on it.
-- The four `20260804*` page-content migrations from PR #6 are **committed but not
-  applied to remote**, and are now the only thing a `db:push` would send. They
-  are idempotent upserts keyed on `slug`, so they cannot error — but they
-  **overwrite live page content**:
+- **The `pages` table is empty and reserved for future CMS content.** The six
+  public pages it used to serve are now hand-written route files (see "Public
+  pages are code" below). The table, its columns and its RLS policy are all
+  intact; only the rows are gone. They were backed up first to
+  `docs/superpowers/plans/2026-08-25-pages-backup.sql`, verified byte-identical
+  by md5 — that file is the restore path.
+- **Intentional migration-history drift.** The four `20260804*` page-content
+  versions remain in remote history with no corresponding files in the repo,
+  because those files were deleted when the pages moved into code. This is
+  harmless: `db:push` skips versions already present in history, so nothing
+  re-runs and nothing errors. `supabase migration list --linked` will show them
+  as remote-only. To clear them for exactness:
+  `supabase migration repair --status reverted <version>` (needs the `--db-url`
+  workaround above).
 
-  | Slug | Remote now | After push |
-  |------|-----------|------------|
-  | `climate-change` | 2220 chars (updated 2026-08-01) | 5060 chars |
-  | `what-can-i-do` | 4134 chars | 6369 chars |
-  | `global-tree-planting-organizations` | does not exist | created |
+  An earlier version of this section claimed those four migrations were
+  unapplied and would overwrite live content. That was wrong — they had been
+  applied on 2026-08-11, and md5 comparison confirmed the live rows matched the
+  migration content byte-for-byte before deletion.
 
-  `climate-change` carries a more recent `updated_at` than the others. If that
-  was a CMS edit made after PR #6 was written, pushing replaces it. Check that
-  page in the CMS before pushing — an upsert gives no warning and keeps no copy.
+### Public pages are code
+
+The public marketing pages live in `app/pages/*.vue` and no longer touch the
+database:
+
+`index.vue` (`home`), `who-we-are.vue`, `climate-change.vue`, `what-can-i-do.vue`,
+`global-tree-planting-organizations.vue`, `mission.vue`.
+
+Edit them like any other component. Two consequences worth knowing:
+
+- **Nav links for these pages are static**, in `AppHeader.staticLinks`. Adding a
+  code page means adding its link there. `useNavPages()` / `/api/public/nav`
+  still work and still drive nav entries for CMS-authored pages.
+- **The two former "smart blocks" are components**: `StatsCounter.vue` and
+  `CommunitiesCarousel.vue`, backed by `/api/public/stats` and
+  `/api/public/communities`. `resolveSmartBlocks()` is still used by the
+  `[slug].vue` catch-all, so `data-block` markers keep working in CMS pages.
+
+The CMS (`/cms/*`, the GrapesJS `PageBuilder`, the pages CRUD endpoints and the
+`[slug].vue` catch-all) is fully intact and is the intended home for vlog/blog
+content. Static routes outrank the catch-all in Nuxt, so a CMS page whose slug
+collides with a code route will not render — pick a different slug.
 
 ## What's Not Done Yet
 
@@ -258,7 +286,8 @@ Verified directly against the hosted project:
 - Photo upload (Supabase Storage) — upload UI exists as placeholder
 - Capacitor mobile wrapping
 - AR tree overlay
-- Directus or Payload CMS content fully wired to public info pages
+- Vlog/blog collection in the CMS (the `pages` table and editor are kept for it;
+  public info pages are deliberately code, not CMS content)
 - Contact form email backend
 - Test suite (CI placeholder exists but no tests)
 - Tree species database seeding
