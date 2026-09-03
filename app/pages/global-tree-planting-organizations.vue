@@ -24,9 +24,7 @@ useHead({ title: 'Global tree planting organizations' })
         </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="border border-gray-200 rounded-2xl p-6">
-            <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              [Organization logo placeholder]
-            </div>
+            <ImageSlot alt="Organization logo placeholder" class="w-full h-32 rounded-xl object-contain bg-gray-100 mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-2">
               One Tree Planted
             </h3>
@@ -36,9 +34,7 @@ useHead({ title: 'Global tree planting organizations' })
             <a href="https://www.onetreeplanted.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
           </div>
           <div class="border border-gray-200 rounded-2xl p-6">
-            <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              [Organization logo placeholder]
-            </div>
+            <ImageSlot alt="Organization logo placeholder" class="w-full h-32 rounded-xl object-contain bg-gray-100 mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-2">
               Eden: People + Planet
             </h3>
@@ -48,9 +44,7 @@ useHead({ title: 'Global tree planting organizations' })
             <a href="https://www.eden-plus.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
           </div>
           <div class="border border-gray-200 rounded-2xl p-6">
-            <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              [Organization logo placeholder]
-            </div>
+            <ImageSlot alt="Organization logo placeholder" class="w-full h-32 rounded-xl object-contain bg-gray-100 mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-2">
               WeForest
             </h3>
@@ -60,9 +54,7 @@ useHead({ title: 'Global tree planting organizations' })
             <a href="https://www.weforest.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
           </div>
           <div class="border border-gray-200 rounded-2xl p-6">
-            <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              [Organization logo placeholder]
-            </div>
+            <ImageSlot alt="Organization logo placeholder" class="w-full h-32 rounded-xl object-contain bg-gray-100 mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-2">
               TreeSisters
             </h3>
@@ -72,9 +64,7 @@ useHead({ title: 'Global tree planting organizations' })
             <a href="https://www.treesisters.org" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium text-sm hover:text-green-700">Visit website →</a>
           </div>
           <div class="border border-gray-200 rounded-2xl p-6 col-span-2">
-            <div class="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-50 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              [Organization logo placeholder]
-            </div>
+            <ImageSlot alt="Organization logo placeholder" class="w-full h-32 rounded-xl object-contain bg-gray-100 mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-2">
               Trees for the Future
             </h3>

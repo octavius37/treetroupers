@@ -47,4 +47,21 @@ jobs:
       - name: Build
         run: nr build
 
-  # TODO: Add more steps here, like "nr test" as you add the tooling for it
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup
+        run: npm i -g @antfu/ni
+
+      - name: Install
+        run: nci
+
+      # Unit tests only — no database, no network, no secrets required.
+      - name: Test
+        run: nr test

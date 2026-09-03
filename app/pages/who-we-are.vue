@@ -38,36 +38,30 @@ useHead({ title: 'Who We Are' })
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <div class="text-center">
-            <div class="w-32 h-32 bg-gradient-to-br from-green-200 to-emerald-100 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 text-sm">
-              [Photo]
-            </div>
+            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
-              Team Member 1
+              Jessica Howley
             </h3>
             <p class="text-sm text-gray-500">
-              Role / Title
+              Founder, Climate enthusiast, Rhodes Scholar, former UN staffer, international lawyer
             </p>
           </div>
           <div class="text-center">
-            <div class="w-32 h-32 bg-gradient-to-br from-green-200 to-emerald-100 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 text-sm">
-              [Photo]
-            </div>
+            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
-              Team Member 2
+              Charlotte Howley
             </h3>
             <p class="text-sm text-gray-500">
-              Role / Title
+              Media specialist
             </p>
           </div>
           <div class="text-center">
-            <div class="w-32 h-32 bg-gradient-to-br from-green-200 to-emerald-100 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 text-sm">
-              [Photo]
-            </div>
+            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
-              Team Member 3
+              Paul Bollerman
             </h3>
             <p class="text-sm text-gray-500">
-              Role / Title
+              Software expert
             </p>
           </div>
         </div>

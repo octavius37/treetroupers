@@ -515,7 +515,7 @@ Conversions: `<div data-block="stats-counter" …>` → `<StatsCounter />`; `<di
 
 `mission` is the only page with `show_in_nav = true`, so it is the sole entry the dynamic nav produces today. Once its row is deleted the link vanishes unless it is made static. In `app/components/AppHeader.vue`, add to `staticLinks` after the `who-we-are` entry:
 
-```ts
+```txt
   { to: '/mission', label: 'Our Mission', children: [] },
 ```
 

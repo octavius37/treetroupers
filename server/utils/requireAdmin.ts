@@ -1,6 +1,6 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { H3Event } from 'h3'
 import type { Database } from '~/types/database.types'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 /**
  * Ensures the request comes from an authenticated admin.

@@ -6,44 +6,15 @@ useHead({ title: 'Climate change & trees' })
 
 <template>
   <div>
-    <section class="relative h-[400px] overflow-hidden bg-gradient-to-b from-sky-300 via-sky-100 to-slate-200">
-      <div class="relative z-10 h-full max-w-6xl mx-auto px-6 pt-10 flex items-start justify-between gap-6 flex-wrap">
-        <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-2xl leading-snug">
-          Read on to discover how tree troupe can help you plant trees individually and collectively, and to track your progress!
-        </h1>
-        <NuxtLink to="/what-can-i-do" class="shrink-0 inline-block bg-green-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-700 transition-colors">
-          What can I do?
-        </NuxtLink>
-      </div>
-    </section>
-
-    <section class="py-12 px-4 bg-green-600 text-center">
-      <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">
-        Contact us
-      </h2>
-      <p class="text-green-100 mb-6 max-w-xl mx-auto">
-        Got a question about planting with your community? We would love to hear from you.
-      </p>
-      <NuxtLink to="/contact" class="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">
-        Get in touch
-      </NuxtLink>
-    </section>
-
     <section class="py-16 px-4 bg-gray-100">
       <div class="max-w-6xl mx-auto">
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">
           The climate crisis and action paralysis
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div class="h-48 rounded-lg bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider text-center px-4">
-            Photo placeholder: Earth in climate crisis
-          </div>
-          <div class="h-48 rounded-lg bg-gradient-to-br from-amber-200 to-yellow-100 flex items-center justify-center text-gray-600 text-xs font-semibold uppercase tracking-wider text-center px-4">
-            Photo placeholder: International climate summit
-          </div>
-          <div class="h-48 rounded-lg bg-gradient-to-br from-sky-300 to-slate-200 flex items-center justify-center text-gray-600 text-xs font-semibold uppercase tracking-wider text-center px-4">
-            Photo placeholder: Climate justice protest
-          </div>
+          <ImageSlot alt="Photo placeholder: Earth in climate crisis" class="h-48 w-full rounded-lg object-cover" />
+          <ImageSlot alt="Photo placeholder: International climate summit" class="h-48 w-full rounded-lg object-cover" />
+          <ImageSlot alt="Photo placeholder: Climate justice protest" class="h-48 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="border-t-4 border-gray-900 pt-4">
@@ -74,16 +45,16 @@ useHead({ title: 'Climate change & trees' })
       </div>
     </section>
 
-    <section class="relative py-24 px-6 bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 overflow-hidden">
-      <span class="absolute top-4 right-4 z-10 text-xs font-semibold uppercase tracking-wider bg-gray-900 text-white px-3 py-1 rounded-full">Photo placeholder: Autumn forest &amp; lake</span>
+    <section class="relative py-24 px-6 overflow-hidden">
+      <ImageSlot alt="Photo placeholder: Autumn forest and lake" class="absolute inset-0 w-full h-full object-cover" />
       <div class="absolute inset-0 bg-gray-900 opacity-40" />
       <div class="relative z-10 max-w-4xl mx-auto">
         <h2 class="text-3xl md:text-5xl font-bold text-white mb-12 leading-tight">
           A simple solution: plant more trees!
         </h2>
         <!-- list-disc/my-4/pl-6 and the per-item my-[0.25em] reproduce the
-             geometry the .tt-page-content CSS gave this list when it was CMS
-             HTML; space-y-6 still wins margin-top on items 2 and 3. -->
+             geometry the .tt-page-content CSS gave this list as CMS HTML;
+             space-y-6 still wins margin-top on items 2 and 3. -->
         <ul class="space-y-6 list-disc my-4 pl-6">
           <li class="flex gap-3 text-white text-lg leading-relaxed my-[0.25em]">
             <span class="text-green-400 font-bold">•</span><span><strong class="text-white">Nature's carbon capture</strong>: Trees sequester carbon dioxide effectively. There is no need for expensive technological fixes.</span>
@@ -96,6 +67,30 @@ useHead({ title: 'Climate change & trees' })
           </li>
         </ul>
       </div>
+    </section>
+
+    <section class="relative h-[400px] overflow-hidden">
+      <ImageSlot alt="Photo placeholder: Mountain vista with clouds" class="absolute inset-0 w-full h-full object-cover" />
+      <div class="relative z-10 h-full max-w-6xl mx-auto px-6 pt-10 flex items-start justify-between gap-6 flex-wrap">
+        <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-2xl leading-snug">
+          Read on to discover how tree troupe can help you plant trees individually and collectively, and to track your progress!
+        </h1>
+        <NuxtLink to="/what-can-i-do" class="shrink-0 inline-block bg-green-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-700 transition-colors">
+          What can I do?
+        </NuxtLink>
+      </div>
+    </section>
+
+    <section class="py-12 px-4 bg-green-600 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">
+        Contact us
+      </h2>
+      <p class="text-green-100 mb-6 max-w-xl mx-auto">
+        Got a question about planting with your community? We would love to hear from you.
+      </p>
+      <NuxtLink to="/contact" class="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">
+        Get in touch
+      </NuxtLink>
     </section>
 
     <section class="py-16 px-4 bg-white text-center">

@@ -125,9 +125,9 @@ This helper is the authoritative security boundary. Nuxt auto-imports files in `
 
 Create `server/utils/requireAdmin.ts`:
 ```ts
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { H3Event } from 'h3'
 import type { Database } from '~/types/database.types'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 /**
  * Ensures the request comes from an authenticated admin.
@@ -249,8 +249,8 @@ This serves `PUT /api/cms/users/:id/role`. The `[id]` directory may not exist ye
 
 Create `server/api/cms/users/[id]/role.put.ts`:
 ```ts
-import { serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 const VALID_ROLES = ['admin', 'user'] as const
 type Role = (typeof VALID_ROLES)[number]

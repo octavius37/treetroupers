@@ -6,8 +6,9 @@ useHead({ title: 'What Can I Do?' })
 
 <template>
   <div>
-    <section class="relative py-32 px-6 bg-gradient-to-br from-gray-900 via-gray-800 to-amber-900 overflow-hidden">
-      <span class="absolute top-4 right-4 z-20 text-xs font-semibold uppercase tracking-wider bg-white text-gray-900 px-3 py-1 rounded-full">Photo placeholder: Lit lightbulb close-up</span>
+    <section class="relative py-32 px-6 overflow-hidden">
+      <ImageSlot alt="Photo placeholder: Lit lightbulb close-up" class="absolute inset-0 w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gray-900 opacity-60" />
       <div class="relative z-10 max-w-6xl mx-auto">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
           You can make a difference
@@ -25,12 +26,8 @@ useHead({ title: 'What Can I Do?' })
           Individual actions
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div class="h-64 rounded-lg bg-gradient-to-br from-emerald-700 via-green-600 to-lime-500 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider px-4">
-            Photo placeholder: Planting a sapling
-          </div>
-          <div class="h-64 rounded-lg bg-gradient-to-br from-sky-600 via-teal-500 to-emerald-500 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider px-4">
-            Photo placeholder: Digital / tech abstract
-          </div>
+          <ImageSlot alt="Photo placeholder: Planting a sapling" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot alt="Photo placeholder: Digital / tech abstract" class="h-64 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           <div>
@@ -46,7 +43,8 @@ useHead({ title: 'What Can I Do?' })
               Plant free trees doing everyday tasks
             </h3>
             <p class="text-green-50 leading-relaxed">
-              There are many apps, browsers and search engines that will plant trees simply by you using them. So you help the planet by doing something you would do anyway! Win! For our list and review of the options, see here. Join tree troupe and track your progress with your friends!
+              <!-- eslint-disable-next-line vue/singleline-html-element-content-newline -- inline link in flowing text; a line break would collapse to a space before the full stop -->
+              There are many apps, browsers and search engines that will plant trees simply by you using them. So you help the planet by doing something you would do anyway! Win! For our list and review of the options, see <NuxtLink to="/planting-trees-doing-everyday-tasks" class="underline hover:text-white">here</NuxtLink>. Join tree troupe and track your progress with your friends!
             </p>
           </div>
         </div>
@@ -62,12 +60,8 @@ useHead({ title: 'What Can I Do?' })
           Community actions
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div class="h-64 rounded-lg bg-gradient-to-br from-lime-700 via-green-600 to-emerald-800 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider px-4">
-            Photo placeholder: Community tree planting
-          </div>
-          <div class="h-64 rounded-lg bg-gradient-to-br from-stone-400 via-neutral-500 to-stone-600 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider px-4">
-            Photo placeholder: Climate justice protest sign
-          </div>
+          <ImageSlot alt="Photo placeholder: Community tree planting" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot alt="Photo placeholder: Climate justice protest sign" class="h-64 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           <div>
@@ -97,9 +91,7 @@ useHead({ title: 'What Can I Do?' })
       <h2 class="text-3xl font-bold text-green-700 mb-10">
         Global actions
       </h2>
-      <div class="max-w-2xl mx-auto h-64 rounded-lg bg-gradient-to-br from-lime-400 via-green-500 to-emerald-700 flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider px-4 mb-16">
-        Photo placeholder: Seedling trays
-      </div>
+      <ImageSlot alt="Photo placeholder: Seedling trays" class="max-w-2xl mx-auto h-64 w-full rounded-lg object-cover mb-16" />
       <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">
         Contribute to global tree planting efforts
       </h2>

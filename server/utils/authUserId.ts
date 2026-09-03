@@ -1,5 +1,5 @@
-import { serverSupabaseUser } from '#supabase/server'
 import type { H3Event } from 'h3'
+import { serverSupabaseUser } from '#supabase/server'
 
 /**
  * The current request's auth user id (auth.users.id / profiles.auth_user_id).

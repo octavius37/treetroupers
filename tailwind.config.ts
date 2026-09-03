@@ -73,6 +73,8 @@ export default {
     { pattern: new RegExp(`^((min-|max-)?[wh])-(${SPACING}|auto|full|screen|fit|min|max)$`) },
     { pattern: /^(w|h)-(1\/2|1\/3|2\/3|1\/4|3\/4|1\/5|2\/5|3\/5|4\/5|1\/6|5\/6)$/ },
     { pattern: /^max-w-(xs|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|full|prose|none)$/ },
+    { pattern: /^object-(contain|cover|fill|none|scale-down)$/ },
+    { pattern: /^object-(top|bottom|left|right|center)$/ },
 
     // ─── Borders & shape ────────────────────────────────────────────────────
     { pattern: /^rounded(-(none|sm|md|lg|xl|2xl|3xl|full))?$/ },

@@ -234,8 +234,12 @@ onMounted(loadUsers)
                 class="text-sm border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none disabled:opacity-50"
                 @change="changeRole(profile, ($event.target as HTMLSelectElement).value)"
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="user">
+                  User
+                </option>
+                <option value="admin">
+                  Admin
+                </option>
               </select>
             </td>
             <td class="px-6 py-4 text-right">
