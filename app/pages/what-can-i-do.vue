@@ -6,18 +6,41 @@ useHead({ title: 'What Can I Do?' })
 
 <template>
   <div>
-    <section class="relative py-32 px-6 overflow-hidden">
-      <ImageSlot alt="Photo placeholder: Lit lightbulb close-up" class="absolute inset-0 w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-gray-900 opacity-60" />
-      <div class="relative z-10 max-w-6xl mx-auto">
-        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
-          You can make a difference
-        </h1>
-      </div>
+    <section class="relative w-full max-w-[1600px] mx-auto overflow-hidden aspect-[2000/1333]">
+      <ImageSlot
+        src="/images/what-can-i-do-banner.jpg"
+        alt="Lit lightbulb close-up"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.1));" />
+      <h1
+        class="absolute font-extrabold text-gray-100"
+        style="top:7%; left:40%; right:5%; font-size:clamp(22px, 3.4vw, 48px); line-height:1.08; text-shadow:0 2px 14px rgba(0,0,0,0.6);"
+      >
+        You can make a difference
+      </h1>
       <!-- In-page anchors, not routes — these stay plain <a href="#..."> -->
-      <a href="#individual-actions" style="position:absolute; left:6%; top:42%; width:180px; height:180px;" class="rounded-full bg-pink-500 opacity-80 flex items-center justify-center text-center text-gray-900 font-bold px-4">Individual actions</a>
-      <a href="#community-actions" style="position:absolute; right:8%; top:12%; width:180px; height:180px;" class="rounded-full bg-green-500 opacity-80 flex items-center justify-center text-center text-gray-900 font-bold px-4">Community actions</a>
-      <a href="#global-actions" style="position:absolute; right:18%; bottom:4%; width:180px; height:180px;" class="rounded-full bg-sky-400 opacity-80 flex items-center justify-center text-center text-gray-900 font-bold px-4">Global actions</a>
+      <a
+        href="#individual-actions"
+        class="absolute aspect-square rounded-full box-border flex items-center justify-center text-center font-extrabold text-gray-900"
+        style="width:15%; left:55%; top:55%; padding:6%; background: radial-gradient(circle at 40% 35%, #ff2fb0, #e6009e 70%); box-shadow: 0 0 45px 12px rgba(230, 0, 158, 0.5);"
+      >
+        <span class="leading-tight" style="font-size:clamp(10px, 1.3vw, 18px);">Individual actions</span>
+      </a>
+      <a
+        href="#community-actions"
+        class="absolute aspect-square rounded-full box-border flex items-center justify-center text-center font-extrabold text-gray-900"
+        style="width:16%; right:5%; top:30%; padding:6%; background: radial-gradient(circle at 40% 35%, #3fce7a, #1fa85a 70%); box-shadow: 0 0 45px 12px rgba(31, 168, 90, 0.5);"
+      >
+        <span class="leading-tight" style="font-size:clamp(10px, 1.3vw, 18px);">Community actions</span>
+      </a>
+      <a
+        href="#global-actions"
+        class="absolute aspect-square rounded-full box-border flex items-center justify-center text-center font-extrabold text-gray-900"
+        style="width:14%; right:12%; bottom:6%; padding:6%; background: radial-gradient(circle at 40% 35%, #3fd8ff, #12b8f0 70%); box-shadow: 0 0 45px 12px rgba(18, 184, 240, 0.5);"
+      >
+        <span class="leading-tight" style="font-size:clamp(10px, 1.3vw, 18px);">Global actions</span>
+      </a>
     </section>
 
     <section id="individual-actions" class="py-16 px-4 bg-green-600 text-center">
