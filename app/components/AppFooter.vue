@@ -5,11 +5,7 @@
         <!-- Brand -->
         <div class="md:col-span-1">
           <div class="flex items-center gap-2 mb-4">
-            <svg viewBox="0 0 40 50" class="w-6 h-8 text-green-400" fill="currentColor">
-              <path d="M20 50 L20 26" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" />
-              <path d="M20 22 Q14 14 17 4 Q20 10 20 18Z" />
-              <path d="M20 20 Q26 12 23 2 Q20 8 20 16Z" />
-            </svg>
+            <img src="/images/logo-icon.png" alt="Tree Troupe logo" class="h-8 w-auto">
             <span class="text-sm font-medium tracking-wide">tree troupe</span>
           </div>
           <p class="text-gray-400 text-sm leading-relaxed">

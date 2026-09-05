@@ -11,10 +11,18 @@ useHead({ title: 'Climate change & trees' })
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">
           The climate crisis and action paralysis
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <ImageSlot alt="Photo placeholder: Earth in climate crisis" class="h-48 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: International climate summit" class="h-48 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: Climate justice protest" class="h-48 w-full rounded-lg object-cover" />
+        <div class="relative rounded-2xl overflow-hidden p-4 md:p-6 mb-10">
+          <ImageSlot
+            src="/images/climate-crisis-forest-canopy-bg.jpg"
+            alt="Aerial view of a dense forest canopy"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <div class="absolute inset-0 bg-gray-900 opacity-40" />
+          <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ImageSlot src="/images/climate-crisis-earth.jpg" alt="Illustration of Earth engulfed in flame, depicting the climate crisis" class="h-48 w-full rounded-lg object-cover" />
+            <ImageSlot src="/images/climate-summit-un.jpg" alt="Row of international flags leading to the United Nations building" class="h-48 w-full rounded-lg object-cover" />
+            <ImageSlot src="/images/climate-justice-protest.jpg" alt="Protester holding a sign reading Climate Justice Now!" class="h-48 w-full rounded-lg object-cover" />
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="border-t-4 border-gray-900 pt-4">
@@ -46,7 +54,7 @@ useHead({ title: 'Climate change & trees' })
     </section>
 
     <section class="relative py-24 px-6 overflow-hidden">
-      <ImageSlot alt="Photo placeholder: Autumn forest and lake" class="absolute inset-0 w-full h-full object-cover" />
+      <ImageSlot src="/images/climate-change-solution-banner.jpg" alt="Autumn forest path carpeted in fallen leaves" class="absolute inset-0 w-full h-full object-cover" />
       <div class="absolute inset-0 bg-gray-900 opacity-40" />
       <div class="relative z-10 max-w-4xl mx-auto">
         <h2 class="text-3xl md:text-5xl font-bold text-white mb-12 leading-tight">
@@ -70,7 +78,7 @@ useHead({ title: 'Climate change & trees' })
     </section>
 
     <section class="relative h-[400px] overflow-hidden">
-      <ImageSlot alt="Photo placeholder: Mountain vista with clouds" class="absolute inset-0 w-full h-full object-cover" />
+      <ImageSlot src="/images/climate-change-vista-banner.jpg" alt="Lone tree on a hillside at sunset" class="absolute inset-0 w-full h-full object-cover" />
       <div class="relative z-10 h-full max-w-6xl mx-auto px-6 pt-10 flex items-start justify-between gap-6 flex-wrap">
         <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-2xl leading-snug">
           Read on to discover how tree troupe can help you plant trees individually and collectively, and to track your progress!

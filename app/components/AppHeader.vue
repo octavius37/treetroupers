@@ -44,13 +44,7 @@ async function handleLogout() {
       <div class="flex items-center justify-between h-20">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-2.5">
-          <svg viewBox="0 0 40 50" class="w-8 h-10 text-green-600" fill="currentColor">
-            <path d="M20 50 L20 26" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" />
-            <path d="M20 30 Q12 24 14 14 Q18 18 20 26Z" opacity="0.65" />
-            <path d="M20 26 Q28 20 26 10 Q22 14 20 22Z" opacity="0.65" />
-            <path d="M20 22 Q14 14 17 4 Q20 10 20 18Z" />
-            <path d="M20 20 Q26 12 23 2 Q20 8 20 16Z" />
-          </svg>
+          <img src="/images/logo-icon.png" alt="Tree Troupe logo" class="h-10 w-auto">
           <span class="text-lg font-medium text-gray-800 tracking-wide">tree troupe</span>
         </NuxtLink>
 
