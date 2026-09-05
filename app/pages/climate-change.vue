@@ -11,10 +11,18 @@ useHead({ title: 'Climate change & trees' })
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">
           The climate crisis and action paralysis
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <ImageSlot alt="Photo placeholder: Earth in climate crisis" class="h-48 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: International climate summit" class="h-48 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: Climate justice protest" class="h-48 w-full rounded-lg object-cover" />
+        <div class="relative rounded-2xl overflow-hidden p-4 md:p-6 mb-10">
+          <ImageSlot
+            src="/images/climate-crisis-forest-canopy-bg.jpg"
+            alt="Aerial view of a dense forest canopy"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <div class="absolute inset-0 bg-gray-900 opacity-40" />
+          <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ImageSlot src="/images/climate-crisis-earth.jpg" alt="Illustration of Earth engulfed in flame, depicting the climate crisis" class="h-48 w-full rounded-lg object-cover" />
+            <ImageSlot src="/images/climate-summit-un.jpg" alt="Row of international flags leading to the United Nations building" class="h-48 w-full rounded-lg object-cover" />
+            <ImageSlot src="/images/climate-justice-protest.jpg" alt="Protester holding a sign reading Climate Justice Now!" class="h-48 w-full rounded-lg object-cover" />
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="border-t-4 border-gray-900 pt-4">
