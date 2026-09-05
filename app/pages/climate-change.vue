@@ -46,7 +46,7 @@ useHead({ title: 'Climate change & trees' })
     </section>
 
     <section class="relative py-24 px-6 overflow-hidden">
-      <ImageSlot alt="Photo placeholder: Autumn forest and lake" class="absolute inset-0 w-full h-full object-cover" />
+      <ImageSlot src="/images/climate-change-solution-banner.jpg" alt="Autumn forest path carpeted in fallen leaves" class="absolute inset-0 w-full h-full object-cover" />
       <div class="absolute inset-0 bg-gray-900 opacity-40" />
       <div class="relative z-10 max-w-4xl mx-auto">
         <h2 class="text-3xl md:text-5xl font-bold text-white mb-12 leading-tight">
@@ -70,7 +70,7 @@ useHead({ title: 'Climate change & trees' })
     </section>
 
     <section class="relative h-[400px] overflow-hidden">
-      <ImageSlot alt="Photo placeholder: Mountain vista with clouds" class="absolute inset-0 w-full h-full object-cover" />
+      <ImageSlot src="/images/climate-change-vista-banner.jpg" alt="Lone tree on a hillside at sunset" class="absolute inset-0 w-full h-full object-cover" />
       <div class="relative z-10 h-full max-w-6xl mx-auto px-6 pt-10 flex items-start justify-between gap-6 flex-wrap">
         <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-2xl leading-snug">
           Read on to discover how tree troupe can help you plant trees individually and collectively, and to track your progress!
