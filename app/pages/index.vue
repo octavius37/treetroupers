@@ -7,10 +7,12 @@ useHead({ title: 'Home' })
 <template>
   <div>
     <section class="relative h-[400px] overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-b from-green-950 via-green-800 to-green-600">
-        <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255,255,255,0.06) 0%, transparent 60%);" />
-        <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(90deg, white 0px, transparent 2px, transparent 60px);" />
-      </div>
+      <ImageSlot
+        src="/images/home-hero-tree-sunset.jpg"
+        alt="Silhouette of a large tree against a vivid sunset"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-green-950 opacity-50" />
       <div class="relative z-10 flex items-center justify-center h-full px-6">
         <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white text-center italic font-light max-w-4xl leading-snug" style="font-family: Georgia, 'Times New Roman', serif;">
           Transforming climate helplessness into empowered action through community tree planting
@@ -32,27 +34,36 @@ useHead({ title: 'Home' })
         <p class="text-gray-600 leading-relaxed mb-8">
           It is difficult to overstate the seriousness of the climate crisis and the urgency of taking action to mitigate its effects. The burning of fossil fuels is driving unprecedented and accelerating changes in the Earth's climate system, with the critical 1.5°C global temperature increase threshold breached in 2024. Without immediate and deep emissions cuts, the long-term average is likely to surpass 1.5°C within this decade, posing direct threats to human well-being and planetary health: more frequent extreme weather events, rising sea levels, serious disruption to ecosystems and biodiversity, and widespread risks to food and water security.
         </p>
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">
-          Harnessing Climate Helplessness
-        </h3>
-        <p class="text-gray-600 leading-relaxed mb-4">
-          Many people do not just worry about climate change — they feel a sense of helplessness about their ability to change the status quo. A substantial proportion of people believe governments are failing to respond adequately, but also that they are personally doing too little to address climate change.
-        </p>
-        <p class="text-gray-600 leading-relaxed mb-4">
-          Enter Tree Troupe.
-        </p>
-        <p class="text-gray-600 leading-relaxed mb-4">
-          Tree Troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. Tree Troupers harness collective helplessness to drive climate ambition. Tree Troupe is founded on three key tenets:
-        </p>
-        <!-- list-decimal and my-4 are added here: the source CMS markup relied
-             on the .tt-page-content stylesheet for its numbering and vertical
-             margin, and that no longer applies now the page is code.
-             space-y-2 still wins margin-top on items 2 and 3. -->
-        <ol class="space-y-2 pl-6 text-gray-600 list-decimal my-4">
-          <li>Planting trees is one of the easiest, most effective ways to combat climate change;</li>
-          <li>Tree planting on a mass scale could be a game-changer for our planet's health</li>
-          <li>Tree-planting is something anyone can do - individually, collectively or globally.</li>
-        </ol>
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+              Harnessing Climate Helplessness
+            </h3>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              Many people do not just worry about climate change — they feel a sense of helplessness about their ability to change the status quo. A substantial proportion of people believe governments are failing to respond adequately, but also that they are personally doing too little to address climate change.
+            </p>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              Enter Tree Troupe.
+            </p>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              Tree Troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. Tree Troupers harness collective helplessness to drive climate ambition. Tree Troupe is founded on three key tenets:
+            </p>
+            <!-- list-decimal and my-4 are added here: the source CMS markup relied
+                 on the .tt-page-content stylesheet for its numbering and vertical
+                 margin, and that no longer applies now the page is code.
+                 space-y-2 still wins margin-top on items 2 and 3. -->
+            <ol class="space-y-2 pl-6 text-gray-600 list-decimal my-4">
+              <li>Planting trees is one of the easiest, most effective ways to combat climate change;</li>
+              <li>Tree planting on a mass scale could be a game-changer for our planet's health</li>
+              <li>Tree-planting is something anyone can do - individually, collectively or globally.</li>
+            </ol>
+          </div>
+          <ImageSlot
+            src="/images/home-mission-seedling.jpg"
+            alt="Cupped hands holding soil with a small seedling"
+            class="rounded-lg w-full h-80 object-cover"
+          />
+        </div>
       </div>
     </section>
 
@@ -90,10 +101,25 @@ useHead({ title: 'Home' })
       </div>
     </section>
 
+    <section class="relative h-64 overflow-hidden">
+      <ImageSlot
+        src="/images/home-band-cliff-pine.jpg"
+        alt="Lone pine tree growing from a cliff edge at sunset"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gray-900 opacity-20" />
+    </section>
+
     <StatsCounter />
 
-    <section class="py-20 px-4 bg-green-600">
-      <div class="max-w-3xl mx-auto text-center">
+    <section class="relative py-20 px-4 overflow-hidden">
+      <ImageSlot
+        src="/images/home-cta-forest-path.jpg"
+        alt="Dirt path leading through a sunlit pine forest"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-green-950 opacity-75" />
+      <div class="relative z-10 max-w-3xl mx-auto text-center">
         <h2 class="text-3xl font-bold text-white mb-6">
           Ready to make a difference?
         </h2>
