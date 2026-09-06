@@ -83,8 +83,8 @@ useHead({ title: 'What Can I Do?' })
           Community actions
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <ImageSlot alt="Photo placeholder: Community tree planting" class="h-64 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: Climate justice protest sign" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-community-planting.jpg" alt="Group of volunteers of all ages planting a tree together" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-community-municipal.jpg" alt="Municipal workers in high-visibility vests planting flowers in a park" class="h-64 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           <div>
