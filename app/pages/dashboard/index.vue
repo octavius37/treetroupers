@@ -83,13 +83,29 @@ onMounted(async () => {
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
       <NuxtLink to="/dashboard/plant" class="bg-green-600 text-white rounded-xl p-5 hover:bg-green-700 transition-colors">
         <div class="font-semibold mb-1">
           Plant a Tree
         </div>
         <div class="text-sm text-green-100">
           Log a new tree planting
+        </div>
+      </NuxtLink>
+      <NuxtLink to="/dashboard/plant-donated" class="bg-green-600 text-white rounded-xl p-5 hover:bg-green-700 transition-colors">
+        <div class="font-semibold mb-1">
+          Donate a Tree
+        </div>
+        <div class="text-sm text-green-100">
+          Log a donated tree
+        </div>
+      </NuxtLink>
+      <NuxtLink to="/dashboard/plant-earned" class="bg-green-600 text-white rounded-xl p-5 hover:bg-green-700 transition-colors">
+        <div class="font-semibold mb-1">
+          Earn a Tree
+        </div>
+        <div class="text-sm text-green-100">
+          Log an earned tree
         </div>
       </NuxtLink>
       <NuxtLink to="/dashboard/feed" class="bg-white border border-gray-200 rounded-xl p-5 hover:border-green-300 transition-colors">
