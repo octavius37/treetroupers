@@ -74,6 +74,7 @@ useHead({ title: 'Home' })
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="text-center p-8">
+            <ImageSlot src="/images/home-how-community.jpg" alt="River winding through a valley at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Join a Community
             </h3>
@@ -82,6 +83,7 @@ useHead({ title: 'Home' })
             </p>
           </div>
           <div class="text-center p-8">
+            <ImageSlot src="/images/home-how-plant-log.jpg" alt="Mountain peak framed by pine trees" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Plant &amp; Log Trees
             </h3>
@@ -90,6 +92,7 @@ useHead({ title: 'Home' })
             </p>
           </div>
           <div class="text-center p-8">
+            <ImageSlot src="/images/home-how-celebrate.jpg" alt="Bird perched atop a tree at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Earn &amp; Celebrate
             </h3>
