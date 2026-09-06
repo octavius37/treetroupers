@@ -51,12 +51,18 @@ const services = [
 
 <template>
   <div>
-    <section class="py-16 px-4 bg-gray-200">
-      <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+    <section class="relative py-16 px-4 overflow-hidden">
+      <ImageSlot
+        src="/images/everyday-tasks-hero-sunset.jpg"
+        alt="Lone crooked tree silhouetted against a pink and orange sunset"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gray-900 opacity-45" />
+      <div class="relative z-10 max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">
           Planting trees doing everyday tasks
         </h1>
-        <p class="text-green-700 leading-relaxed max-w-3xl">
+        <p class="text-green-50 leading-relaxed max-w-3xl">
           But you can also take advantage of options offered by a vast number of technology companies to earn trees through everyday digital experiences, converting digital engagement into real-world impact with minimal lifestyle changes.
         </p>
       </div>
