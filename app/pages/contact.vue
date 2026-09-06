@@ -123,9 +123,9 @@ async function handleSubmit() {
 
     <section class="relative h-64 overflow-hidden">
       <ImageSlot
-        src="/images/contact-band-lake.jpg"
-        alt="Turquoise alpine lake framed by jagged peaks and pink wildflowers"
-        class="absolute inset-0 w-full h-full object-cover object-[center_4%]"
+        src="/images/home-how-community.jpg"
+        alt="River winding through a valley at sunset"
+        class="absolute inset-0 w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-gray-900 opacity-10" />
     </section>
