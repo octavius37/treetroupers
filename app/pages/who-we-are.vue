@@ -117,5 +117,30 @@ useHead({ title: 'Who We Are' })
         </div>
       </div>
     </section>
+
+    <section class="relative py-20 px-4 overflow-hidden">
+      <ImageSlot
+        src="/images/home-cta-forest-path.jpg"
+        alt="Dirt path leading through a sunlit pine forest"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-green-950 opacity-75" />
+      <div class="relative z-10 max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl font-bold text-white mb-6">
+          Ready to make a difference?
+        </h2>
+        <p class="text-green-100 text-lg mb-8">
+          Join Tree Troupe and start planting trees with your local community today.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <NuxtLink to="/register" class="bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">
+            Get Started
+          </NuxtLink>
+          <NuxtLink to="/what-can-i-do" class="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">
+            Learn More
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
