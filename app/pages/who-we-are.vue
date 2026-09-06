@@ -7,9 +7,12 @@ useHead({ title: 'Who We Are' })
 <template>
   <div>
     <section class="relative h-[400px] overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-r from-green-900 to-emerald-800">
-        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 60%);" />
-      </div>
+      <ImageSlot
+        src="/images/who-we-are-hero-sunset.jpg"
+        alt="Silhouette of a tree against a vivid purple and orange sunset"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-green-950 opacity-50" />
       <div class="relative z-10 flex items-center justify-center h-full px-6">
         <h1 class="text-4xl md:text-5xl text-white text-center font-bold">
           Who We Are
@@ -23,22 +26,31 @@ useHead({ title: 'Who We Are' })
           Tree Troupe was born from a simple idea: that planting trees together is one of the most powerful things a community can do for the planet — and for each other.
         </p>
 
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">
-          Our Story
-        </h2>
-        <p class="text-gray-600 leading-relaxed mb-4">
-          We started as a small group of neighbours who wanted to do something tangible about climate change. We quickly realised that the act of planting trees together created something beyond environmental impact — it built real community connections.
-        </p>
-        <p class="text-gray-600 leading-relaxed mb-12">
-          Today, Tree Troupe is a growing platform that helps communities around the world coordinate tree planting, track their impact, and celebrate their collective progress.
-        </p>
+        <div class="grid md:grid-cols-2 gap-10 items-center mb-12">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">
+              Our Story
+            </h2>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              We started as a small group of neighbours who wanted to do something tangible about climate change. We quickly realised that the act of planting trees together created something beyond environmental impact — it built real community connections.
+            </p>
+            <p class="text-gray-600 leading-relaxed">
+              Today, Tree Troupe is a growing platform that helps communities around the world coordinate tree planting, track their impact, and celebrate their collective progress.
+            </p>
+          </div>
+          <ImageSlot
+            src="/images/who-we-are-story-seedling.jpg"
+            alt="Cupped hands holding soil with a small seedling"
+            class="rounded-lg w-full h-80 object-cover"
+          />
+        </div>
 
         <h2 class="text-2xl font-bold text-gray-900 text-center mb-10">
           Our Team
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <div class="text-center">
-            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot src="/images/team-jessica-howley.jpg" alt="Jessica Howley" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Jessica Howley
             </h3>
@@ -56,7 +68,7 @@ useHead({ title: 'Who We Are' })
             </p>
           </div>
           <div class="text-center">
-            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot src="/images/team-paul-bollerman.jpg" alt="Paul Bollerman" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Paul Bollerman
             </h3>
