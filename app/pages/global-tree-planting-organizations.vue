@@ -6,12 +6,18 @@ useHead({ title: 'Global tree planting organizations' })
 
 <template>
   <div>
-    <section class="py-16 px-4 bg-gray-200">
-      <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+    <section class="relative py-16 px-4 overflow-hidden">
+      <ImageSlot
+        src="/images/global-orgs-hero-bathtub.jpg"
+        alt="Vintage bathtub repurposed as a planter, overflowing with tulips and daffodils"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gray-900 opacity-45" />
+      <div class="relative z-10 max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">
           Global tree planting organizations
         </h1>
-        <p class="text-green-700 leading-relaxed max-w-3xl">
+        <p class="text-green-50 leading-relaxed max-w-3xl">
           There are a large number of organizations engaged in reforestation and conservation globally. We've done our research and these are some of our favourites, which we consider give the most bang for buck in terms of climate impacts.
         </p>
       </div>

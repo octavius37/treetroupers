@@ -23,14 +23,20 @@ function isActive(path: string) {
 
     <div class="flex-1 flex">
       <!-- Desktop Sidebar -->
-      <aside class="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col flex-shrink-0">
-        <nav class="flex-1 px-3 py-6 space-y-1">
+      <aside class="hidden lg:flex w-64 relative flex-col flex-shrink-0 overflow-hidden">
+        <ImageSlot
+          src="/images/dashboard-sidebar-tree.jpg"
+          alt="Leafy tree silhouetted against a sunset in a grassy field"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-green-950 opacity-70" />
+        <nav class="relative z-10 flex-1 px-3 py-6 space-y-1">
           <NuxtLink
             v-for="link in sidebarLinks"
             :key="link.to"
             :to="link.to"
             class="block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-            :class="isActive(link.to) ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            :class="isActive(link.to) ? 'bg-white/15 text-white' : 'text-green-50/80 hover:bg-white/10 hover:text-white'"
           >
             {{ link.label }}
           </NuxtLink>

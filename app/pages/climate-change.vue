@@ -100,11 +100,5 @@ useHead({ title: 'Climate change & trees' })
         Get in touch
       </NuxtLink>
     </section>
-
-    <section class="py-16 px-4 bg-white text-center">
-      <NuxtLink to="/what-can-i-do" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full font-medium hover:bg-green-700 transition-colors">
-        Find out what you can do →
-      </NuxtLink>
-    </section>
   </div>
 </template>

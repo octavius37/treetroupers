@@ -49,8 +49,8 @@ useHead({ title: 'What Can I Do?' })
           Individual actions
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <ImageSlot alt="Photo placeholder: Planting a sapling" class="h-64 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: Digital / tech abstract" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-plant-own-garden.jpg" alt="Cupped hands holding soil with a small seedling" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-everyday-tasks.jpg" alt="Phone displaying a photo of a forest path, held up in a real forest" class="h-64 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           <div>
@@ -83,8 +83,8 @@ useHead({ title: 'What Can I Do?' })
           Community actions
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <ImageSlot alt="Photo placeholder: Community tree planting" class="h-64 w-full rounded-lg object-cover" />
-          <ImageSlot alt="Photo placeholder: Climate justice protest sign" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-community-planting.jpg" alt="Group of volunteers of all ages planting a tree together" class="h-64 w-full rounded-lg object-cover" />
+          <ImageSlot src="/images/wcid-community-municipal.jpg" alt="Municipal workers in high-visibility vests planting flowers in a park" class="h-64 w-full rounded-lg object-cover" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           <div>
@@ -114,7 +114,7 @@ useHead({ title: 'What Can I Do?' })
       <h2 class="text-3xl font-bold text-green-700 mb-10">
         Global actions
       </h2>
-      <ImageSlot alt="Photo placeholder: Seedling trays" class="max-w-2xl mx-auto h-64 w-full rounded-lg object-cover mb-16" />
+      <ImageSlot src="/images/wcid-global-actions.jpg" alt="Gloved hands holding a globe with a seedling sprouting from it" class="max-w-2xl mx-auto h-64 w-full rounded-lg object-cover mb-16" />
       <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">
         Contribute to global tree planting efforts
       </h2>
