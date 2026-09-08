@@ -29,7 +29,12 @@ async function handleSubmit() {
 <template>
   <div>
     <section class="relative h-[300px] overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-r from-green-700 to-teal-600" />
+      <ImageSlot
+        src="/images/contact-hero-hands-seedling.jpg"
+        alt="Circle of hands holding a small seedling together"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-green-950 opacity-50" />
       <div class="relative z-10 flex items-center justify-center h-full px-6">
         <h1 class="text-4xl md:text-5xl text-white text-center font-bold">
           Contact Us
@@ -114,6 +119,15 @@ async function handleSubmit() {
           </div>
         </form>
       </div>
+    </section>
+
+    <section class="relative h-64 overflow-hidden">
+      <ImageSlot
+        src="/images/home-how-community.jpg"
+        alt="River winding through a valley at sunset"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gray-900 opacity-10" />
     </section>
   </div>
 </template>
