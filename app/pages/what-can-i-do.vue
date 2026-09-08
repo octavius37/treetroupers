@@ -71,7 +71,7 @@ useHead({ title: 'What Can I Do?' })
             </p>
           </div>
         </div>
-        <NuxtLink to="/dashboard/plant" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
+        <NuxtLink to="/login" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
           Learn More
         </NuxtLink>
       </div>
