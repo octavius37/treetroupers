@@ -412,42 +412,54 @@ export type Database = {
         Row: {
           community_id: string | null
           created_at: string
+          donation_project: string | null
+          earned_activity: string | null
           id: string
           lat: number | null
           lng: number | null
-          location: unknown
+          location: unknown | null
           notes: string | null
           photo_urls: string[]
           planted_at: string
           planted_by: string | null
+          quantity: number
+          source: string
           species_id: string | null
           status: string
         }
         Insert: {
           community_id?: string | null
           created_at?: string
+          donation_project?: string | null
+          earned_activity?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
-          location: unknown
+          location?: unknown | null
           notes?: string | null
           photo_urls?: string[]
           planted_at?: string
           planted_by?: string | null
+          quantity?: number
+          source?: string
           species_id?: string | null
           status?: string
         }
         Update: {
           community_id?: string | null
           created_at?: string
+          donation_project?: string | null
+          earned_activity?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
-          location?: unknown
+          location?: unknown | null
           notes?: string | null
           photo_urls?: string[]
           planted_at?: string
           planted_by?: string | null
+          quantity?: number
+          source?: string
           species_id?: string | null
           status?: string
         }
