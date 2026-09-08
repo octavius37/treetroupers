@@ -113,7 +113,31 @@ values
   ('00000000-0000-4000-d000-000000000003', 'Small-leaved Lime', 'Tilia cordata',
    'Common Dutch street tree; fragrant summer flowers.', 18.2),
   ('00000000-0000-4000-d000-000000000004', 'Common Beech', 'Fagus sylvatica',
-   'Dense canopy, prefers well-drained soil.', 20.1);
+   'Dense canopy, prefers well-drained soil.', 20.1),
+  ('00000000-0000-4000-d000-000000000005', 'Norway Maple', 'Acer platanoides',
+   'Popular urban shade tree with vivid autumn colour.', 15.0),
+  ('00000000-0000-4000-d000-000000000006', 'Sessile Oak', 'Quercus petraea',
+   'Hardy upland oak, more drought-tolerant than English Oak.', 21.3),
+  ('00000000-0000-4000-d000-000000000007', 'European Ash', 'Fraxinus excelsior',
+   'Tall native tree; UK/EU populations under threat from ash dieback.', 16.5),
+  ('00000000-0000-4000-d000-000000000008', 'Horse Chestnut', 'Aesculus hippocastanum',
+   'Broad canopy tree known for spring flower spikes and conkers.', 19.4),
+  ('00000000-0000-4000-d000-000000000009', 'Scots Pine', 'Pinus sylvestris',
+   'Evergreen conifer, thrives in poor sandy soils.', 10.2),
+  ('00000000-0000-4000-d000-00000000000a', 'European Larch', 'Larix decidua',
+   'Deciduous conifer that sheds its needles each autumn.', 13.1),
+  ('00000000-0000-4000-d000-00000000000b', 'Black Alder', 'Alnus glutinosa',
+   'Wetland-tolerant native, fixes nitrogen via root nodules.', 14.0),
+  ('00000000-0000-4000-d000-00000000000c', 'Weeping Willow', 'Salix babylonica',
+   'Fast-growing waterside tree with distinctive drooping branches.', 11.6),
+  ('00000000-0000-4000-d000-00000000000d', 'London Plane', 'Platanus x hispanica',
+   'Pollution-tolerant hybrid, widely planted as a street tree.', 24.0),
+  ('00000000-0000-4000-d000-00000000000e', 'Common Hornbeam', 'Carpinus betulus',
+   'Dense, slow-growing tree often used for hedging.', 17.2),
+  ('00000000-0000-4000-d000-00000000000f', 'Rowan', 'Sorbus aucuparia',
+   'Small hardy native tree with bright orange autumn berries.', 9.0),
+  ('00000000-0000-4000-d000-000000000010', 'Norway Spruce', 'Picea abies',
+   'Evergreen conifer, the traditional European Christmas tree.', 12.4);
 
 -- Trees --------------------------------------------------------------------
 -- Real Utrecht coordinates. `location` is built via ST_MakePoint(lng, lat) —
