@@ -28,8 +28,13 @@ export interface QueryResult {
   count?: number | null
 }
 
-/** Either one result for every operation on a table, or one per operation. */
-export type TableConfig = QueryResult | Partial<Record<Operation, QueryResult>>
+/**
+ * One result for every operation on a table, one per operation, or an ordered
+ * list consumed one entry per call against the table (repeating the last
+ * entry once exhausted) — for a handler that queries the same table twice
+ * with different expected data each time.
+ */
+export type TableConfig = QueryResult | Partial<Record<Operation, QueryResult>> | QueryResult[]
 
 export interface Filter {
   method: string
@@ -57,9 +62,13 @@ function isOperationMap(config: TableConfig): config is Partial<Record<Operation
   return OPERATIONS.some(op => op in config)
 }
 
-function resultFor(config: TableConfig | undefined, operation: Operation): Required<QueryResult> {
+function resultFor(config: TableConfig | undefined, operation: Operation, callIndex: number): Required<QueryResult> {
   if (!config) {
     return { ...EMPTY }
+  }
+  if (Array.isArray(config)) {
+    const result = config[Math.min(callIndex, config.length - 1)]
+    return { ...EMPTY, ...result }
   }
   const result = isOperationMap(config) ? config[operation] : config
   return { ...EMPTY, ...result }
@@ -76,15 +85,19 @@ export interface SupabaseMock {
 
 export function createSupabaseMock(tables: Record<string, TableConfig> = {}): SupabaseMock {
   const calls: RecordedCall[] = []
+  const tableCallCounts: Record<string, number> = {}
 
   const from = vi.fn((table: string) => {
+    const callIndex = tableCallCounts[table] ?? 0
+    tableCallCounts[table] = callIndex + 1
+
     // `operation` starts as select and is overwritten by insert/update/delete;
     // the trailing `.select()` in `insert().select()` must not clobber it.
     const call: RecordedCall = { table, operation: 'select', filters: [], terminal: 'await' }
     let operationSet = false
     calls.push(call)
 
-    const settle = () => Promise.resolve(resultFor(tables[table], call.operation))
+    const settle = () => Promise.resolve(resultFor(tables[table], call.operation, callIndex))
 
     const setOperation = (operation: Operation) => {
       call.operation = operation

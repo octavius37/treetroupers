@@ -58,7 +58,8 @@ useHead({ title: 'What Can I Do?' })
               Plant a tree in your own garden
             </h3>
             <p class="text-green-50 leading-relaxed">
-              Every tree planted makes a difference. This is something you can do at home, at little to no cost. We have helpful guides to get you started here. Join tree troupe, use our geotagging software to log your trees, and track your progress with your friends!
+              <!-- eslint-disable-next-line vue/singleline-html-element-content-newline -- inline link in flowing text; a line break would collapse to a space before the full stop -->
+              Every tree planted makes a difference. This is something you can do at home, at little to no cost. We have helpful guides to get you started <NuxtLink to="/tree-planting-tips" class="underline hover:text-white">here</NuxtLink>. Join tree troupe, use our geotagging software to log your trees, and track your progress with your friends!
             </p>
           </div>
           <div>
