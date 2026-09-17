@@ -71,7 +71,7 @@ useHead({ title: 'What Can I Do?' })
             </p>
           </div>
         </div>
-        <NuxtLink to="/dashboard/plant" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
+        <NuxtLink to="/login" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
           Learn More
         </NuxtLink>
       </div>
@@ -114,7 +114,7 @@ useHead({ title: 'What Can I Do?' })
       <h2 class="text-3xl font-bold text-green-700 mb-10">
         Global actions
       </h2>
-      <ImageSlot src="/images/wcid-global-actions.jpg" alt="Gloved hands holding a globe with a seedling sprouting from it" class="max-w-2xl mx-auto h-64 w-full rounded-lg object-cover mb-16" />
+      <ImageSlot src="/images/wcid-global-actions.jpg" alt="Gloved hands holding a globe with a seedling sprouting from it" class="max-w-2xl mx-auto h-72 w-full rounded-lg object-cover object-[center_38%] mb-16" />
       <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">
         Contribute to global tree planting efforts
       </h2>
