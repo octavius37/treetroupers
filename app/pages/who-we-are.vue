@@ -59,7 +59,7 @@ useHead({ title: 'Who We Are' })
             </p>
           </div>
           <div class="text-center">
-            <ImageSlot alt="Team member photo placeholder" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot src="/images/team-charlotte-howley.jpg" alt="Charlotte Howley" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Charlotte Howley
             </h3>
