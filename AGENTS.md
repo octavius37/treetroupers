@@ -386,7 +386,7 @@ database:
 
 `index.vue` (`home`), `who-we-are.vue`, `climate-change.vue`, `what-can-i-do.vue`,
 `global-tree-planting-organizations.vue`,
-`planting-trees-doing-everyday-tasks.vue`.
+`planting-trees-doing-everyday-tasks.vue`, `a-short-guide-to-tree-planting.vue`.
 
 There is no `mission.vue`: that page's content was merged into the homepage's
 "Our Mission" section, matching the contributor migration that did the same in
