@@ -6,10 +6,14 @@ const sidebarLinks = [
   { to: '/dashboard/feed', label: 'Community Feed' },
   { to: '/dashboard/plant', label: 'Plant a Tree' },
   { to: '/dashboard/map', label: 'Tree Map' },
+  { to: '/dashboard/suggest', label: 'Suggest a Spot', desktopOnly: true },
   { to: '/dashboard/leaderboard', label: 'Leaderboard' },
   { to: '/dashboard/communities', label: 'Communities' },
   { to: '/dashboard/profile', label: 'Profile' },
 ]
+
+// The bottom bar only fits five entries.
+const mobileLinks = sidebarLinks.filter(link => !link.desktopOnly).slice(0, 5)
 
 function isActive(path: string) {
   if (path === '/dashboard') { return route.path === '/dashboard' }
@@ -47,7 +51,7 @@ function isActive(path: string) {
       <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <nav class="flex justify-around py-2 px-1">
           <NuxtLink
-            v-for="link in sidebarLinks.slice(0, 5)"
+            v-for="link in mobileLinks"
             :key="link.to"
             :to="link.to"
             class="flex flex-col items-center gap-0.5 px-1 py-1.5 text-[10px] font-medium transition-colors min-w-0"
