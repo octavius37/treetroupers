@@ -100,7 +100,7 @@ async function remove(id: string) {
   <div>
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900">
-        Suggest a Spot
+        Suggest a Planting Spot
       </h1>
       <p class="text-gray-600 mt-1">
         Know somewhere that could use a tree? Click the map to mark it for the community.
