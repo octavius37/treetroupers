@@ -3,9 +3,7 @@
 --
 -- Writes go through server/api/dashboard/planting-suggestions* with the
 -- service role behind authUserId(), so there are no insert/delete policies —
--- only a read policy for the map. Reads are limited to logged-in members:
--- notes are member-written and the only reader is the auth-protected
--- dashboard page, so there is no reason to expose them to the anon key.
+-- only a read policy for the map.
 create table public.planting_suggestions (
   id            uuid primary key default extensions.uuid_generate_v4(),
   suggested_by  uuid references public.profiles (id) on delete cascade,
@@ -21,5 +19,5 @@ create index planting_suggestions_suggested_by_idx on public.planting_suggestion
 
 alter table public.planting_suggestions enable row level security;
 
-create policy "planting_suggestions: member read" on public.planting_suggestions
-  for select to authenticated using (true);
+create policy "planting_suggestions: public read" on public.planting_suggestions
+  for select using (true);
