@@ -53,7 +53,10 @@ function drawTrees() {
 function drawSuggestions() {
   if (!map) { return }
   suggestionLayer?.remove()
+  // bubblingMouseEvents: false keeps a click that opens a marker's popup from
+  // also reaching the map's click handler and starting a new spot on top of it.
   suggestionLayer = L.layerGroup(props.suggestions.map(s => L.circleMarker([s.lat, s.lng], {
+    bubblingMouseEvents: false,
     radius: 9,
     color: '#b45309',
     fillColor: s.mine ? '#f59e0b' : '#fcd34d',
@@ -93,7 +96,10 @@ onMounted(() => {
   }).addTo(map)
 
   map.on('click', (e) => {
-    emit('pick', { lat: e.latlng.lat, lng: e.latlng.lng })
+    // Clicks on a repeated copy of the world report longitudes beyond ±180;
+    // wrap() brings them back into range so the server accepts them.
+    const { lat, lng } = e.latlng.wrap()
+    emit('pick', { lat, lng })
   })
 
   drawTrees()
