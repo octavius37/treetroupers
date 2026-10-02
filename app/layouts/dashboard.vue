@@ -4,7 +4,7 @@ const route = useRoute()
 const sidebarLinks = [
   { to: '/dashboard', label: 'Overview' },
   { to: '/dashboard/feed', label: 'Community Feed' },
-  { to: '/dashboard/plant', label: 'Plant a Tree' },
+  { to: '/dashboard/suggest', label: 'Suggest a Planting Spot' },
   { to: '/dashboard/map', label: 'Tree Map' },
   { to: '/dashboard/leaderboard', label: 'Leaderboard' },
   { to: '/dashboard/communities', label: 'Communities' },
