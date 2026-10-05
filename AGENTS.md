@@ -448,14 +448,18 @@ The CMS (`/cms/*`, the GrapesJS `PageBuilder`, the pages CRUD endpoints and the
 content. Static routes outrank the catch-all in Nuxt, so a CMS page whose slug
 collides with a code route will not render — pick a different slug.
 
+A CMS-backed "Tree planting tips" blog (`/tree-planting-tips`, listing
+published child pages of a seeded collection page via
+`GET /api/public/pages/:slug/posts`) was built and then dropped before it ever
+had any posts — `/a-short-guide-to-tree-planting` (a hand-maintained code page,
+see "Public pages are code" above) is the tips content for now.
+
 ## What's Not Done Yet
 
 - Mapbox integration for the tree map page (currently a placeholder)
 - Photo upload (Supabase Storage) — upload UI exists as placeholder
 - Capacitor mobile wrapping
 - AR tree overlay
-- Vlog/blog collection in the CMS (the `pages` table and editor are kept for it;
-  public info pages are deliberately code, not CMS content)
 - Contact form email backend
 - **Database integration tests** — the unit suite mocks Supabase entirely, so
   nothing verifies RLS policies, the `handle_new_user` trigger,
