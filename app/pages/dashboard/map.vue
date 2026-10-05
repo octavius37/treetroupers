@@ -4,6 +4,20 @@ definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 const supabase = useSupabaseClient()
 const trees = ref<any[]>([])
 const loading = ref(true)
+const focus = ref<{ lat: number, lng: number } | null>(null)
+
+// Donated and earned trees have no location, so only planted ones go on the map.
+const mappedTrees = computed(() => trees.value
+  .filter(t => t.lat != null && t.lng != null)
+  .map(t => ({
+    id: t.id as string,
+    lat: Number(t.lat),
+    lng: Number(t.lng),
+    species: t.tree_species?.common_name || 'Unknown species',
+    plantedBy: t.profiles?.display_name || 'Unknown',
+    plantedAt: t.planted_at as string,
+    status: t.status as string,
+  })))
 
 onMounted(async () => {
   const { data } = await supabase
@@ -26,27 +40,24 @@ onMounted(async () => {
       </p>
     </div>
 
-    <!-- Map placeholder -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div class="h-[500px] bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center relative">
-        <div
-          class="absolute inset-0 opacity-10"
-          style="background-image: repeating-linear-gradient(0deg, #16a34a 0px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, #16a34a 0px, transparent 1px, transparent 40px);"
-        />
-        <div class="text-center z-10">
-          <svg class="w-16 h-16 text-green-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-          </svg>
-          <p class="text-gray-500 text-lg font-medium">
-            Map View
-          </p>
-          <p class="text-gray-400 text-sm mt-1">
-            Connect Mapbox to see trees on an interactive map
-          </p>
-          <p class="text-gray-400 text-xs mt-2">
-            {{ trees.length }} trees logged
-          </p>
-        </div>
+      <div class="h-[500px] relative z-0">
+        <ClientOnly>
+          <TreeMap :trees="mappedTrees" :focus="focus" />
+          <template #fallback>
+            <div class="h-full flex items-center justify-center bg-green-50 text-gray-500">
+              Loading map...
+            </div>
+          </template>
+        </ClientOnly>
+      </div>
+
+      <div class="px-6 py-3 border-t border-gray-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500" /> Planted</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500" /> Growing</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-green-600" /> Mature</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500" /> Removed</span>
+        <span class="ml-auto">{{ mappedTrees.length }} of {{ trees.length }} trees have a location</span>
       </div>
     </div>
 
@@ -65,7 +76,12 @@ onMounted(async () => {
       </div>
       <div v-else class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
         <div v-for="tree in trees" :key="tree.id" class="px-6 py-4 flex items-center justify-between">
-          <div>
+          <button
+            type="button"
+            class="text-left disabled:cursor-default"
+            :disabled="tree.lat == null || tree.lng == null"
+            @click="focus = { lat: Number(tree.lat), lng: Number(tree.lng) }"
+          >
             <div class="font-medium text-gray-900">
               {{ tree.tree_species?.common_name || 'Unknown species' }}
             </div>
@@ -75,7 +91,7 @@ onMounted(async () => {
             <div v-if="tree.lat != null && tree.lng != null" class="text-xs text-gray-400 mt-1">
               📍 {{ Number(tree.lat).toFixed(4) }}, {{ Number(tree.lng).toFixed(4) }}
             </div>
-          </div>
+          </button>
           <div
             class="text-xs px-2 py-1 rounded-full capitalize flex-shrink-0"
             :class="{

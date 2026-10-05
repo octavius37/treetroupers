@@ -152,8 +152,11 @@ npm run db:types            # regenerate app/types/database.types.ts
 ```
 
 Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote). Every local migration is already applied on remote, so a push
-today sends nothing — see "Current remote state" below before assuming otherwise.
+against remote). **Push when you merge a PR that adds a migration.** Vercel
+deploys `main` automatically; the database is not updated with it. PR #14's
+migration went unpushed for two weeks after merge. The merged code writes the
+new columns on every tree insert, so against the production schema every
+attempt to log a tree would fail for that whole time. See "Current remote state" below for what is pending.
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
@@ -173,8 +176,27 @@ table — and abort without applying anything.
 **Already resolved:** the baseline is now recorded in remote history as applied,
 with no SQL executed (the hosted schema already matched it). Nothing to re-run.
 
-If you need the same repair again, note that `supabase migration repair` may fail
-while provisioning its temporary login role:
+**The reverse case also aborts a push.** If remote history holds a version with
+no matching file in `supabase/migrations/` — a migration that was applied and its
+file later deleted — `db:push` refuses to run anything:
+
+```
+Remote migration versions not found in local migrations directory.
+```
+
+Remove the history row (no SQL runs) and push again:
+
+```bash
+supabase migration repair --status reverted <version>
+supabase db push --dry-run   # confirm only the migrations you expect are listed
+```
+
+The CLI also suggests `supabase db pull`. Don't run it here: it writes the remote
+schema into a new migration file, which is not the problem being fixed.
+
+If you need a repair again, note that `supabase migration repair` may fail
+while provisioning its temporary login role (on 2026-10-01 it worked through the
+linked project without the workaround below):
 
 ```
 unexpected login role status 400: permission denied to alter role
@@ -340,9 +362,19 @@ Found while extracting the schema into migrations.
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
 
-### Current remote state (2026-08-25)
+### Current remote state (2026-10-01)
 
 Verified directly against the hosted project:
+
+- **`20260908133532_add_donated_and_earned_tree_logging` was not yet applied** at
+  the time of writing. It came in with PR #14 (merged 2026-09-17) and could not
+  have been pushed while the remote-only history rows described below existed.
+  Those rows have since been cleared and a dry run listed this as the only pending migration;
+  the push itself was left for a human to run. Until it is applied, production
+  `trees` lacks `source`, `quantity`, `donation_project` and `earned_activity`,
+  and `server/api/dashboard/trees.post.ts` fails on every insert. Check with
+  `supabase migration list --linked`, and delete this bullet once the version
+  shows on both sides.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
@@ -356,19 +388,18 @@ Verified directly against the hosted project:
   intact; only the rows are gone. They were backed up first to
   `docs/superpowers/plans/2026-08-25-pages-backup.sql`, verified byte-identical
   by md5 — that file is the restore path.
-- **Intentional migration-history drift.** The four `20260804*` page-content
-  versions remain in remote history with no corresponding files in the repo,
-  because those files were deleted when the pages moved into code. This is
-  harmless: `db:push` skips versions already present in history, so nothing
-  re-runs and nothing errors. `supabase migration list --linked` will show them
-  as remote-only. To clear them for exactness:
-  `supabase migration repair --status reverted <version>` (needs the `--db-url`
-  workaround above).
+- **The four `20260804*` page-content versions were removed from remote
+  history** on 2026-10-01 (`migration repair --status reverted`; history rows
+  only, no SQL executed). Their files had been deleted when the pages moved into
+  code. An earlier version of this section called that drift harmless and said
+  `db:push` would skip them. That was wrong: a remote version with no local file
+  makes `db:push` abort before applying anything, so the PR #14 migration above
+  could not have been pushed until they were removed. Remote history and the repo now agree apart
+  from that one pending migration.
 
-  An earlier version of this section claimed those four migrations were
-  unapplied and would overwrite live content. That was wrong — they had been
-  applied on 2026-08-11, and md5 comparison confirmed the live rows matched the
-  migration content byte-for-byte before deletion.
+  The four migrations had been applied on 2026-08-11, and md5 comparison
+  confirmed the live rows matched their content before the rows were deleted;
+  the backup file above holds that content.
 - **Six further page-content migrations (`20260811*`, `20260812*`) were removed
   on merge.** They arrived from the contributor's branch and were **never
   applied to remote** — remote history has no record of them — so removing the
@@ -386,7 +417,7 @@ database:
 
 `index.vue` (`home`), `who-we-are.vue`, `climate-change.vue`, `what-can-i-do.vue`,
 `global-tree-planting-organizations.vue`,
-`planting-trees-doing-everyday-tasks.vue`.
+`planting-trees-doing-everyday-tasks.vue`, `a-short-guide-to-tree-planting.vue`.
 
 There is no `mission.vue`: that page's content was merged into the homepage's
 "Our Mission" section, matching the contributor migration that did the same in
@@ -417,17 +448,11 @@ The CMS (`/cms/*`, the GrapesJS `PageBuilder`, the pages CRUD endpoints and the
 content. Static routes outrank the catch-all in Nuxt, so a CMS page whose slug
 collides with a code route will not render — pick a different slug.
 
-**"Tree planting tips" is the first such blog.** `/tree-planting-tips` is a
-code page (`app/pages/tree-planting-tips.vue`) that lists published CMS pages
-whose `parent_id` points at the "Tree planting tips" collection page (seeded
-by migration `20260908090000_seed_tree_planting_tips_collection.sql`, slug
-`tree-planting-tips`, `show_in_nav: false`). To publish a new tip: create a
-page in `/cms/pages`, set its parent to "Tree planting tips", and publish it —
-it appears on the listing automatically, newest first, no code change needed.
-The listing calls `GET /api/public/pages/:slug/posts`, a generic
-"published children of a collection" endpoint that any future blog/vlog
-collection can reuse by seeding its own parent page and pointing a listing
-page at its slug.
+A CMS-backed "Tree planting tips" blog (`/tree-planting-tips`, listing
+published child pages of a seeded collection page via
+`GET /api/public/pages/:slug/posts`) was built and then dropped before it ever
+had any posts — `/a-short-guide-to-tree-planting` (a hand-maintained code page,
+see "Public pages are code" above) is the tips content for now.
 
 ## What's Not Done Yet
 

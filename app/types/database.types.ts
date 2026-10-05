@@ -154,6 +154,51 @@ export type Database = {
           },
         ]
       }
+      planting_suggestions: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          location: unknown
+          notes: string | null
+          suggested_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location: unknown
+          notes?: string | null
+          suggested_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location?: unknown
+          notes?: string | null
+          suggested_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planting_suggestions_suggested_by_fkey"
+            columns: ["suggested_by"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planting_suggestions_suggested_by_fkey"
+            columns: ["suggested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       point_events: {
         Row: {
           action_type: string
@@ -412,42 +457,54 @@ export type Database = {
         Row: {
           community_id: string | null
           created_at: string
+          donation_project: string | null
+          earned_activity: string | null
           id: string
           lat: number | null
           lng: number | null
-          location: unknown
+          location: unknown | null
           notes: string | null
           photo_urls: string[]
           planted_at: string
           planted_by: string | null
+          quantity: number
+          source: string
           species_id: string | null
           status: string
         }
         Insert: {
           community_id?: string | null
           created_at?: string
+          donation_project?: string | null
+          earned_activity?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
-          location: unknown
+          location?: unknown | null
           notes?: string | null
           photo_urls?: string[]
           planted_at?: string
           planted_by?: string | null
+          quantity?: number
+          source?: string
           species_id?: string | null
           status?: string
         }
         Update: {
           community_id?: string | null
           created_at?: string
+          donation_project?: string | null
+          earned_activity?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
-          location?: unknown
+          location?: unknown | null
           notes?: string | null
           photo_urls?: string[]
           planted_at?: string
           planted_by?: string | null
+          quantity?: number
+          source?: string
           species_id?: string | null
           status?: string
         }

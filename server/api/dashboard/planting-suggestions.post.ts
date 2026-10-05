@@ -5,6 +5,14 @@ export default defineEventHandler(async (event) => {
   if (!uid) { throw createError({ statusCode: 401, message: 'Unauthorized' }) }
 
   const body = await readBody(event)
+  const lat = Number(body?.lat)
+  const lng = Number(body?.lng)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    throw createError({ statusCode: 400, message: 'A valid location is required' })
+  }
+
+  const notes = typeof body.notes === 'string' ? body.notes.trim().slice(0, 500) : ''
+
   const client = serverSupabaseServiceRole(event)
 
   const { data: profile, error: profileError } = await client
@@ -15,23 +23,14 @@ export default defineEventHandler(async (event) => {
 
   if (profileError || !profile) { throw createError({ statusCode: 404, message: 'Profile not found' }) }
 
-  const source = body.source === 'donated' || body.source === 'earned' ? body.source : 'planted'
-
   const { data, error } = await client
-    .from('trees')
+    .from('planting_suggestions')
     .insert({
-      planted_by: profile.id,
-      source,
-      species_id: source === 'planted' ? (body.species_id || null) : null,
-      community_id: body.community_id || null,
-      location: source === 'planted' ? `SRID=4326;POINT(${body.lng} ${body.lat})` : null,
-      quantity: source === 'planted' ? 1 : Number.parseInt(body.quantity, 10) || 1,
-      donation_project: source === 'donated' ? body.donation_project || null : null,
-      earned_activity: source === 'earned' ? body.earned_activity || null : null,
-      notes: body.notes,
-      planted_at: body.planted_at,
+      suggested_by: profile.id,
+      location: `SRID=4326;POINT(${lng} ${lat})`,
+      notes: notes || null,
     })
-    .select()
+    .select('*, profiles!suggested_by(display_name)')
     .single()
 
   if (error) { throw createError({ statusCode: 500, message: error.message }) }
