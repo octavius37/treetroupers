@@ -3,7 +3,7 @@ import type { Tables } from '~/types/database.types'
 import { randomUUID } from 'node:crypto'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import handler from '~~/server/api/dashboard/trees.post'
-import { anonClient, createTestUser, deleteTestUser, serviceClient } from '../helpers/local-supabase'
+import { anonClient, createTestUser, deleteTestUser, serviceClient, signedInClient } from '../helpers/local-supabase'
 import { createTestEvent, setRequestBody } from '../helpers/nitro'
 import { serverSupabaseServiceRole } from '../mocks/supabase-server'
 
@@ -15,11 +15,14 @@ import { serverSupabaseServiceRole } from '../mocks/supabase-server'
 
 let authUser: User
 let profile: Tables<'profiles'>
+// A second planter, for the cross-profile and pre-existing-tree cases.
+let other: { authUser: User, profile: Tables<'profiles'> }
 let speciesId: string
 let firstTreeId: string
 
 beforeAll(async () => {
   ;({ authUser, profile } = await createTestUser())
+  other = await createTestUser()
 
   // Own species rather than a seeded one, so the test doesn't depend on seed.sql.
   const { data, error } = await serviceClient
@@ -38,7 +41,11 @@ beforeEach(() => {
 
 afterAll(async () => {
   if (profile) { await deleteTestUser(authUser.id, profile.id) }
-  if (speciesId) { await serviceClient.from('tree_species').delete().eq('id', speciesId) }
+  if (other) { await deleteTestUser(other.authUser.id, other.profile.id) }
+  if (speciesId) {
+    const { error } = await serviceClient.from('tree_species').delete().eq('id', speciesId)
+    if (error) { throw error }
+  }
 })
 
 describe('planting a tree', () => {
@@ -109,16 +116,16 @@ describe('planting a tree', () => {
 
 // Runs after the block above, so the profile already has exactly one tree.
 describe('points for planting', () => {
-  async function totalPoints() {
-    const { data } = await serviceClient.from('profiles').select('total_points').eq('id', profile.id).single()
+  async function totalPoints(profileId = profile.id) {
+    const { data } = await serviceClient.from('profiles').select('total_points').eq('id', profileId).single()
     return data!.total_points
   }
 
-  async function events() {
+  async function events(profileId = profile.id) {
     const { data } = await serviceClient
       .from('point_events')
       .select('action_type, points, reference_id, reference_type')
-      .eq('profile_id', profile.id)
+      .eq('profile_id', profileId)
       .order('points')
     return data!
   }
@@ -152,12 +159,7 @@ describe('points for planting', () => {
   // The trigger has to write point_events, which has no insert policy. This is
   // the path that fails if the trigger function stops being SECURITY DEFINER.
   it('awards points when the user inserts a tree directly, under RLS', async () => {
-    const client = anonClient()
-    const { error: signInError } = await client.auth.signInWithPassword({
-      email: authUser.email!,
-      password: 'password123',
-    })
-    expect(signInError).toBeNull()
+    const client = await signedInClient(authUser.email!)
 
     const { error } = await client.from('trees').insert({
       planted_by: profile.id,
@@ -166,5 +168,54 @@ describe('points for planting', () => {
 
     expect(error).toBeNull()
     expect(await totalPoints()).toBe(110)
+  })
+
+  // Without an ownership check on insert, a signed-in user could log trees, and
+  // so points, against anyone's profile.
+  it('refuses a direct insert that credits another profile', async () => {
+    const client = await signedInClient(authUser.email!)
+
+    const { error } = await client.from('trees').insert({
+      planted_by: other.profile.id,
+      location: 'SRID=4326;POINT(5.12 52.09)',
+    })
+
+    expect(error?.code).toBe('42501') // insufficient_privilege: RLS rejected the row
+    expect(await totalPoints(other.profile.id)).toBe(0)
+  })
+
+  // Row triggers fire after the whole statement, so each row of a multi-row
+  // insert sees the others. seed.sql inserts trees this way.
+  it('awards exactly one first-tree bonus when first trees arrive in one insert', async () => {
+    const { data: trees, error } = await serviceClient
+      .from('trees')
+      .insert([
+        { planted_by: other.profile.id, location: 'SRID=4326;POINT(5.12 52.09)' },
+        { planted_by: other.profile.id, location: 'SRID=4326;POINT(5.13 52.10)' },
+      ])
+      .select('id')
+    expect(error).toBeNull()
+
+    const awarded = await events(other.profile.id)
+    expect(awarded.filter(e => e.action_type === 'plant_tree')).toHaveLength(2)
+    expect(awarded.filter(e => e.action_type === 'first_tree')).toHaveLength(1)
+    expect(trees!.map(t => t.id)).toContain(awarded.find(e => e.action_type === 'first_tree')!.reference_id)
+    expect(await totalPoints(other.profile.id)).toBe(90)
+  })
+
+  // Trees logged before the trigger existed have no point events. The bonus is
+  // for a first tree, so those planters must not get it on their next one.
+  it('gives no first-tree bonus to someone who planted before points existed', async () => {
+    // Recreate that state: `other` has trees from the test above; drop their events.
+    const { error: deleteError } = await serviceClient.from('point_events').delete().eq('profile_id', other.profile.id)
+    expect(deleteError).toBeNull()
+
+    Object.assign(globalThis, { authUserId: vi.fn().mockResolvedValue(other.authUser.id) })
+    setRequestBody({ species_id: speciesId, lat: 52.11, lng: 5.14, planted_at: '2026-08-13' })
+    const tree = await handler(createTestEvent())
+
+    expect(await events(other.profile.id)).toEqual([
+      { action_type: 'plant_tree', points: 20, reference_id: tree.id, reference_type: 'tree' },
+    ])
   })
 })

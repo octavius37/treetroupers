@@ -10,6 +10,17 @@
 --
 -- No backfill: trees inserted before this migration keep zero points.
 
+-- Only a profile's owner may log trees against it. The old policy checked only
+-- that the caller was signed in, which with points attached would let any user
+-- credit trees, and points, to any profile. The dashboard endpoint uses the
+-- service role and sets planted_by itself, so it is unaffected.
+drop policy "trees: authenticated insert" on public.trees;
+
+create policy "trees: own insert" on public.trees
+  for insert with check (
+    auth.uid() = (select p.auth_user_id from public.profiles p where p.id = trees.planted_by)
+  );
+
 -- One first-tree bonus per profile, even if two inserts race.
 create unique index point_events_one_first_tree_per_profile
   on public.point_events (profile_id)
@@ -31,9 +42,26 @@ begin
   insert into public.point_events (profile_id, action_type, points, reference_id, reference_type)
   values (new.planted_by, 'plant_tree', 20, new.id, 'tree');
 
-  insert into public.point_events (profile_id, action_type, points, reference_id, reference_type)
-  values (new.planted_by, 'first_tree', 50, new.id, 'tree')
-  on conflict (profile_id) where action_type = 'first_tree' do nothing;
+  -- The bonus is for a profile's first planted tree, so anyone with a planted
+  -- tree from an earlier transaction gets none. That includes people who planted
+  -- before this migration, whose trees have no point events.
+  --
+  -- Trees from the current transaction are not counted (created_at defaults to
+  -- now(), the transaction start). Row triggers fire after the whole statement,
+  -- so in a multi-row insert, as in seed.sql, each new tree would otherwise see
+  -- the others and nobody would get the bonus; the unique index keeps it to one.
+  -- created_at is client-settable, so this is not tamper-proof, but the most it
+  -- can be gamed for is that single bonus.
+  if not exists (
+    select 1 from public.trees t
+    where t.planted_by = new.planted_by
+      and t.source = 'planted'
+      and t.created_at < now()
+  ) then
+    insert into public.point_events (profile_id, action_type, points, reference_id, reference_type)
+    values (new.planted_by, 'first_tree', 50, new.id, 'tree')
+    on conflict (profile_id) where action_type = 'first_tree' do nothing;
+  end if;
 
   return new;
 end;

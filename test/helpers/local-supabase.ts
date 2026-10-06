@@ -19,6 +19,8 @@ if (hostname !== '127.0.0.1' && hostname !== 'localhost') {
 
 const options = { auth: { persistSession: false, autoRefreshToken: false } }
 
+const TEST_PASSWORD = 'password123'
+
 /** Bypasses RLS — the same role the server handlers use. */
 export const serviceClient: SupabaseClient<Database> = createClient<Database>(url, LOCAL_SERVICE_KEY, options)
 
@@ -34,7 +36,7 @@ export function anonClient(): SupabaseClient<Database> {
 export async function createTestUser() {
   const { data, error } = await serviceClient.auth.admin.createUser({
     email: `db-test-${randomUUID()}@example.com`,
-    password: 'password123',
+    password: TEST_PASSWORD,
     email_confirm: true,
   })
   if (error) { throw error }
@@ -49,11 +51,24 @@ export async function createTestUser() {
   return { authUser: data.user, profile }
 }
 
+/** A client signed in as a test user, so RLS applies as that user. */
+export async function signedInClient(email: string): Promise<SupabaseClient<Database>> {
+  const client = anonClient()
+  const { error } = await client.auth.signInWithPassword({ email, password: TEST_PASSWORD })
+  if (error) { throw error }
+  return client
+}
+
 /**
  * Deletes a test user and their trees. Trees go first: `trees.planted_by` is
- * `on delete set null`, so deleting the user alone would orphan them.
+ * `on delete set null`, so deleting the user alone would orphan them. Supabase
+ * returns failures instead of throwing, so each step is checked, and the user is
+ * kept if their trees could not be removed.
  */
 export async function deleteTestUser(authUserId: string, profileId: string) {
-  await serviceClient.from('trees').delete().eq('planted_by', profileId)
-  await serviceClient.auth.admin.deleteUser(authUserId)
+  const { error: treesError } = await serviceClient.from('trees').delete().eq('planted_by', profileId)
+  if (treesError) { throw treesError }
+
+  const { error } = await serviceClient.auth.admin.deleteUser(authUserId)
+  if (error) { throw error }
 }

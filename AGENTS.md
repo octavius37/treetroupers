@@ -522,14 +522,26 @@ Planting a tree awards points through the `on_tree_planted` trigger on `trees`
 so every insert path scores the same:
 
 - 20 points (`plant_tree`) for each tree with `source = 'planted'`.
-- A one-off 50-point `first_tree` bonus, enforced by a partial unique index so a
-  profile can never get it twice.
+- A one-off 50-point `first_tree` bonus for a profile's first planted tree. It is
+  withheld if the profile has a planted tree from an earlier transaction (which
+  includes anyone who planted before the migration), and a partial unique index
+  stops a profile getting it twice. Trees from the *same* transaction are
+  deliberately not counted: row triggers fire after the whole statement, so in a
+  multi-row insert (as in `seed.sql`) each row sees the others, and a plain "no
+  other planted tree" check would award nobody.
 - Donated and earned entries earn nothing: they have no location and a
   self-reported `quantity`, so there is nothing to verify.
 
 Trees logged before the migration were not backfilled. The trigger function is
 `SECURITY DEFINER` because `point_events` has no insert policy; the
 `test/db/plant-tree.test.ts` direct-insert test fails if that is ever removed.
+
+The same migration replaced the `trees: authenticated insert` policy, which only
+checked that the caller was signed in, with `trees: own insert`, which requires
+`planted_by` to be the caller's own profile. Without that, points would let any
+user credit trees to anyone. `tree_updates: authenticated insert` still has the
+old shape (any `author_id`); it awards nothing today, but needs the same fix
+before updates earn points.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
 not list them.
 
