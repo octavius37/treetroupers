@@ -6,7 +6,7 @@ Tree Troupe is a community tree-planting platform. Users sign up, join local geo
 
 The long-term vision includes:
 - Nested geographic communities (neighbourhood → city → regional → national)
-- An interactive map of all community-planted trees (Mapbox — not yet integrated)
+- An interactive map of all community-planted trees (Leaflet + OpenStreetMap — done)
 - Mobile apps via Capacitor wrapping the same Nuxt codebase
 - AR overlay showing nearby planted trees on a phone camera
 - A headless CMS (Payload) for non-developer content management
@@ -230,7 +230,8 @@ npm run typecheck  # TypeScript check (vue-tsc via nuxi)
 npm run lint       # oxlint + eslint
 npm run lint:fix   # Auto-fix lint issues
 
-npm test           # Run the whole test suite once
+npm test           # Run the unit test suite once
+npm run test:db    # Database integration tests (needs the local stack running)
 npm run test:watch # Re-run affected tests on change
 npx vitest run --project server   # Server tests only (~0.4s)
 npx vitest run --project app      # Nuxt-environment tests only
@@ -256,16 +257,19 @@ environments. `npm test` runs both; CI runs it on every push and PR.
 | `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
 | `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/` | ~4s (one Nuxt build) |
 
-Everything is a unit test. Nothing touches a database, a network or a browser,
-so the suite needs no Docker, no `.env` and no secrets.
+Everything under `npm test` is a unit test. Nothing touches a database, a
+network or a browser, so it needs no Docker, no `.env` and no secrets. Database
+integration tests are separate — see "Database integration tests" below.
 
 ```
 test/
   helpers/supabase-mock.ts   chainable Supabase query-builder double
   helpers/nitro.ts           fake H3Event + Nitro auto-import globals
   mocks/supabase-server.ts   stands in for the `#supabase/server` virtual module
+  helpers/local-supabase.ts  real clients for the local stack + throwaway users
   setup/                     per-project setup files
-  server/…  app/…            the tests themselves
+  server/…  app/…            the unit tests
+  db/                        database integration tests (`npm run test:db`)
 ```
 
 **Writing server tests.** Server code depends on two things that only exist
@@ -303,13 +307,46 @@ entirely, so a handler that forgets its guard is an unauthenticated write path
 rather than a 403. This covers endpoints added later that nobody wrote a test
 for — leave it in place.
 
-**Two caveats worth knowing.**
+### Database integration tests
 
-1. `npm run lint` and `npm run typecheck` were **already failing on `main`**
-   before the suite existed (803 eslint errors repo-wide; two `TS2321` errors in
-   `app/composables/useCmsPages.ts`). The suite adds none of these — it is at
-   parity with that baseline. Don't read a red `lint`/`typecheck` as something
-   the tests broke.
+`test/db/` runs server handlers against the **local** Supabase stack, so
+triggers, constraints, generated columns and RLS are real rather than mocked.
+They have their own config, `vitest.db.config.ts`, so `npm test` never needs
+Docker.
+
+```bash
+npm run db:start   # if the stack isn't already up
+npm run test:db
+```
+
+No `db:reset` is needed and your local data is left alone: each file creates its
+own throwaway auth user (and any species it needs) in `beforeAll` and deletes them
+in `afterAll`. Delete the user's trees **before** the user — `trees.planted_by`
+is `on delete set null`, so deleting the user first leaves orphaned trees.
+`deleteTestUser()` does this in the right order.
+
+The handler still imports `serverSupabaseServiceRole` from the
+`#supabase/server` mock; the test just points it at a real service-role client.
+`authUserId` is stubbed as in the unit tests. The service role bypasses RLS, so
+to test a policy, read or write with `anonClient()` (or a signed-in client).
+
+`test/helpers/local-supabase.ts` hard-codes the stack's public demo keys and
+**refuses to run against anything but `127.0.0.1`/`localhost`**. It ignores
+`SUPABASE_URL` on purpose, since a `.env` may point that at the hosted project.
+
+CI runs these in the `test-db` job, which boots a trimmed stack with
+`supabase start` (migrations + seed from scratch) on every push and PR.
+
+Coverage so far is planting a tree and the points it awards
+(`plant-tree.test.ts`), which also exercises `handle_new_user` and
+`sync_total_points`. Next candidates: the remaining RLS policies and the
+`leaderboard` view — see "Known Schema Issues".
+
+### Caveats
+
+1. `npm run lint` is clean on `main`. `npm run typecheck` still reports two
+   `TS2321` errors in `app/composables/useCmsPages.ts` that predate the suite.
+   Don't read those as something the tests broke.
 2. `test/` is outside the include list of every generated `.nuxt/tsconfig*.json`,
    so `nuxt typecheck` does not check the test files. To check them, point
    `vue-tsc` at a tsconfig that extends `./.nuxt/tsconfig.json` and includes
@@ -456,16 +493,58 @@ see "Public pages are code" above) is the tips content for now.
 
 ## What's Not Done Yet
 
-- Mapbox integration for the tree map page (currently a placeholder)
-- Photo upload (Supabase Storage) — upload UI exists as placeholder
+- Photo upload (Supabase Storage) for trees — the plant form still shows
+  "Photo upload coming soon". (The CMS has its own image upload,
+  `server/api/cms/upload.post.ts`.)
 - Capacitor mobile wrapping
 - AR tree overlay
-- Contact form email backend
-- **Database integration tests** — the unit suite mocks Supabase entirely, so
-  nothing verifies RLS policies, the `handle_new_user` trigger,
-  `sync_total_points`, or the `leaderboard` view. That is the same class of bug
-  as everything under "Known Schema Issues", and it needs the local stack (and
-  therefore Docker in CI). The natural next step.
+- **More database integration tests** — the setup exists and covers planting a
+  tree and its points (see "Database integration tests"). Still unverified: most
+  RLS policies, the `leaderboard` view, planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Tree species database seeding
+- Points for anything other than planting. `update_tree`, `verify_tree`,
+  `join_community` and `streak_bonus` exist as `point_events` action types (and
+  in the seed), but nothing awards them yet. Deleting a tree doesn't take its
+  points back either.
+
+Done since this list was last updated: the interactive tree map
+(`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
+"Suggest a Planting Spot" map; the contact form's email backend
+(`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
+seeding (all 100 hosted species are now in `seed.sql`); points for planting (see
+"Points" below).
+
+### Points
+
+Planting a tree awards points through the `on_tree_planted` trigger on `trees`
+(`20261005122551_award_points_for_planted_trees.sql`), not in application code,
+so every insert path scores the same:
+
+- 20 points (`plant_tree`) for each tree with `source = 'planted'`.
+- A one-off 50-point `first_tree` bonus for a profile's first planted tree. It is
+  withheld if the profile has a planted tree from an earlier transaction (which
+  includes anyone who planted before the migration), and a partial unique index
+  stops a profile getting it twice. Trees from the *same* transaction are
+  deliberately not counted: row triggers fire after the whole statement, so in a
+  multi-row insert (as in `seed.sql`) each row sees the others, and a plain "no
+  other planted tree" check would award nobody.
+- Donated and earned entries earn nothing: they have no location and a
+  self-reported `quantity`, so there is nothing to verify.
+
+Trees logged before the migration were not backfilled. The trigger function is
+`SECURITY DEFINER` because `point_events` has no insert policy; the
+`test/db/plant-tree.test.ts` direct-insert test fails if that is ever removed.
+
+The same migration replaced the `trees: authenticated insert` policy, which only
+checked that the caller was signed in, with `trees: own insert`, which requires
+`planted_by` to be the caller's own profile. Without that, points would let any
+user credit trees to anyone. `tree_updates: authenticated insert` still has the
+old shape (any `author_id`); it awards nothing today, but needs the same fix
+before updates earn points.
+Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
+not list them.
+
+`tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
+holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
+left out of the seed; no trees reference it.
