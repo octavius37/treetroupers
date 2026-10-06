@@ -114,22 +114,22 @@ describe('planting a tree', () => {
   })
 })
 
+async function totalPoints(profileId = profile.id) {
+  const { data } = await serviceClient.from('profiles').select('total_points').eq('id', profileId).single()
+  return data!.total_points
+}
+
+async function events(profileId = profile.id) {
+  const { data } = await serviceClient
+    .from('point_events')
+    .select('action_type, points, reference_id, reference_type')
+    .eq('profile_id', profileId)
+    .order('points')
+  return data!
+}
+
 // Runs after the block above, so the profile already has exactly one tree.
 describe('points for planting', () => {
-  async function totalPoints(profileId = profile.id) {
-    const { data } = await serviceClient.from('profiles').select('total_points').eq('id', profileId).single()
-    return data!.total_points
-  }
-
-  async function events(profileId = profile.id) {
-    const { data } = await serviceClient
-      .from('point_events')
-      .select('action_type, points, reference_id, reference_type')
-      .eq('profile_id', profileId)
-      .order('points')
-    return data!
-  }
-
   it('awards 20 points plus a 50-point first-tree bonus for the first tree', async () => {
     expect(await events()).toEqual([
       { action_type: 'plant_tree', points: 20, reference_id: firstTreeId, reference_type: 'tree' },
