@@ -8,6 +8,7 @@ const communities = ref<any[]>([])
 const profile = ref<any>(null)
 const loading = ref(true)
 const submitting = ref(false)
+const photoUploading = ref(false)
 const success = ref(false)
 const error = ref('')
 
@@ -175,7 +176,7 @@ async function handleSubmit() {
       </div>
 
       <!-- Photo -->
-      <PhotoUpload v-model="form.photo_url" label="Earning Confirmation" />
+      <PhotoUpload v-model="form.photo_url" v-model:uploading="photoUploading" label="Earning Confirmation" />
 
       <!-- Notes -->
       <div>
@@ -191,7 +192,7 @@ async function handleSubmit() {
 
       <button
         type="submit"
-        :disabled="submitting"
+        :disabled="submitting || photoUploading"
         class="w-full bg-green-600 text-white py-3 rounded-full font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
       >
         {{ submitting ? 'Saving...' : 'Log This Tree' }}

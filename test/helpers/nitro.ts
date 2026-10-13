@@ -1,22 +1,29 @@
-import type { H3Event } from 'h3'
+import type { H3Event, MultiPartData } from 'h3'
 import { createError, defineEventHandler } from 'h3'
 
 /**
- * Nitro auto-imports `defineEventHandler`, `createError`, `readBody` and
- * `getRouterParam` into every server file, so those bare identifiers resolve to
- * globals at runtime and are simply missing under plain Vitest.
+ * Nitro auto-imports `defineEventHandler`, `createError`, `readBody`,
+ * `readMultipartFormData` and `getRouterParam` into every server file, so those
+ * bare identifiers resolve to globals at runtime and are simply missing under
+ * plain Vitest.
  *
  * `createError` and `defineEventHandler` come from the real h3 package, so status
- * codes and error shapes are genuine. `readBody` and `getRouterParam` read from a
- * real Node request, so they are backed by per-test state instead.
+ * codes and error shapes are genuine. The other three read from a real Node
+ * request, so they are backed by per-test state instead.
  */
 
 let requestBody: unknown = {}
+let multipartParts: MultiPartData[] | undefined
 let routerParams: Record<string, string | undefined> = {}
 
 /** The body the next `readBody(event)` call will resolve to. */
 export function setRequestBody(body: unknown) {
   requestBody = body
+}
+
+/** The parts the next `readMultipartFormData(event)` call will resolve to. */
+export function setMultipartFormData(parts: MultiPartData[] | undefined) {
+  multipartParts = parts
 }
 
 /** The params the next `getRouterParam(event, name)` calls will read. */
@@ -26,6 +33,7 @@ export function setRouterParams(params: Record<string, string | undefined>) {
 
 export function resetNitroGlobals() {
   requestBody = {}
+  multipartParts = undefined
   routerParams = {}
 }
 
@@ -34,6 +42,7 @@ export function installNitroGlobals() {
     defineEventHandler,
     createError,
     readBody: async () => requestBody,
+    readMultipartFormData: async () => multipartParts,
     getRouterParam: (_event: H3Event, name: string) => routerParams[name],
   })
 }

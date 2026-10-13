@@ -1,8 +1,9 @@
 <script setup lang="ts">
-// A single-photo upload control: picks an image, uploads it immediately to
-// Supabase Storage via /api/dashboard/tree-photo, and v-models the resulting
-// public URL (or null once removed). Shared by the plant/donate/earn forms,
-// which each attach the result as proof when logging a tree.
+// A single-photo upload control: picks an image, downscales it, uploads it
+// immediately to Supabase Storage via /api/dashboard/tree-photo, and v-models
+// the resulting public URL (or null once removed). Shared by the
+// plant/donate/earn forms, which each attach the result as proof when logging
+// a tree.
 const props = defineProps<{
   modelValue: string | null
   label: string
@@ -12,18 +13,30 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
+// Bind with v-model:uploading so the form can hold its submit button until the
+// URL arrives. Submitting earlier saves the tree without the photo.
+const uploading = defineModel<boolean>('uploading', { default: false })
+
+// The upload endpoint's limit, set by Vercel's 4.5 MB request cap.
+const MAX_UPLOAD_SIZE = 4 * 1024 * 1024
+
 const fileInput = useTemplateRef('fileInput')
-const uploading = ref(false)
 const error = ref('')
 
 async function handleFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) { return }
+  const picked = (e.target as HTMLInputElement).files?.[0]
+  if (!picked) { return }
 
   error.value = ''
   uploading.value = true
 
   try {
+    const file = await downscaleImage(picked)
+    if (file.size > MAX_UPLOAD_SIZE) {
+      error.value = 'This photo is over 4 MB and could not be resized. Please choose a smaller one.'
+      return
+    }
+
     const body = new FormData()
     body.append('file', file)
     const { url } = await $fetch('/api/dashboard/tree-photo', { method: 'POST', body })
