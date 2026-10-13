@@ -403,15 +403,28 @@ Also note `profiles` has no INSERT policy — rows are created solely by the
 
 Verified directly against the hosted project:
 
-- **`20260908133532_add_donated_and_earned_tree_logging` was not yet applied** at
-  the time of writing. It came in with PR #14 (merged 2026-09-17) and could not
-  have been pushed while the remote-only history rows described below existed.
-  Those rows have since been cleared and a dry run listed this as the only pending migration;
-  the push itself was left for a human to run. Until it is applied, production
-  `trees` lacks `source`, `quantity`, `donation_project` and `earned_activity`,
-  and `server/api/dashboard/trees.post.ts` fails on every insert. Check with
-  `supabase migration list --linked`, and delete this bullet once the version
-  shows on both sides.
+- **At least four migrations are pending on remote**, none confirmed pushed as
+  of this edit:
+  - `20260908133532_add_donated_and_earned_tree_logging` (PR #14, merged
+    2026-09-17) — production `trees` lacks `source`, `quantity`,
+    `donation_project` and `earned_activity`, so `trees.post.ts` fails on every
+    insert.
+  - `20260924120000_create_planting_suggestions` and
+    `20261001120000_limit_planting_suggestions_read_to_members` (PR #16,
+    merged 2026-10-02) — production has no `planting_suggestions` table, so
+    `/dashboard/suggest` fails on load and on submit.
+  - `20261005122551_award_points_for_planted_trees` (PR #18, merged
+    2026-10-06) — no `on_tree_planted` trigger, so planting a tree awards no
+    points in production even once the first bullet is fixed.
+  - `20261013120000_award_points_for_planting_suggestions` — same gap for
+    suggestion points, plus the `point_events_action_type_check` update that
+    `suggest_spot` needs.
+
+  The remote-only history rows that used to block `db:push` were cleared on
+  2026-10-01 (see below), so a push today should catch up all four in one go —
+  but that push has not been confirmed run. Check with
+  `supabase migration list --linked` before assuming any of them are live, and
+  delete the bullets that are once confirmed.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
@@ -493,27 +506,26 @@ see "Public pages are code" above) is the tips content for now.
 
 ## What's Not Done Yet
 
-- Photo upload (Supabase Storage) for trees — the plant form still shows
-  "Photo upload coming soon". (The CMS has its own image upload,
-  `server/api/cms/upload.post.ts`.)
 - Capacitor mobile wrapping
 - AR tree overlay
 - **More database integration tests** — the setup exists and covers planting a
-  tree and its points (see "Database integration tests"). Still unverified: most
-  RLS policies, the `leaderboard` view, planting-suggestion visibility.
+  tree and its points, and suggestion points (see "Database integration
+  tests"). Still unverified: most RLS policies, the `leaderboard` view,
+  planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Points for anything other than planting. `update_tree`, `verify_tree`,
-  `join_community` and `streak_bonus` exist as `point_events` action types (and
-  in the seed), but nothing awards them yet. Deleting a tree doesn't take its
+- Points for `update_tree`, `verify_tree`, `join_community` and `streak_bonus`.
+  They exist as `point_events` action types (and in the seed), but nothing
+  awards them yet. Deleting a tree, or a planting suggestion, doesn't take its
   points back either.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
 "Suggest a Planting Spot" map; the contact form's email backend
 (`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
-seeding (all 100 hosted species are now in `seed.sql`); points for planting (see
-"Points" below).
+seeding (all 100 hosted species are now in `seed.sql`); points for planting and
+for suggesting a spot (see "Points" below); photo upload for trees (Supabase
+Storage, see "Photo upload" below).
 
 ### Points
 
@@ -544,6 +556,29 @@ old shape (any `author_id`); it awards nothing today, but needs the same fix
 before updates earn points.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
 not list them.
+
+Suggesting a planting spot awards 1 point (`suggest_spot`) through the
+`on_planting_suggestion_created` trigger on `planting_suggestions`
+(`20261013120000_award_points_for_planting_suggestions.sql`), same pattern and
+same reason: every insert path scores the same, and `point_events` has no
+insert policy so the function is `SECURITY DEFINER`. `suggest_spot` was not
+among the action types the baseline schema anticipated, so this migration also
+drops and re-adds `point_events_action_type_check` to add it — the only place
+in the repo doing that today. No first-suggestion bonus, and no reclaim if the
+suggestion is deleted.
+
+### Photo upload
+
+`POST /api/dashboard/tree-photo` uploads one image to the `tree-photos`
+Supabase Storage bucket (public, auto-created on first use — same pattern as
+`server/api/cms/upload.post.ts`'s `cms-images`, but behind `authUserId()`
+rather than `requireAdmin()`, and stored under `<auth user id>/<uuid>.<ext>`)
+and returns its public URL. `app/components/PhotoUpload.vue` wraps this as a
+`v-model`-able control — pick a file, it uploads immediately and the URL lands
+in the parent form's state — shared by `plant.vue`, `plant-donated.vue` and
+`plant-earned.vue`. On submit, `trees.post.ts` stores that URL as the one
+element of `trees.photo_urls` (plural in the schema, since `tree_updates` can
+hold several; these forms only ever send one).
 
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was

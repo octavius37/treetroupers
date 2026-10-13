@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
       quantity: source === 'planted' ? 1 : Number.parseInt(body.quantity, 10) || 1,
       donation_project: source === 'donated' ? body.donation_project || null : null,
       earned_activity: source === 'earned' ? body.earned_activity || null : null,
+      photo_urls: typeof body.photo_url === 'string' && body.photo_url ? [body.photo_url] : [],
       notes: body.notes,
       planted_at: body.planted_at,
     })
