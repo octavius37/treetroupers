@@ -8,6 +8,7 @@ const communities = ref<any[]>([])
 const profile = ref<any>(null)
 const loading = ref(true)
 const submitting = ref(false)
+const photoUploading = ref(false)
 const success = ref(false)
 const error = ref('')
 
@@ -17,6 +18,7 @@ const form = reactive({
   quantity: 1,
   notes: '',
   planted_at: new Date().toISOString().split('T')[0],
+  photo_url: null as string | null,
 })
 
 onMounted(async () => {
@@ -46,6 +48,7 @@ function resetForm() {
   form.quantity = 1
   form.notes = ''
   form.planted_at = new Date().toISOString().split('T')[0]
+  form.photo_url = null
   success.value = false
 }
 
@@ -63,6 +66,7 @@ async function handleSubmit() {
         quantity: form.quantity,
         notes: form.notes,
         planted_at: form.planted_at,
+        photo_url: form.photo_url,
       },
     })
     success.value = true
@@ -171,19 +175,8 @@ async function handleSubmit() {
         >
       </div>
 
-      <!-- Photo placeholder -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Earning Confirmation</label>
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-400 hover:border-green-400 transition-colors cursor-pointer">
-          <svg class="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-          </svg>
-          <p class="text-sm">
-            Photo upload coming soon
-          </p>
-        </div>
-      </div>
+      <!-- Photo -->
+      <PhotoUpload v-model="form.photo_url" v-model:uploading="photoUploading" label="Earning Confirmation" />
 
       <!-- Notes -->
       <div>
@@ -199,7 +192,7 @@ async function handleSubmit() {
 
       <button
         type="submit"
-        :disabled="submitting"
+        :disabled="submitting || photoUploading"
         class="w-full bg-green-600 text-white py-3 rounded-full font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
       >
         {{ submitting ? 'Saving...' : 'Log This Tree' }}

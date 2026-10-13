@@ -286,7 +286,7 @@ environments. `npm test` runs both; CI runs it on every push and PR.
 | Project | Environment | Tests | Speed |
 |---------|-------------|-------|-------|
 | `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
-| `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/` | ~4s (one Nuxt build) |
+| `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/`, `app/pages/` | ~4s (one Nuxt build) |
 
 Everything under `npm test` is a unit test. Nothing touches a database, a
 network or a browser, so it needs no Docker, no `.env` and no secrets. Database
@@ -308,9 +308,9 @@ inside a Nitro build. `#supabase/server` is aliased in `vitest.config.ts` to
 `test/mocks/supabase-server.ts` — import that file by *relative path* in tests so
 it type-checks, and the code under test reaches the same module instance through
 the alias. The auto-imported h3 helpers (`defineEventHandler`, `createError`,
-`readBody`, `getRouterParam`) are installed as globals by `test/setup/server.ts`;
-use `setRequestBody()` / `setRouterParams()` from `test/helpers/nitro.ts` to
-drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
+`readBody`, `readMultipartFormData`, `getRouterParam`) are installed as globals
+by `test/setup/server.ts`; use `setRequestBody()` / `setMultipartFormData()` /
+`setRouterParams()` from `test/helpers/nitro.ts` to drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
 stubbed per test via `Object.assign(globalThis, …)`.
 
 `createSupabaseMock({ table: { data, error, count } })` returns `{ client, calls }`.
@@ -320,7 +320,7 @@ this: that a missing user never reaches the database, that a page read filters
 `status = 'published'`, that a profile is never looked up with `undefined`.
 
 **Writing app tests.** Use `mockNuxtImport` for auto-imports and `mountSuspended`
-for components. Two traps:
+for components. Three traps:
 
 - `mockNuxtImport` factories are hoisted above module-scope `const`s. If the
   factory *returns* the mock directly (`() => navigateTo`), wrap it in
@@ -329,6 +329,10 @@ for components. Two traps:
   called at top level, and the watcher then races the next test. Run them inside
   an `effectScope()` and `stop()` it in `afterEach`. Anything cached in
   `useState` needs resetting in `beforeEach` too.
+- `registerEndpoint` does not pass `FormData` bodies through: the handler
+  receives the string `"[object Object]"`. To check what a component uploads,
+  stub `$fetch` with `vi.stubGlobal` and read the `FormData` it is called with
+  (see `PhotoUpload.test.ts`).
 
 **The authorization guard.** `test/server/api/authorization-guards.test.ts` reads
 the source of every `server/api/**` handler and asserts the CMS ones `await
@@ -370,7 +374,8 @@ CI runs these in the `test-db` job, which boots a trimmed stack with
 
 Coverage so far is planting a tree and the points it awards
 (`plant-tree.test.ts`), which also exercises `handle_new_user` and
-`sync_total_points`. Next candidates: the remaining RLS policies and the
+`sync_total_points`, and suggesting a spot, including the point being taken back
+when the suggestion is deleted (`suggest-spot.test.ts`). Next candidates: the remaining RLS policies and the
 `leaderboard` view — see "Known Schema Issues".
 
 ### Caveats
@@ -442,6 +447,11 @@ Verified directly against the hosted project:
   policy, the `on_tree_planted` trigger and `trees: own insert` all exist, and
   the REST API returns the new columns, so its schema cache is current.
   Donating a tree works in production.
+
+  `20261013120000_award_points_for_planting_suggestions` (PR #19) was added
+  after that check. The **Run Supabase migrations** workflow applies it when
+  the PR merges; check that run passed before assuming suggestion points work
+  in production.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
@@ -522,27 +532,29 @@ see "Public pages are code" above) is the tips content for now.
 
 ## What's Not Done Yet
 
-- Photo upload (Supabase Storage) for trees — the plant form still shows
-  "Photo upload coming soon". (The CMS has its own image upload,
-  `server/api/cms/upload.post.ts`.)
 - Capacitor mobile wrapping
 - AR tree overlay
 - **More database integration tests** — the setup exists and covers planting a
-  tree and its points (see "Database integration tests"). Still unverified: most
-  RLS policies, the `leaderboard` view, planting-suggestion visibility.
+  tree and its points, and suggestion points (see "Database integration
+  tests"). Still unverified: most RLS policies, the `leaderboard` view,
+  planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Points for anything other than planting. `update_tree`, `verify_tree`,
-  `join_community` and `streak_bonus` exist as `point_events` action types (and
-  in the seed), but nothing awards them yet. Deleting a tree doesn't take its
-  points back either.
+- Points for `update_tree`, `verify_tree`, `join_community` and `streak_bonus`.
+  They exist as `point_events` action types (and in the seed), but nothing
+  awards them yet. Deleting a tree doesn't take its points back either
+  (deleting a planting suggestion does).
+- **Showing tree photos.** The plant/donate/earn forms upload a photo and
+  `trees.photo_urls` stores it, but no page displays it yet — not the dashboard,
+  the map or `/cms/trees`.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
 "Suggest a Planting Spot" map; the contact form's email backend
 (`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
-seeding (all 100 hosted species are now in `seed.sql`); points for planting (see
-"Points" below).
+seeding (all 100 hosted species are now in `seed.sql`); points for planting and
+for suggesting a spot (see "Points" below); photo upload for trees (Supabase
+Storage, see "Photo upload" below).
 
 ### Points
 
@@ -574,6 +586,54 @@ before updates earn points.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
 not list them.
 
+Suggesting a planting spot awards 1 point (`suggest_spot`) through the
+`on_planting_suggestion_created` trigger on `planting_suggestions`
+(`20261013120000_award_points_for_planting_suggestions.sql`), same pattern and
+same reason: every insert path scores the same, and `point_events` has no
+insert policy so the function is `SECURITY DEFINER`. `suggest_spot` was not
+among the action types the baseline schema anticipated, so this migration also
+drops and re-adds `point_events_action_type_check` to add it — the only place
+in the repo doing that today. No first-suggestion bonus.
+
+Members can remove their own suggestions, so the same migration's
+`on_planting_suggestion_deleted` trigger takes the point back: it inserts a
+matching `-1` `suggest_spot` event rather than deleting the original, because
+`sync_total_points` only reacts to inserts. Without it, suggesting and removing
+a spot in a loop added points with nothing left on the map.
+
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
 left out of the seed; no trees reference it.
+
+### Photo upload
+
+`POST /api/dashboard/tree-photo` uploads one image to the `tree-photos`
+Supabase Storage bucket and returns its public URL. It sits behind
+`authUserId()`, and objects are stored under `<auth user id>/<uuid>.<ext>`.
+The bucket is public and created on first use, like the CMS's `cms-images` in
+`server/api/cms/upload.post.ts`.
+
+- **Only JPEG, PNG and WebP are accepted**, identified from the file's first
+  bytes. The browser-supplied type and filename are ignored, since the client
+  controls both. Anything else, SVG in particular, is refused, so the public
+  bucket can't serve a script or arbitrary files. The extension is derived from
+  the detected type, and the bucket is created with the same `allowedMimeTypes`.
+- **The limit is 4 MB**, because Vercel refuses function request bodies over
+  4.5 MB with a 413 before the handler runs.
+- **`PhotoUpload.vue` downscales before uploading**: `app/utils/downscaleImage.ts`
+  redraws the photo at most 2048 px on its longer side and re-encodes it as JPEG,
+  which brings phone photos well under 1 MB and drops their EXIF data (including
+  GPS). If the browser can't decode the file, the original is sent, and one still
+  over 4 MB is refused in the browser with a readable message.
+
+`PhotoUpload.vue` is shared by `plant.vue`, `plant-donated.vue` and
+`plant-earned.vue`. It uploads as soon as a file is picked and puts the URL in
+the form via `v-model`. Bind `v-model:uploading` too and disable submit while it
+is true: submitting mid-upload saves the tree without its photo. On submit,
+`trees.post.ts` stores the URL as the one element of `trees.photo_urls` (plural
+in the schema, since `tree_updates` can hold several; these forms only ever send
+one).
+
+Known gaps: nothing deletes uploads that never end up on a tree (a removed
+photo, an abandoned form), and `trees.post.ts` stores whatever `photo_url` the
+client sends without checking it points into `tree-photos/<uid>/`.
