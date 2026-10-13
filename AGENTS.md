@@ -6,7 +6,7 @@ Tree Troupe is a community tree-planting platform. Users sign up, join local geo
 
 The long-term vision includes:
 - Nested geographic communities (neighbourhood → city → regional → national)
-- An interactive map of all community-planted trees (Mapbox — not yet integrated)
+- An interactive map of all community-planted trees (Leaflet + OpenStreetMap — done)
 - Mobile apps via Capacitor wrapping the same Nuxt codebase
 - AR overlay showing nearby planted trees on a phone camera
 - A headless CMS (Payload) for non-developer content management
@@ -152,8 +152,11 @@ npm run db:types            # regenerate app/types/database.types.ts
 ```
 
 Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote). Every local migration is already applied on remote, so a push
-today sends nothing — see "Current remote state" below before assuming otherwise.
+against remote). **Push when you merge a PR that adds a migration.** Vercel
+deploys `main` automatically; the database is not updated with it. PR #14's
+migration went unpushed for two weeks after merge. The merged code writes the
+new columns on every tree insert, so against the production schema every
+attempt to log a tree would fail for that whole time. See "Current remote state" below for what is pending.
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
@@ -173,8 +176,27 @@ table — and abort without applying anything.
 **Already resolved:** the baseline is now recorded in remote history as applied,
 with no SQL executed (the hosted schema already matched it). Nothing to re-run.
 
-If you need the same repair again, note that `supabase migration repair` may fail
-while provisioning its temporary login role:
+**The reverse case also aborts a push.** If remote history holds a version with
+no matching file in `supabase/migrations/` — a migration that was applied and its
+file later deleted — `db:push` refuses to run anything:
+
+```
+Remote migration versions not found in local migrations directory.
+```
+
+Remove the history row (no SQL runs) and push again:
+
+```bash
+supabase migration repair --status reverted <version>
+supabase db push --dry-run   # confirm only the migrations you expect are listed
+```
+
+The CLI also suggests `supabase db pull`. Don't run it here: it writes the remote
+schema into a new migration file, which is not the problem being fixed.
+
+If you need a repair again, note that `supabase migration repair` may fail
+while provisioning its temporary login role (on 2026-10-01 it worked through the
+linked project without the workaround below):
 
 ```
 unexpected login role status 400: permission denied to alter role
@@ -208,7 +230,8 @@ npm run typecheck  # TypeScript check (vue-tsc via nuxi)
 npm run lint       # oxlint + eslint
 npm run lint:fix   # Auto-fix lint issues
 
-npm test           # Run the whole test suite once
+npm test           # Run the unit test suite once
+npm run test:db    # Database integration tests (needs the local stack running)
 npm run test:watch # Re-run affected tests on change
 npx vitest run --project server   # Server tests only (~0.4s)
 npx vitest run --project app      # Nuxt-environment tests only
@@ -234,16 +257,19 @@ environments. `npm test` runs both; CI runs it on every push and PR.
 | `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
 | `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/` | ~4s (one Nuxt build) |
 
-Everything is a unit test. Nothing touches a database, a network or a browser,
-so the suite needs no Docker, no `.env` and no secrets.
+Everything under `npm test` is a unit test. Nothing touches a database, a
+network or a browser, so it needs no Docker, no `.env` and no secrets. Database
+integration tests are separate — see "Database integration tests" below.
 
 ```
 test/
   helpers/supabase-mock.ts   chainable Supabase query-builder double
   helpers/nitro.ts           fake H3Event + Nitro auto-import globals
   mocks/supabase-server.ts   stands in for the `#supabase/server` virtual module
+  helpers/local-supabase.ts  real clients for the local stack + throwaway users
   setup/                     per-project setup files
-  server/…  app/…            the tests themselves
+  server/…  app/…            the unit tests
+  db/                        database integration tests (`npm run test:db`)
 ```
 
 **Writing server tests.** Server code depends on two things that only exist
@@ -281,13 +307,46 @@ entirely, so a handler that forgets its guard is an unauthenticated write path
 rather than a 403. This covers endpoints added later that nobody wrote a test
 for — leave it in place.
 
-**Two caveats worth knowing.**
+### Database integration tests
 
-1. `npm run lint` and `npm run typecheck` were **already failing on `main`**
-   before the suite existed (803 eslint errors repo-wide; two `TS2321` errors in
-   `app/composables/useCmsPages.ts`). The suite adds none of these — it is at
-   parity with that baseline. Don't read a red `lint`/`typecheck` as something
-   the tests broke.
+`test/db/` runs server handlers against the **local** Supabase stack, so
+triggers, constraints, generated columns and RLS are real rather than mocked.
+They have their own config, `vitest.db.config.ts`, so `npm test` never needs
+Docker.
+
+```bash
+npm run db:start   # if the stack isn't already up
+npm run test:db
+```
+
+No `db:reset` is needed and your local data is left alone: each file creates its
+own throwaway auth user (and any species it needs) in `beforeAll` and deletes them
+in `afterAll`. Delete the user's trees **before** the user — `trees.planted_by`
+is `on delete set null`, so deleting the user first leaves orphaned trees.
+`deleteTestUser()` does this in the right order.
+
+The handler still imports `serverSupabaseServiceRole` from the
+`#supabase/server` mock; the test just points it at a real service-role client.
+`authUserId` is stubbed as in the unit tests. The service role bypasses RLS, so
+to test a policy, read or write with `anonClient()` (or a signed-in client).
+
+`test/helpers/local-supabase.ts` hard-codes the stack's public demo keys and
+**refuses to run against anything but `127.0.0.1`/`localhost`**. It ignores
+`SUPABASE_URL` on purpose, since a `.env` may point that at the hosted project.
+
+CI runs these in the `test-db` job, which boots a trimmed stack with
+`supabase start` (migrations + seed from scratch) on every push and PR.
+
+Coverage so far is planting a tree and the points it awards
+(`plant-tree.test.ts`), which also exercises `handle_new_user` and
+`sync_total_points`. Next candidates: the remaining RLS policies and the
+`leaderboard` view — see "Known Schema Issues".
+
+### Caveats
+
+1. `npm run lint` is clean on `main`. `npm run typecheck` still reports two
+   `TS2321` errors in `app/composables/useCmsPages.ts` that predate the suite.
+   Don't read those as something the tests broke.
 2. `test/` is outside the include list of every generated `.nuxt/tsconfig*.json`,
    so `nuxt typecheck` does not check the test files. To check them, point
    `vue-tsc` at a tsconfig that extends `./.nuxt/tsconfig.json` and includes
@@ -340,9 +399,19 @@ Found while extracting the schema into migrations.
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
 
-### Current remote state (2026-08-25)
+### Current remote state (2026-10-01)
 
 Verified directly against the hosted project:
+
+- **`20260908133532_add_donated_and_earned_tree_logging` was not yet applied** at
+  the time of writing. It came in with PR #14 (merged 2026-09-17) and could not
+  have been pushed while the remote-only history rows described below existed.
+  Those rows have since been cleared and a dry run listed this as the only pending migration;
+  the push itself was left for a human to run. Until it is applied, production
+  `trees` lacks `source`, `quantity`, `donation_project` and `earned_activity`,
+  and `server/api/dashboard/trees.post.ts` fails on every insert. Check with
+  `supabase migration list --linked`, and delete this bullet once the version
+  shows on both sides.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
@@ -356,19 +425,18 @@ Verified directly against the hosted project:
   intact; only the rows are gone. They were backed up first to
   `docs/superpowers/plans/2026-08-25-pages-backup.sql`, verified byte-identical
   by md5 — that file is the restore path.
-- **Intentional migration-history drift.** The four `20260804*` page-content
-  versions remain in remote history with no corresponding files in the repo,
-  because those files were deleted when the pages moved into code. This is
-  harmless: `db:push` skips versions already present in history, so nothing
-  re-runs and nothing errors. `supabase migration list --linked` will show them
-  as remote-only. To clear them for exactness:
-  `supabase migration repair --status reverted <version>` (needs the `--db-url`
-  workaround above).
+- **The four `20260804*` page-content versions were removed from remote
+  history** on 2026-10-01 (`migration repair --status reverted`; history rows
+  only, no SQL executed). Their files had been deleted when the pages moved into
+  code. An earlier version of this section called that drift harmless and said
+  `db:push` would skip them. That was wrong: a remote version with no local file
+  makes `db:push` abort before applying anything, so the PR #14 migration above
+  could not have been pushed until they were removed. Remote history and the repo now agree apart
+  from that one pending migration.
 
-  An earlier version of this section claimed those four migrations were
-  unapplied and would overwrite live content. That was wrong — they had been
-  applied on 2026-08-11, and md5 comparison confirmed the live rows matched the
-  migration content byte-for-byte before deletion.
+  The four migrations had been applied on 2026-08-11, and md5 comparison
+  confirmed the live rows matched their content before the rows were deleted;
+  the backup file above holds that content.
 - **Six further page-content migrations (`20260811*`, `20260812*`) were removed
   on merge.** They arrived from the contributor's branch and were **never
   applied to remote** — remote history has no record of them — so removing the
@@ -386,7 +454,7 @@ database:
 
 `index.vue` (`home`), `who-we-are.vue`, `climate-change.vue`, `what-can-i-do.vue`,
 `global-tree-planting-organizations.vue`,
-`planting-trees-doing-everyday-tasks.vue`.
+`planting-trees-doing-everyday-tasks.vue`, `a-short-guide-to-tree-planting.vue`.
 
 There is no `mission.vue`: that page's content was merged into the homepage's
 "Our Mission" section, matching the contributor migration that did the same in
@@ -417,20 +485,66 @@ The CMS (`/cms/*`, the GrapesJS `PageBuilder`, the pages CRUD endpoints and the
 content. Static routes outrank the catch-all in Nuxt, so a CMS page whose slug
 collides with a code route will not render — pick a different slug.
 
+A CMS-backed "Tree planting tips" blog (`/tree-planting-tips`, listing
+published child pages of a seeded collection page via
+`GET /api/public/pages/:slug/posts`) was built and then dropped before it ever
+had any posts — `/a-short-guide-to-tree-planting` (a hand-maintained code page,
+see "Public pages are code" above) is the tips content for now.
+
 ## What's Not Done Yet
 
-- Mapbox integration for the tree map page (currently a placeholder)
-- Photo upload (Supabase Storage) — upload UI exists as placeholder
+- Photo upload (Supabase Storage) for trees — the plant form still shows
+  "Photo upload coming soon". (The CMS has its own image upload,
+  `server/api/cms/upload.post.ts`.)
 - Capacitor mobile wrapping
 - AR tree overlay
-- Vlog/blog collection in the CMS (the `pages` table and editor are kept for it;
-  public info pages are deliberately code, not CMS content)
-- Contact form email backend
-- **Database integration tests** — the unit suite mocks Supabase entirely, so
-  nothing verifies RLS policies, the `handle_new_user` trigger,
-  `sync_total_points`, or the `leaderboard` view. That is the same class of bug
-  as everything under "Known Schema Issues", and it needs the local stack (and
-  therefore Docker in CI). The natural next step.
+- **More database integration tests** — the setup exists and covers planting a
+  tree and its points (see "Database integration tests"). Still unverified: most
+  RLS policies, the `leaderboard` view, planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Tree species database seeding
+- Points for anything other than planting. `update_tree`, `verify_tree`,
+  `join_community` and `streak_bonus` exist as `point_events` action types (and
+  in the seed), but nothing awards them yet. Deleting a tree doesn't take its
+  points back either.
+
+Done since this list was last updated: the interactive tree map
+(`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
+"Suggest a Planting Spot" map; the contact form's email backend
+(`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
+seeding (all 100 hosted species are now in `seed.sql`); points for planting (see
+"Points" below).
+
+### Points
+
+Planting a tree awards points through the `on_tree_planted` trigger on `trees`
+(`20261005122551_award_points_for_planted_trees.sql`), not in application code,
+so every insert path scores the same:
+
+- 20 points (`plant_tree`) for each tree with `source = 'planted'`.
+- A one-off 50-point `first_tree` bonus for a profile's first planted tree. It is
+  withheld if the profile has a planted tree from an earlier transaction (which
+  includes anyone who planted before the migration), and a partial unique index
+  stops a profile getting it twice. Trees from the *same* transaction are
+  deliberately not counted: row triggers fire after the whole statement, so in a
+  multi-row insert (as in `seed.sql`) each row sees the others, and a plain "no
+  other planted tree" check would award nobody.
+- Donated and earned entries earn nothing: they have no location and a
+  self-reported `quantity`, so there is nothing to verify.
+
+Trees logged before the migration were not backfilled. The trigger function is
+`SECURITY DEFINER` because `point_events` has no insert policy; the
+`test/db/plant-tree.test.ts` direct-insert test fails if that is ever removed.
+
+The same migration replaced the `trees: authenticated insert` policy, which only
+checked that the caller was signed in, with `trees: own insert`, which requires
+`planted_by` to be the caller's own profile. Without that, points would let any
+user credit trees to anyone. `tree_updates: authenticated insert` still has the
+old shape (any `author_id`); it awards nothing today, but needs the same fix
+before updates earn points.
+Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
+not list them.
+
+`tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
+holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
+left out of the seed; no trees reference it.

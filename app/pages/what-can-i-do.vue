@@ -52,28 +52,30 @@ useHead({ title: 'What Can I Do?' })
           <ImageSlot src="/images/wcid-plant-own-garden.jpg" alt="Cupped hands holding soil with a small seedling" class="h-64 w-full rounded-lg object-cover" />
           <ImageSlot src="/images/wcid-everyday-tasks.jpg" alt="Phone displaying a photo of a forest path, held up in a real forest" class="h-64 w-full rounded-lg object-cover" />
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
-          <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div class="flex flex-col items-center">
             <h3 class="text-2xl font-bold text-white mb-4">
               Plant a tree in your own garden
             </h3>
-            <p class="text-green-50 leading-relaxed">
-              Every tree planted makes a difference. This is something you can do at home, at little to no cost. We have helpful guides to get you started here. Join tree troupe, use our geotagging software to log your trees, and track your progress with your friends!
+            <p class="text-green-50 leading-relaxed mb-6">
+              Every tree planted makes a difference. This is something you can do at home, at little to no cost. We have helpful guides to get you started below. Join tree troupe, use our geotagging software to log your trees, and track your progress with your friends!
             </p>
+            <NuxtLink to="/a-short-guide-to-tree-planting" class="mt-auto inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
+              Learn More
+            </NuxtLink>
           </div>
-          <div>
+          <div class="flex flex-col items-center">
             <h3 class="text-2xl font-bold text-white mb-4">
               Plant free trees doing everyday tasks
             </h3>
-            <p class="text-green-50 leading-relaxed">
-              <!-- eslint-disable-next-line vue/singleline-html-element-content-newline -- inline link in flowing text; a line break would collapse to a space before the full stop -->
-              There are many apps, browsers and search engines that will plant trees simply by you using them. So you help the planet by doing something you would do anyway! Win! For our list and review of the options, see <NuxtLink to="/planting-trees-doing-everyday-tasks" class="underline hover:text-white">here</NuxtLink>. Join tree troupe and track your progress with your friends!
+            <p class="text-green-50 leading-relaxed mb-6">
+              There are many apps, browsers and search engines that will plant trees simply by you using them. So you help the planet by doing something you would do anyway! Win! For our list and review of the options, see below. Join tree troupe and track your progress with your friends!
             </p>
+            <NuxtLink to="/planting-trees-doing-everyday-tasks" class="mt-auto inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
+              Learn More
+            </NuxtLink>
           </div>
         </div>
-        <NuxtLink to="/login" class="inline-block bg-white border-2 border-green-600 text-green-700 px-8 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
-          Learn More
-        </NuxtLink>
       </div>
     </section>
 

@@ -65,3 +65,28 @@ jobs:
       # Unit tests only — no database, no network, no secrets required.
       - name: Test
         run: nr test
+
+  # Integration tests against a local Supabase stack in Docker. Applies every
+  # migration from scratch, so it also catches a migration that no longer
+  # replays on an empty database. Uses the stack's demo keys — no secrets.
+  test-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup
+        run: npm i -g @antfu/ni
+
+      - name: Install
+        run: nci
+
+      # Only Postgres, Auth (GoTrue), PostgREST and Kong are needed.
+      - name: Start Supabase
+        run: npx supabase start -x studio,imgproxy,mailpit,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta
+
+      - name: Test
+        run: nr test:db
