@@ -151,19 +151,50 @@ npm run db:reset            # replay everything from scratch — proves it works
 npm run db:types            # regenerate app/types/database.types.ts
 ```
 
-Deploy with `npm run db:push` (applies only migrations; `seed.sql` never runs
-against remote). **Push when you merge a PR that adds a migration.** Vercel
-deploys `main` automatically; the database is not updated with it. PR #14's
-migration went unpushed for two weeks after merge. The merged code writes the
-new columns on every tree insert, so against the production schema every
-attempt to log a tree would fail for that whole time. See "Current remote state" below for what is pending.
-
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
 LEVEL SECURITY`, and at least one policy per operation you intend to allow.
 The baseline migration sets default privileges, so grants are usually automatic —
 but **RLS with zero policies denies everything**, which is what went wrong with
 `pages` (see "Known Schema Issues").
+
+### Deploying migrations
+
+Migrations reach the hosted project through the **Run Supabase migrations**
+GitHub Action (`.github/workflows/run-migrations.yaml`). It runs `supabase db
+push` on every push to `main` that touches `supabase/migrations/`, so merging a
+PR that adds a migration applies it alongside the Vercel deploy of the same
+commit. It can also be started by hand from the Actions tab. Only migrations
+are applied; `seed.sql` never runs against remote.
+
+It needs three repository secrets (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|--------|-------|
+| `SUPABASE_ACCESS_TOKEN` | Personal access token from https://supabase.com/dashboard/account/tokens |
+| `SUPABASE_DB_PASSWORD` | Database password — Dashboard → Settings → Database |
+| `SUPABASE_PROJECT_REF` | `lsjoxlmpciuzgxtqtjmf`, the subdomain of the project URL |
+
+If one is missing the job fails straight away and names it. **Check the run
+passed after merging a migration.** A failed push leaves the new code running
+against the old schema. Before this workflow existed, PR #14's migration went
+unpushed for two weeks after merge; the merged code writes the new columns on
+every tree insert, so every attempt to log a tree failed for that whole time.
+
+`npm run db:push` from your own machine does the same thing and still works,
+for example to rerun a failed push after fixing its cause.
+
+A push applies nothing and fails in two cases:
+
+- **Remote has a version with no local file.** See "Remote migration history"
+  below.
+- **Migrations merged out of timestamp order.** If `main` gained a migration
+  newer than yours while your PR was open, the push fails with `Found local
+  migration files to be inserted before the last migration on remote
+  database.` Prevent it by renaming your file to a fresh timestamp before
+  merging (safe, since it has not been applied anywhere). After the fact, check
+  your migration does not depend on running first, then push it by hand with
+  `supabase db push --include-all`.
 
 ### Remote migration history (read before `db:push`)
 
@@ -244,7 +275,7 @@ npm run db:migrate # Apply pending migrations
 npm run db:new     # Scaffold a new migration
 npm run db:diff    # Diff local DB against migrations
 npm run db:types   # Regenerate database.types.ts from local DB
-npm run db:push    # Push migrations to the hosted project
+npm run db:push    # Push migrations to the hosted project (CI does this on merge)
 ```
 
 ## Testing
@@ -399,32 +430,23 @@ Found while extracting the schema into migrations.
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
 
-### Current remote state (2026-10-01)
+### Current remote state (2026-10-13)
 
 Verified directly against the hosted project:
 
-- **At least four migrations are pending on remote**, none confirmed pushed as
-  of this edit:
-  - `20260908133532_add_donated_and_earned_tree_logging` (PR #14, merged
-    2026-09-17) — production `trees` lacks `source`, `quantity`,
-    `donation_project` and `earned_activity`, so `trees.post.ts` fails on every
-    insert.
-  - `20260924120000_create_planting_suggestions` and
-    `20261001120000_limit_planting_suggestions_read_to_members` (PR #16,
-    merged 2026-10-02) — production has no `planting_suggestions` table, so
-    `/dashboard/suggest` fails on load and on submit.
-  - `20261005122551_award_points_for_planted_trees` (PR #18, merged
-    2026-10-06) — no `on_tree_planted` trigger, so planting a tree awards no
-    points in production even once the first bullet is fixed.
-  - `20261013120000_award_points_for_planting_suggestions` — same gap for
-    suggestion points, plus the `point_events_action_type_check` update that
-    `suggest_spot` needs.
+- **Remote is up to date.** All 14 migrations in `supabase/migrations/` (through
+  `20261005122551_award_points_for_planted_trees`) show on both sides of
+  `supabase migration list --linked`, and `db push --dry-run` reports nothing to
+  apply. The live schema was checked as well as the history: the donate/earn
+  columns on `trees`, the `planting_suggestions` table and its `member read`
+  policy, the `on_tree_planted` trigger and `trees: own insert` all exist, and
+  the REST API returns the new columns, so its schema cache is current.
+  Donating a tree works in production.
 
-  The remote-only history rows that used to block `db:push` were cleared on
-  2026-10-01 (see below), so a push today should catch up all four in one go —
-  but that push has not been confirmed run. Check with
-  `supabase migration list --linked` before assuming any of them are live, and
-  delete the bullets that are once confirmed.
+  `20261013120000_award_points_for_planting_suggestions` (PR #19) was added
+  after that check. The **Run Supabase migrations** workflow applies it when
+  the PR merges; check that run passed before assuming suggestion points work
+  in production.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
@@ -443,9 +465,8 @@ Verified directly against the hosted project:
   only, no SQL executed). Their files had been deleted when the pages moved into
   code. An earlier version of this section called that drift harmless and said
   `db:push` would skip them. That was wrong: a remote version with no local file
-  makes `db:push` abort before applying anything, so the PR #14 migration above
-  could not have been pushed until they were removed. Remote history and the repo now agree apart
-  from that one pending migration.
+  makes `db:push` abort before applying anything, so PR #14's migration could
+  not be pushed until they were removed.
 
   The four migrations had been applied on 2026-08-11, and md5 comparison
   confirmed the live rows matched their content before the rows were deleted;
