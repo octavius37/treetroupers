@@ -101,6 +101,13 @@ describe('planting a tree', () => {
     expect(row?.trees_planted).toBe(1)
   })
 
+  it('finds the tree by distance with trees_near_point', async () => {
+    const { data, error } = await anonClient()
+      .rpc('trees_near_point', { p_lat: 52.3676, p_lng: 4.9041, p_metres: 10 })
+    expect(error).toBeNull()
+    expect(data?.map(tree => tree.id)).toContain(firstTreeId)
+  })
+
   it('rejects a planted tree with no location', async () => {
     setRequestBody({ species_id: speciesId, planted_at: '2026-08-11' })
 

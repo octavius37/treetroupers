@@ -57,7 +57,7 @@ The database has these core tables (types defined in `app/types/database.types.t
 - **point_events** — ledger of earned points: profile_id, action_type, points, reference_id
 - **rewards** / **reward_redemptions** — gamification rewards system
 
-PostGIS is enabled for spatial queries. Triggers auto-create profiles on signup and auto-increment total_points on point_events insert.
+PostGIS is enabled for spatial queries, installed in the `extensions` schema (not `public`; see "Known Schema Issues"). Triggers auto-create profiles on signup and auto-increment total_points on point_events insert.
 
 ## Package Manager — use yarn, not npm
 
@@ -150,6 +150,17 @@ npm run db:new my_change    # creates supabase/migrations/<timestamp>_my_change.
 npm run db:reset            # replay everything from scratch — proves it works on an empty DB
 npm run db:types            # regenerate app/types/database.types.ts
 ```
+
+Two problems you may hit along the way:
+
+- **`db:types` fails with `password authentication failed for user "postgres"`**
+  if `.env` sets `SUPABASE_DB_PASSWORD` to the hosted password: the CLI uses it
+  for `--local` too. The shell redirect has already overwritten
+  `database.types.ts` with the error by then, so restore it with `git checkout`
+  and run `SUPABASE_DB_PASSWORD=postgres npm run db:types`.
+- **Auth returns 502 after `db:reset`** (`AuthRetryableFetchError` in
+  `test:db`). The reset restarts the auth container on a new IP and Kong keeps
+  routing to the old one. `docker restart supabase_kong_tree-troupers` fixes it.
 
 New tables need three things or the API returns "permission denied" / empty
 results: table grants for `anon`/`authenticated`/`service_role`, `ENABLE ROW
@@ -375,8 +386,9 @@ CI runs these in the `test-db` job, which boots a trimmed stack with
 Coverage so far is planting a tree and the points it awards
 (`plant-tree.test.ts`), which also exercises `handle_new_user` and
 `sync_total_points`, and suggesting a spot, including the point being taken back
-when the suggestion is deleted (`suggest-spot.test.ts`). Next candidates: the remaining RLS policies and the
-`leaderboard` view — see "Known Schema Issues".
+when the suggestion is deleted (`suggest-spot.test.ts`), and that PostGIS's
+`spatial_ref_sys` stays out of the REST API (`api-exposure.test.ts`). Next
+candidates: the remaining RLS policies — see "Known Schema Issues".
 
 ### Caveats
 
@@ -401,28 +413,39 @@ Found while extracting the schema into migrations.
    there is still no insert/update/delete policy — admin writes go through the
    service role behind `requireAdmin()`.
 
-2. **`spatial_ref_sys` has RLS disabled — accepted risk, not fixable.** It is a
-   PostGIS table owned by `supabase_admin`, so `ALTER TABLE ... ENABLE ROW LEVEL
-   SECURITY` fails with insufficient privileges; the Supabase advisory cannot be
-   cleared from a migration. It holds only EPSG coordinate-system reference
-   definitions — public, read-only lookup data with no application rows — so
-   exposure is harmless. If you ever want it out of the API surface, remove
-   `public` from the exposed schemas rather than trying to enable RLS.
+2. **`spatial_ref_sys` exposed with RLS disabled — fixed** in
+   `20261014092701_move_postgis_to_extensions_schema.sql` (Supabase advisory
+   `rls_disabled_in_public`, ERROR, which also arrived as a "Table publicly
+   accessible" email). An earlier version of this section called it harmless,
+   read-only lookup data. It was not read-only: `anon` and `authenticated` held
+   every privilege on it, so anyone with the public key could delete the
+   coordinate-system rows that geography queries depend on. The table is owned
+   by `supabase_admin`, and `postgres` has no grant option on it, so neither
+   `enable row level security` nor `revoke` works from a migration.
 
-3. **`leaderboard` is a `SECURITY DEFINER` view** (Supabase advisory, ERROR).
-   Postgres 15+ makes views run as their owner unless created with
-   `security_invoker = true`, so the view ignores the caller's RLS. Verified
-   harmless today: it reads only `profiles`, `trees` and `tree_updates`, all of
-   which already have `public read` policies. The risk is future drift — a column
-   or join added later would bypass RLS silently. Fix with
-   `alter view public.leaderboard set (security_invoker = true);` after checking
-   the dashboard still renders.
+   The migration moves PostGIS into the `extensions` schema, which the API does
+   not expose. PostGIS can't be relocated in place, so it drops and recreates the
+   extension, copying the geography columns to text and back so no value
+   changes. **PostGIS now lives in `extensions`**: in new migrations write
+   `extensions.geography` / `extensions.st_*`, or pin
+   `set search_path = public, extensions` on functions that call it unqualified.
+   `seed.sql` and API requests still work unqualified, because the `postgres`
+   role and PostgREST (`extra_search_path`) both include `extensions`.
+   `test/db/api-exposure.test.ts` fails if the table is reachable again.
 
-4. **Four functions have a mutable `search_path`** (WARN): `handle_new_user`,
-   `sync_total_points`, `insert_tree`, `trees_near_point`. Pin it
-   (`set search_path = public, extensions`) when you next touch them. Of these
-   only `handle_new_user` is `SECURITY DEFINER`, which makes it the one that
-   matters: a mutable `search_path` on a definer-rights function is the classic
+3. **`leaderboard` `SECURITY DEFINER` view — fixed** in
+   `20261014092702_make_leaderboard_security_invoker.sql`, which sets
+   `security_invoker = true` so the view applies the caller's RLS. The rows it
+   returns didn't change: it reads only `profiles`, `trees` and `tree_updates`,
+   all of which have `public read` policies. The anon read in
+   `plant-tree.test.ts` covers it.
+
+4. **Two functions still have a mutable `search_path`** (WARN):
+   `handle_new_user` and `sync_total_points`. (`insert_tree` and
+   `trees_near_point` were pinned by the PostGIS move.) Pin it
+   (`set search_path = public, extensions`) when you next touch them.
+   `handle_new_user` is the one that matters, because it is `SECURITY DEFINER`:
+   a mutable `search_path` on a definer-rights function is the classic
    privilege-escalation shape.
 
 5. **`handle_new_user` is callable over the API** (WARN) — it is `SECURITY
@@ -451,7 +474,13 @@ Verified directly against the hosted project:
   `20261013120000_award_points_for_planting_suggestions` (PR #19) was added
   after that check. The **Run Supabase migrations** workflow applies it when
   the PR merges; check that run passed before assuming suggestion points work
-  in production.
+  in production. As of 2026-10-14 it is in remote history.
+
+  The two security-advisor fixes (`20261014092701_move_postgis_to_extensions_schema`,
+  `20261014092702_make_leaderboard_security_invoker`) came next. `db push
+  --dry-run` listed exactly those two as pending. After they apply, the security
+  advisor should show no errors. Check that `trees.lat`/`lng` still have values
+  for the planted trees on remote.
 
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
