@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
+useHead({ title: 'Sign in' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -58,7 +59,12 @@ async function handleLogin() {
         </div>
 
         <div>
-          <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="flex items-center justify-between mb-1">
+            <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+            <NuxtLink to="/forgot-password" class="text-sm text-green-600 hover:text-green-700">
+              Forgot password?
+            </NuxtLink>
+          </div>
           <input
             id="login-password"
             v-model="password"

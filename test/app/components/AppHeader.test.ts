@@ -119,9 +119,33 @@ describe('AppHeader', () => {
     expect(signOut).toHaveBeenCalled()
   })
 
-  it('always links to the dashboard', async () => {
-    const { hrefs } = await render()
+  it('invites an anonymous visitor to join', async () => {
+    const { wrapper, hrefs } = await render()
+
+    expect(hrefs()).toContain('/register')
+    expect(hrefs()).not.toContain('/dashboard')
+    expect(wrapper.text()).toContain('Join for free')
+  })
+
+  it('links a signed-in user to their dashboard', async () => {
+    user.value = { sub: 'auth-user-1' }
+
+    const { wrapper, hrefs } = await render()
 
     expect(hrefs()).toContain('/dashboard')
+    expect(wrapper.text()).toContain('My Tree Troupe')
+  })
+
+  // The handler used to be written `handleLogout; mobileMenuOpen = false`,
+  // which names the function without calling it.
+  it('signs the user out from the mobile menu', async () => {
+    user.value = { sub: 'auth-user-1' }
+    const { wrapper } = await render()
+
+    await wrapper.find('button.lg\\:hidden').trigger('click')
+    const logout = wrapper.findAll('button').find(b => b.text() === 'Logout' && b.classes().includes('w-full'))!
+    await logout.trigger('click')
+
+    expect(signOut).toHaveBeenCalled()
   })
 })

@@ -21,12 +21,13 @@ onMounted(async () => {
 
   if (profileData) {
     const [treesRes, communitiesRes] = await Promise.all([
-      // Only approved logs count, matching the leaderboard and points.
-      supabase.from('trees').select('id', { count: 'exact', head: true }).eq('planted_by', profileData.id).eq('review_status', 'approved'),
+      // Only approved logs count, matching the leaderboard and points. A donated
+      // or earned log can be several trees.
+      supabase.from('trees').select('quantity').eq('planted_by', profileData.id).eq('review_status', 'approved'),
       supabase.from('community_members').select('id', { count: 'exact', head: true }).eq('profile_id', profileData.id),
     ])
     stats.value = {
-      trees: treesRes.count || 0,
+      trees: (treesRes.data ?? []).reduce((sum: number, t: { quantity: number }) => sum + t.quantity, 0),
       points: profileData.total_points || 0,
       communities: communitiesRes.count || 0,
     }
@@ -59,7 +60,7 @@ onMounted(async () => {
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
       <div class="bg-white rounded-xl p-6 border border-gray-200">
         <div class="text-sm text-gray-500 mb-1">
-          Trees Planted
+          Trees
         </div>
         <div class="text-3xl font-bold text-green-600">
           {{ stats.trees }}

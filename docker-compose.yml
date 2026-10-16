@@ -55,8 +55,6 @@ services:
       # on every machine and worthless against any hosted project.
       SUPABASE_KEY: ${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0}
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU}
-      NUXT_URL: http://localhost:3000
-      AUTH_SECRET: ${AUTH_SECRET:-local-development-only-secret-min-32-chars}
       # Nuxt's file watcher needs polling for bind mounts on some hosts.
       CHOKIDAR_USEPOLLING: "true"
     volumes:

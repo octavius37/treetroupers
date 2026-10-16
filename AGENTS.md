@@ -20,8 +20,6 @@ The long-term vision includes:
 | UI Components | **Naive UI** via `@bg-dev/nuxt-naiveui` | https://www.naiveui.com |
 | Database + Auth | **Supabase** (Postgres, Auth, Storage, Realtime) via `@nuxtjs/supabase` | https://supabase.nuxtjs.org |
 | CMS | **Payload CMS 3** with `@payloadcms/db-postgres` | https://payloadcms.com/docs |
-| Type-safe API | **tRPC** via `trpc-nuxt` with superjson | https://trpc-nuxt.vercel.app |
-| Auth (legacy) | `@sidebase/nuxt-auth` (NextAuth wrapper — demo only) | https://sidebase.io/nuxt-auth |
 | Validation | **Zod 4** | https://zod.dev |
 
 ## Architecture
@@ -30,16 +28,17 @@ The long-term vision includes:
 app/
   layouts/         default.vue (public), dashboard.vue (authenticated)
   pages/           File-based routing — public pages + /dashboard/* (protected)
-  components/      AppHeader, AppFooter, Welcome/* (demo, can be removed)
+  components/      AppHeader, AppFooter, FeedPostCard, NavIcon, UserAvatar, …
   middleware/       auth.ts — redirects unauthenticated users to /login
-  plugins/         trpcClient.ts — tRPC client setup
+  plugins/         password-recovery.client.ts — sends reset-link sign-ins to /reset-password
+  error.vue        branded 404 / error page
   types/           database.types.ts — Supabase table types
 
 server/
-  api/auth/        NextAuth catch-all handler (demo credentials + GitHub OAuth)
-  api/trpc/        tRPC endpoint handler
+  api/dashboard/   signed-in member endpoints (authUserId)
+  api/cms/         admin endpoints (requireAdmin)
+  api/public/      unauthenticated endpoints
   api/payload/     Payload CMS REST endpoints (pages CRUD)
-  trpc/            Router, context, procedures
   payload/         Collections (Pages, Users)
   utils/           payload.ts — singleton Payload client getter
 ```
@@ -101,7 +100,8 @@ version, so re-check auth and SSR afterwards.
 
 ## Key Conventions
 
-- **Auth**: Supabase Auth for user-facing login/signup (`useSupabaseClient()`, `useSupabaseUser()`). The `@sidebase/nuxt-auth` module is a leftover from the sidebase template and is only used for demo purposes.
+- **Auth**: Supabase Auth for login, signup and password reset (`useSupabaseClient()`, `useSupabaseUser()`). The sidebase template's `@sidebase/nuxt-auth` demo login (which accepted `jsmith`/`hunter2`), tRPC and the `Welcome/*` demo components have been removed.
+- **Password reset**: `/forgot-password` sends Supabase's reset email with `redirectTo: <origin>/reset-password`, where the user chooses a new password. That URL must be in the hosted project's **Auth → URL Configuration → Redirect URLs** (locally, `supabase/config.toml` allows `localhost:3000/**`). If it isn't, Supabase lands the link on the Site URL instead; `plugins/password-recovery.client.ts` catches the `PASSWORD_RECOVERY` event there and forwards to `/reset-password`. With Supabase's default (PKCE) email template the link only works in the browser that requested it; the page explains this when it fails.
 - **Styling**: Tailwind utility classes. Primary colour is `green-600`. Design is clean/white with rounded elements and green accents, matching the original Squarespace site aesthetic.
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
@@ -297,7 +297,7 @@ environments. `npm test` runs both; CI runs it on every push and PR.
 
 | Project | Environment | Tests | Speed |
 |---------|-------------|-------|-------|
-| `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
+| `server` | `node` | `server/utils/`, `server/api/` | ~0.4s |
 | `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/`, `app/pages/` | ~4s (one Nuxt build) |
 
 Everything under `npm test` is a unit test. Nothing touches a database, a

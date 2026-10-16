@@ -6,10 +6,9 @@ const root = fileURLToPath(new URL('.', import.meta.url))
 const resolveFromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
 // The Nuxt environment boots a real Nuxt app, which loads nuxt.config.ts and its
-// modules. @nuxtjs/supabase and @sidebase/nuxt-auth read these at config time and
+// modules. @nuxtjs/supabase reads these at config time and
 // there is no .env in CI, so give them inert placeholders. Nothing in the suite
 // makes a network call — these only need to exist and parse as URLs.
-process.env.NUXT_URL ??= 'http://localhost:3000'
 process.env.SUPABASE_URL ??= 'http://localhost:54321'
 process.env.SUPABASE_KEY ??= 'test-anon-key'
 process.env.NUXT_SUPABASE_SECRET_KEY ??= 'test-secret-key'
@@ -46,7 +45,6 @@ export default defineConfig(async () => ({
           environment: 'nuxt',
           root,
           include: ['test/app/**/*.test.ts'],
-          setupFiles: ['./test/setup/app.ts'],
         },
       }),
     ],

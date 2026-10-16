@@ -2,6 +2,8 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Home' })
+
+const user = useSupabaseUser()
 </script>
 
 <template>
@@ -13,10 +15,18 @@ useHead({ title: 'Home' })
         class="absolute inset-0 w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-green-950 opacity-50" />
-      <div class="relative z-10 flex items-center justify-center h-full px-6">
+      <div class="relative z-10 flex flex-col items-center justify-center gap-8 h-full px-6">
         <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white text-center italic font-light max-w-4xl leading-snug" style="font-family: Georgia, 'Times New Roman', serif;">
           Transforming climate helplessness into empowered action through community tree planting
         </h1>
+        <div class="flex flex-wrap justify-center gap-3">
+          <NuxtLink :to="user ? '/dashboard' : '/register'" class="bg-white text-green-700 px-7 py-3 rounded-full font-semibold hover:bg-green-50 transition-colors">
+            {{ user ? 'Go to my troupe' : 'Join for free' }}
+          </NuxtLink>
+          <NuxtLink to="/map" class="border-2 border-white text-white px-7 py-3 rounded-full font-semibold hover:bg-white/10 transition-colors">
+            See the tree map
+          </NuxtLink>
+        </div>
       </div>
     </section>
 
@@ -97,7 +107,7 @@ useHead({ title: 'Home' })
               Earn &amp; Celebrate
             </h3>
             <p class="text-gray-600">
-              Earn points for planting and verifying trees. Climb the leaderboard and unlock rewards.
+              Earn points for every tree once it's approved, climb the leaderboard and unlock rewards.
             </p>
           </div>
         </div>
@@ -110,7 +120,15 @@ useHead({ title: 'Home' })
         alt="Lone pine tree growing from a cliff edge at sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-gray-900 opacity-20" />
+      <div class="absolute inset-0 bg-gray-900 opacity-40" />
+      <blockquote class="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center text-white">
+        <p class="text-2xl md:text-3xl italic font-light max-w-3xl" style="font-family: Georgia, 'Times New Roman', serif;">
+          “The best time to plant a tree was twenty years ago. The second best time is now.”
+        </p>
+        <footer class="mt-3 text-sm text-gray-200">
+          — Proverb
+        </footer>
+      </blockquote>
     </section>
 
     <StatsCounter />
