@@ -3,18 +3,19 @@ import { createError, defineEventHandler } from 'h3'
 
 /**
  * Nitro auto-imports `defineEventHandler`, `createError`, `readBody`,
- * `readMultipartFormData` and `getRouterParam` into every server file, so those
+ * `readMultipartFormData`, `getRouterParam` and `getQuery` into every server file, so those
  * bare identifiers resolve to globals at runtime and are simply missing under
  * plain Vitest.
  *
  * `createError` and `defineEventHandler` come from the real h3 package, so status
- * codes and error shapes are genuine. The other three read from a real Node
+ * codes and error shapes are genuine. The others read from a real Node
  * request, so they are backed by per-test state instead.
  */
 
 let requestBody: unknown = {}
 let multipartParts: MultiPartData[] | undefined
 let routerParams: Record<string, string | undefined> = {}
+let query: Record<string, unknown> = {}
 
 /** The body the next `readBody(event)` call will resolve to. */
 export function setRequestBody(body: unknown) {
@@ -31,10 +32,16 @@ export function setRouterParams(params: Record<string, string | undefined>) {
   routerParams = params
 }
 
+/** The query the next `getQuery(event)` calls will return. */
+export function setQuery(params: Record<string, unknown>) {
+  query = params
+}
+
 export function resetNitroGlobals() {
   requestBody = {}
   multipartParts = undefined
   routerParams = {}
+  query = {}
 }
 
 export function installNitroGlobals() {
@@ -44,6 +51,8 @@ export function installNitroGlobals() {
     readBody: async () => requestBody,
     readMultipartFormData: async () => multipartParts,
     getRouterParam: (_event: H3Event, name: string) => routerParams[name],
+    getQuery: () => query,
+    useRuntimeConfig: () => ({ public: { siteUrl: 'http://localhost:3000' } }),
   })
 }
 

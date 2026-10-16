@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Who We Are' })
+useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and why we started a community for tree planters.' })
 </script>
 
 <template>

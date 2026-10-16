@@ -127,6 +127,145 @@ export type Database = {
           },
         ]
       }
+      community_requests: {
+        Row: {
+          area: string | null
+          community_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          parent_community_id: string | null
+          requested_by: string
+          reviewed_at: string | null
+          status: string
+        }
+        Insert: {
+          area?: string | null
+          community_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          parent_community_id?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Update: {
+          area?: string | null
+          community_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          parent_community_id?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_requests_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_parent_community_id_fkey"
+            columns: ["parent_community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_posts: {
+        Row: {
+          author_id: string | null
+          body: string | null
+          category: string | null
+          community_id: string | null
+          created_at: string
+          event_at: string | null
+          id: string
+          kind: string
+          photo_url: string | null
+          title: string | null
+          tree_id: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string | null
+          category?: string | null
+          community_id?: string | null
+          created_at?: string
+          event_at?: string | null
+          id?: string
+          kind: string
+          photo_url?: string | null
+          title?: string | null
+          tree_id?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          body?: string | null
+          category?: string | null
+          community_id?: string | null
+          created_at?: string
+          event_at?: string | null
+          id?: string
+          kind?: string
+          photo_url?: string | null
+          title?: string | null
+          tree_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pages: {
         Row: {
           content: string | null
@@ -264,6 +403,46 @@ export type Database = {
           },
         ]
       }
+      post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auth_user_id: string
@@ -299,6 +478,7 @@ export type Database = {
       }
       reward_redemptions: {
         Row: {
+          fulfilled_at: string | null
           id: string
           profile_id: string
           redeemed_at: string
@@ -306,6 +486,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          fulfilled_at?: string | null
           id?: string
           profile_id: string
           redeemed_at?: string
@@ -313,6 +494,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          fulfilled_at?: string | null
           id?: string
           profile_id?: string
           redeemed_at?: string
@@ -464,6 +646,10 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string
@@ -482,6 +668,10 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_note?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           species_id?: string | null
           status?: string
@@ -500,6 +690,10 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_note?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           species_id?: string | null
           status?: string
@@ -522,6 +716,20 @@ export type Database = {
           {
             foreignKeyName: "trees_planted_by_fkey"
             columns: ["planted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -576,6 +784,10 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string
@@ -603,6 +815,10 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string

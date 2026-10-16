@@ -20,8 +20,6 @@ The long-term vision includes:
 | UI Components | **Naive UI** via `@bg-dev/nuxt-naiveui` | https://www.naiveui.com |
 | Database + Auth | **Supabase** (Postgres, Auth, Storage, Realtime) via `@nuxtjs/supabase` | https://supabase.nuxtjs.org |
 | CMS | **Payload CMS 3** with `@payloadcms/db-postgres` | https://payloadcms.com/docs |
-| Type-safe API | **tRPC** via `trpc-nuxt` with superjson | https://trpc-nuxt.vercel.app |
-| Auth (legacy) | `@sidebase/nuxt-auth` (NextAuth wrapper — demo only) | https://sidebase.io/nuxt-auth |
 | Validation | **Zod 4** | https://zod.dev |
 
 ## Architecture
@@ -30,16 +28,17 @@ The long-term vision includes:
 app/
   layouts/         default.vue (public), dashboard.vue (authenticated)
   pages/           File-based routing — public pages + /dashboard/* (protected)
-  components/      AppHeader, AppFooter, Welcome/* (demo, can be removed)
+  components/      AppHeader, AppFooter, FeedPostCard, NavIcon, UserAvatar, …
   middleware/       auth.ts — redirects unauthenticated users to /login
-  plugins/         trpcClient.ts — tRPC client setup
+  plugins/         password-recovery.client.ts — sends reset-link sign-ins to /reset-password
+  error.vue        branded 404 / error page
   types/           database.types.ts — Supabase table types
 
 server/
-  api/auth/        NextAuth catch-all handler (demo credentials + GitHub OAuth)
-  api/trpc/        tRPC endpoint handler
+  api/dashboard/   signed-in member endpoints (authUserId)
+  api/cms/         admin endpoints (requireAdmin)
+  api/public/      unauthenticated endpoints
   api/payload/     Payload CMS REST endpoints (pages CRUD)
-  trpc/            Router, context, procedures
   payload/         Collections (Pages, Users)
   utils/           payload.ts — singleton Payload client getter
 ```
@@ -53,7 +52,8 @@ The database has these core tables (types defined in `app/types/database.types.t
 - **community_members** — join table (profile_id, community_id, role)
 - **tree_species** — common_name, scientific_name, avg_co2_kg_per_year
 - **trees** — planted_by (profile), species_id, community_id, lat/lng, notes, verified flag, photo_url
-- **tree_updates** — social feed posts: author_id, tree_id, content, photo_url
+- **tree_updates** — per-tree updates: author_id, tree_id, content, photo_url. No longer shown in the feed (see "Community feed")
+- **feed_posts** / **post_likes** — the community feed: admin announcements, automatic posts for approved tree logs, and likes
 - **point_events** — ledger of earned points: profile_id, action_type, points, reference_id
 - **rewards** / **reward_redemptions** — gamification rewards system
 
@@ -100,7 +100,8 @@ version, so re-check auth and SSR afterwards.
 
 ## Key Conventions
 
-- **Auth**: Supabase Auth for user-facing login/signup (`useSupabaseClient()`, `useSupabaseUser()`). The `@sidebase/nuxt-auth` module is a leftover from the sidebase template and is only used for demo purposes.
+- **Auth**: Supabase Auth for login, signup and password reset (`useSupabaseClient()`, `useSupabaseUser()`). The sidebase template's `@sidebase/nuxt-auth` demo login (which accepted `jsmith`/`hunter2`), tRPC and the `Welcome/*` demo components have been removed.
+- **Password reset**: `/forgot-password` sends Supabase's reset email with `redirectTo: <origin>/reset-password`, where the user chooses a new password. That URL must be in the hosted project's **Auth → URL Configuration → Redirect URLs** (locally, `supabase/config.toml` allows `localhost:3000/**`). If it isn't, Supabase lands the link on the Site URL instead; `plugins/password-recovery.client.ts` catches the `PASSWORD_RECOVERY` event there and forwards to `/reset-password`. With Supabase's default (PKCE) email template the link only works in the browser that requested it; the page explains this when it fails.
 - **Styling**: Tailwind utility classes. Primary colour is `green-600`. Design is clean/white with rounded elements and green accents, matching the original Squarespace site aesthetic.
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
@@ -296,7 +297,7 @@ environments. `npm test` runs both; CI runs it on every push and PR.
 
 | Project | Environment | Tests | Speed |
 |---------|-------------|-------|-------|
-| `server` | `node` | `server/utils/`, `server/trpc/`, `server/api/` | ~0.4s |
+| `server` | `node` | `server/utils/`, `server/api/` | ~0.4s |
 | `app` | `nuxt` (via `@nuxt/test-utils`) | `app/utils/`, `app/composables/`, `app/middleware/`, `app/components/`, `app/pages/` | ~4s (one Nuxt build) |
 
 Everything under `npm test` is a unit test. Nothing touches a database, a
@@ -319,9 +320,9 @@ inside a Nitro build. `#supabase/server` is aliased in `vitest.config.ts` to
 `test/mocks/supabase-server.ts` — import that file by *relative path* in tests so
 it type-checks, and the code under test reaches the same module instance through
 the alias. The auto-imported h3 helpers (`defineEventHandler`, `createError`,
-`readBody`, `readMultipartFormData`, `getRouterParam`) are installed as globals
+`readBody`, `readMultipartFormData`, `getRouterParam`, `getQuery`) are installed as globals
 by `test/setup/server.ts`; use `setRequestBody()` / `setMultipartFormData()` /
-`setRouterParams()` from `test/helpers/nitro.ts` to drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
+`setRouterParams()` / `setQuery()` from `test/helpers/nitro.ts` to drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
 stubbed per test via `Object.assign(globalThis, …)`.
 
 `createSupabaseMock({ table: { data, error, count } })` returns `{ client, calls }`.
@@ -383,10 +384,12 @@ to test a policy, read or write with `anonClient()` (or a signed-in client).
 CI runs these in the `test-db` job, which boots a trimmed stack with
 `supabase start` (migrations + seed from scratch) on every push and PR.
 
-Coverage so far is planting a tree and the points it awards
-(`plant-tree.test.ts`), which also exercises `handle_new_user` and
-`sync_total_points`, and suggesting a spot, including the point being taken back
-when the suggestion is deleted (`suggest-spot.test.ts`), and that PostGIS's
+Coverage so far is logging a tree, its review and the points approval pays
+(`plant-tree.test.ts`), which also exercises `handle_new_user`,
+`sync_total_points` and members being unable to approve their own logs, the
+community feed — activity posts, community scoping, likes and RLS
+(`feed.test.ts`), suggesting a spot, including the point being taken back when
+the suggestion is deleted (`suggest-spot.test.ts`), and that PostGIS's
 `spatial_ref_sys` stays out of the REST API (`api-exposure.test.ts`). Next
 candidates: the remaining RLS policies — see "Known Schema Issues".
 
@@ -482,6 +485,11 @@ Verified directly against the hosted project:
   advisor should show no errors. Check that `trees.lat`/`lng` still have values
   for the planted trees on remote.
 
+  `20261016080000_review_tree_logs_before_awarding_points` came after that. It
+  backfills every existing tree as approved, so nothing already logged goes back
+  into the queue. Once its run passes, new logs from the app need a photo and
+  wait at `/cms/trees` for approval before they pay points.
+
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
   Supabase advisory is cleared.
@@ -569,13 +577,14 @@ see "Public pages are code" above) is the tips content for now.
   planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Points for `update_tree`, `verify_tree`, `join_community` and `streak_bonus`.
-  They exist as `point_events` action types (and in the seed), but nothing
-  awards them yet. Deleting a tree doesn't take its points back either
-  (deleting a planting suggestion does).
-- **Showing tree photos.** The plant/donate/earn forms upload a photo and
-  `trees.photo_urls` stores it, but no page displays it yet — not the dashboard,
-  the map or `/cms/trees`.
+- Points for `update_tree` and `verify_tree`. They exist as `point_events`
+  action types (and in the seed), but nothing awards them yet. Deleting a tree
+  doesn't take its points back either (deleting a planting suggestion or leaving
+  a community does). Members who joined communities before
+  `20261016120000_rewards_join_and_streak_points.sql` got no joining points.
+- **Showing tree photos on the dashboard and map.** `/cms/trees` shows each
+  log's photo for review, and the community feed shows planted trees' photos,
+  but the dashboard and map don't yet.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
@@ -583,37 +592,48 @@ Done since this list was last updated: the interactive tree map
 (`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
 seeding (all 100 hosted species are now in `seed.sql`); points for planting and
 for suggesting a spot (see "Points" below); photo upload for trees (Supabase
-Storage, see "Photo upload" below).
+Storage, see "Photo upload" below); admin review of every tree log, with points
+for donated and earned trees (see "Tree log review" below); the community feed
+(see "Community feed" below).
 
 ### Points
 
-Planting a tree awards points through the `on_tree_planted` trigger on `trees`
-(`20261005122551_award_points_for_planted_trees.sql`), not in application code,
-so every insert path scores the same:
+Tree logs earn points when an admin **approves** them, through the
+`on_tree_approved` trigger on `trees`
+(`20261016080000_review_tree_logs_before_awarding_points.sql`), not in
+application code, so every path scores the same. See "Tree log review" below for
+the approval flow.
 
-- 20 points (`plant_tree`) for each tree with `source = 'planted'`.
-- A one-off 50-point `first_tree` bonus for a profile's first planted tree. It is
-  withheld if the profile has a planted tree from an earlier transaction (which
-  includes anyone who planted before the migration), and a partial unique index
-  stops a profile getting it twice. Trees from the *same* transaction are
+- 20 points (`plant_tree`) for an approved tree with `source = 'planted'`.
+- 5 points per tree (`donate_tree`) for an approved donated log, and 2 per tree
+  (`earn_tree`) for an approved earned log, each times the log's `quantity`.
+  There is no cap: the reviewer checks the quantity against the photo.
+- A one-off 50-point `first_tree` bonus for a profile's first approved planted
+  tree. It is withheld if the profile has a planted tree approved in an earlier
+  transaction (trees from before review existed count from `created_at`, so
+  anyone who planted before points existed gets none), and a partial unique index
+  stops a profile getting it twice. Trees approved in the *same* transaction are
   deliberately not counted: row triggers fire after the whole statement, so in a
-  multi-row insert (as in `seed.sql`) each row sees the others, and a plain "no
-  other planted tree" check would award nobody.
-- Donated and earned entries earn nothing: they have no location and a
-  self-reported `quantity`, so there is nothing to verify.
+  multi-row insert or approval (as in `seed.sql`) each row sees the others, and a
+  plain "no other approved tree" check would award nobody.
 
-Trees logged before the migration were not backfilled. The trigger function is
-`SECURITY DEFINER` because `point_events` has no insert policy; the
-`test/db/plant-tree.test.ts` direct-insert test fails if that is ever removed.
+Points are paid once, on the change to `approved` (or on an insert that is
+already approved, which only the service role and `seed.sql` can do). Trees
+logged before review existed were backfilled as approved with no points paid:
+planted ones had been paid on insert by the old `on_tree_planted` trigger
+(`20261005122551_award_points_for_planted_trees.sql`, now dropped), and donated
+and earned ones were not backfilled. The trigger function is `SECURITY DEFINER`
+because `point_events` has no insert policy.
 
 The same migration replaced the `trees: authenticated insert` policy, which only
 checked that the caller was signed in, with `trees: own insert`, which requires
 `planted_by` to be the caller's own profile. Without that, points would let any
-user credit trees to anyone. `tree_updates: authenticated insert` still has the
-old shape (any `author_id`); it awards nothing today, but needs the same fix
-before updates earn points.
+user credit trees to anyone. `tree_updates` got the same fix in
+`20261016100000_tree_pages_and_review_notes.sql`: a direct insert must be by the
+tree's own planter, as themselves.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
-not list them.
+not list them. Seeded trees are inserted with `review_status = 'approved'` so
+they are paid; without it they would sit in the review queue.
 
 Suggesting a planting spot awards 1 point (`suggest_spot`) through the
 `on_planting_suggestion_created` trigger on `planting_suggestions`
@@ -630,9 +650,195 @@ matching `-1` `suggest_spot` event rather than deleting the original, because
 `sync_total_points` only reacts to inserts. Without it, suggesting and removing
 a spot in a loop added points with nothing left on the map.
 
+**Joining a community** pays 10 points (`join_community`) through
+`on_community_joined`, and leaving takes them back with a `-10` event
+(`on_community_left`), the same pattern as suggestions, so joining and leaving
+in a loop nets nothing. The leave trigger skips profiles that no longer exist,
+since deleting an account cascades to its memberships.
+
+**The streak bonus** pays 25 points (`streak_bonus`) when a member has an
+approved log in each of 4 consecutive weeks, counted by each log's
+`created_at` (which members can't set, unlike `planted_at`). `on_tree_approved_streak`
+checks it whenever a log is approved, against the week that log was made in,
+and pays at most once every 4 weeks. Both are in
+`20261016120000_rewards_join_and_streak_points.sql`; the earning table on
+`/dashboard/rewards` mirrors all of these numbers, so update it with them.
+
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
 left out of the seed; no trees reference it.
+
+### Community feed
+
+`/dashboard/feed` is each community's home page: a banner with the community's
+tree, this-month and member counts, a feed with Everything/Trees/News/Events
+filters, upcoming events and the community's top planters. Members of several
+communities switch between them with the pills at the top (`?community=<id>`).
+Posting earns no points.
+
+Everything comes from one endpoint, `GET /api/dashboard/feed?community_id=`,
+which reads `feed_posts` (`20261016090000_create_community_feed.sql`). A post is
+one of two kinds:
+
+- **`announcement`** — written by an admin at **`/cms/feed`** ("Community
+  Posts"), under a heading (`category`: `upcoming_events` or `latest_news`), for
+  one community or, with none, for everyone. Events need `event_at`. To add a
+  heading, widen the `feed_posts.category` check in a new migration and add it
+  to `FEED_CATEGORIES` (`server/utils/feed.ts`) and `FEED_CATEGORY_LABELS`
+  (`app/utils/feedCategories.ts`).
+- **`activity`** — "X just planted/donated/earned …", written by the
+  `on_tree_approved_post` trigger when a tree log is **approved**, so rejected
+  and pending logs are never announced. It stores only `tree_id`; the wording
+  comes from the tree when the feed is read. A unique index allows one per tree,
+  and deleting the tree deletes the post. The migration backfilled one for each
+  tree already approved, dated when it was logged. Only planted trees show
+  their photo: donation and earning proofs are often receipts or screenshots
+  with personal details on them.
+
+Communities nest, so a feed covers more than one community:
+
+- announcements for the community, for **every community containing it**, and
+  for everyone (an Utrecht event shows in Lombok's feed);
+- activity from the community and **every community inside it** (Lombok's trees
+  show in Utrecht's feed), plus activity on logs with no community from the
+  community's members.
+- The stats and top planters count approved trees from the community and those
+  inside it.
+
+`communityAncestors`/`communityDescendants` in `server/utils/feed.ts` walk the
+tree in memory (the whole `communities` table is read), and the stats read every
+approved tree in scope. Both are fine at this size; move them into SQL when
+either table gets large.
+
+**Likes** (`post_likes`, one per profile per post) are toggled with
+`POST`/`DELETE /api/dashboard/feed/posts/:id/like`. They show as "Congratulate"
+on activity, "Like" on news and "I'm interested" on events. You can't
+congratulate yourself: your own activity posts show who congratulated you
+instead of a button.
+
+Both tables have RLS with a public `select` policy and **no write policies**:
+announcements are written through `/api/cms/feed-posts` (`requireAdmin`), likes
+through the like endpoints (signed in), and activity by the trigger, which is
+`SECURITY DEFINER` for that reason. Admins can delete any post, activity
+included, from `/api/cms/feed-posts/:id`.
+
+The feed used to list `tree_updates`. That table is untouched (the leaderboard
+still counts `updates_posted`) but nothing displays it now.
+
+### Tree pages, review notes and CO₂
+
+Every log has a page at **`/dashboard/trees/:id`**, linked from the dashboard,
+the map (list and popups), the feed's activity posts and `/cms/trees`.
+
+- **Who sees what** (`GET /api/dashboard/trees/:id`): any member sees an
+  approved or pending tree; a rejected log is visible only to its planter. The
+  proof photo follows the privacy policy: the planter always sees it, everyone
+  else only on an approved *planted* tree. The reviewer's note is for the
+  planter only.
+- **The planter can** edit notes and, for planted trees, the growth status
+  (`PATCH`); delete the log while it is pending or rejected (`DELETE`, 409 once
+  approved, since its points are paid); and post updates with an optional photo
+  (`POST …/updates`, stored in `tree_updates`, no points).
+- **Rejection reasons**: `/cms/trees` asks for a reason when rejecting, sent as
+  `note` to `PUT /api/cms/trees/:id/review` and stored in `trees.review_note`,
+  which `guard_tree_review` protects like the other review columns. The planter
+  sees it on the tree page.
+- **Review emails**: the review endpoint emails the planter the outcome through
+  `sendEmail` (`server/utils/email.ts`), which never throws, so a failed email
+  doesn't undo a review. It needs `RESEND_API_KEY`, and `RESEND_FROM` set to a
+  sender on a domain verified in Resend: Resend's default test sender
+  (`onboarding@resend.dev`, also used by the contact form) only delivers to the
+  Resend account owner. Links in emails use `runtimeConfig.public.siteUrl`.
+- **CO₂** is estimated by `co2KgPerYear` (`shared/utils/co2.ts`, auto-imported
+  in app and server) from each approved planted tree's species
+  `avg_co2_kg_per_year`. Donated and earned trees have no species, so they don't
+  count. It shows on the dashboard, the community banner and the tree page,
+  formatted by `formatCo2`.
+
+Server helpers worth reusing: `requireViewer(event)` (`server/utils/viewer.ts`)
+returns the caller's profile or throws 401/404, and `isOwnPhotoUrl` /
+`treePhotoPath` (`server/utils/photos.ts`) check and parse `tree-photos` URLs.
+Pure helpers are installed as globals in `test/setup/server.ts`, the way Nitro
+auto-imports them; stub the ones that touch auth per test.
+
+### Public map, community admins, community requests and profiles
+
+- **`/map`** is the public tree map (no sign-in). `GET /api/public/trees`
+  returns approved planted trees **rounded to 3 decimals (~100 m) and without
+  names, photos or notes**, plus totals; signed-in members see exact positions
+  on `/dashboard/map`. `TreeMap` takes `public-view` to drop names and links
+  from popups. The homepage hero and the footer link here.
+- **Maps and Nuxt `.client` components**: `TreeMap.client.vue` and
+  `SuggestionMap.client.vue` create Leaflet from a `watch` on the container ref
+  (`immediate`, `flush: 'post'`), not in `onMounted`. Nuxt's `.client` wrapper
+  mounts a placeholder first and renders the template a tick later, so in
+  `onMounted` the ref was still empty and every map silently stayed blank. Do
+  the same in any new `.client` component that needs its own DOM.
+- **Community admins**: a member whose `community_members.role` is `admin` or
+  `moderator` can post announcements to that community's feed from the feed
+  page (`POST /api/dashboard/feed/posts`) and delete them
+  (`DELETE /api/dashboard/feed/posts/:id`); site admins can do both anywhere.
+  `GET /api/dashboard/feed` returns `community.canPost` and per-post
+  `canDelete`. Site admins set roles under **Members** on `/cms/communities`.
+  `20261016110000_community_admins_and_requests.sql` replaced the
+  `community_members: own insert` policy, which let a member join with any role
+  (`admin` included) over the REST API, with one that only allows `member`.
+- **Community requests**: members ask for a missing community on
+  `/dashboard/communities` (`POST /api/dashboard/community-requests`, at most 3
+  pending each). Site admins see them on `/cms/communities` (and a banner on
+  `/cms`); approving creates the community (slug from `slugify`, made unique)
+  with the requester as its admin.
+- **Profiles**: members upload a photo on `/dashboard/profile`
+  (`POST /api/dashboard/avatar`, stored under `avatars/<auth user id>/`, same
+  byte-sniffing as tree photos via `server/utils/images.ts`, old photos
+  removed). `/dashboard/members/:id` is a member's public profile (`GET
+  /api/dashboard/members/:id`): name, photo, bio, points, rank, approved trees,
+  CO₂ and communities, never the email. Names on the leaderboard, feed and tree
+  pages link to it. `UserAvatar` renders a photo or an initial.
+- **Getting started**: the dashboard shows a checklist (join a troupe, log a
+  tree, add a photo or bio) until it's done or hidden (remembered in
+  `localStorage`).
+
+### Rewards and analytics
+
+- **Rewards unlock at a points threshold; points are never spent**, so claiming
+  doesn't move anyone on the leaderboard. `/dashboard/rewards` lists active
+  rewards with progress, plus how points are earned. Badges (`type = 'badge'`)
+  need no claim and show on member profiles once unlocked. Other rewards are
+  claimed (`POST /api/dashboard/rewards/:id/claim`, which checks the points) and
+  appear on `/cms/rewards` with the member's email, where an admin marks them
+  sent or cancels them (`PUT /api/cms/reward-claims/:id`); `/cms` shows a banner
+  while claims are waiting. A partial unique index allows one open or sent
+  claim per member per reward. The baseline's `reward_redemptions: own insert`
+  policy, which let anyone claim anything directly, was dropped.
+- **Analytics**: `@vercel/analytics/nuxt` (in `nuxt.config.ts` modules) adds
+  Vercel Web Analytics: cookie-free page views, no consent banner needed. Data
+  only arrives once Web Analytics is enabled in the Vercel project. The privacy
+  policy mentions it.
+
+### Legal pages, account deletion and SEO
+
+- **`/privacy` and `/terms`** are code pages, linked from the footer and from a
+  required "16 or older and agree" checkbox on `/register`. They describe what
+  the site actually does (what members see, which processors — Supabase,
+  Vercel, Resend — and what deletion removes), so update them when that
+  changes. Bump the `UPDATED` date at the top of each.
+- **Deleting an account** (`DELETE /api/dashboard/account`, from the profile
+  page, needs `{ confirm: 'DELETE' }`) removes the user's files under
+  `<auth user id>/` in `tree-photos` and `avatars`, deletes their pending logs
+  and tree updates, strips photos and notes from their other trees, then deletes
+  the auth user; the profile and everything referencing it cascade. Trees stay,
+  with `planted_by` null, so community totals don't drop. Files go first, so a
+  storage failure leaves the account intact and the request can be retried.
+- **Titles** use `titleTemplate: '%s · Tree Troupe'` (`nuxt.config.ts`); give
+  every new page `useHead({ title })`. `app.vue` sets the default description
+  and share preview (`og:image` is the homepage hero); public pages override the
+  description with `useSeoMeta`. Absolute URLs come from
+  `runtimeConfig.public.siteUrl`: `NUXT_PUBLIC_SITE_URL`, else Vercel's
+  `VERCEL_PROJECT_PRODUCTION_URL`.
+- **`/robots.txt` and `/sitemap.xml`** are server routes
+  (`server/routes/`). The sitemap lists the public code pages; add new ones to
+  `PUBLIC_PATHS`. `/dashboard/**` and `/cms/**` send `X-Robots-Tag: noindex`.
 
 ### Photo upload
 
@@ -663,6 +869,50 @@ is true: submitting mid-upload saves the tree without its photo. On submit,
 in the schema, since `tree_updates` can hold several; these forms only ever send
 one).
 
-Known gaps: nothing deletes uploads that never end up on a tree (a removed
-photo, an abandoned form), and `trees.post.ts` stores whatever `photo_url` the
-client sends without checking it points into `tree-photos/<uid>/`.
+**A photo is required on every log**, because it is the proof an admin reviews
+(see "Tree log review" below). `trees.post.ts` refuses a log with no
+`photo_url` (400), or with one outside the caller's own
+`tree-photos/<auth user id>/` folder, and the forms keep submit disabled until a
+photo is attached.
+
+Known gap: nothing deletes uploads that never end up on a tree (a removed photo,
+an abandoned form).
+
+### Tree log review
+
+Every tree log (planted, donated or earned) starts as `review_status =
+'pending'` and pays no points until an admin approves it at `/cms/trees`, which
+opens on the "Pending review" queue and shows each log's photo with Approve and
+Reject buttons. The CMS overview shows a banner while anything is waiting.
+Approving calls `PUT /api/cms/trees/:id/review` with `{ decision: 'approved' |
+'rejected' }`, behind `requireAdmin`. It records `reviewed_by` (the admin's
+profile), and the database sets `reviewed_at`.
+
+`review_status` is separate from `status`, which is still the tree's life
+(planted/growing/mature/removed), cycled by the existing status button.
+
+The database enforces the rules, not only the endpoint:
+
+- **Members can't review their own logs.** The `guard_tree_review` trigger
+  forces anything `anon`/`authenticated` inserts to `pending`, and refuses
+  their updates to `review_status`/`reviewed_by`/`reviewed_at` with `42501`.
+  Without it, `trees: own insert` and `trees: own update` would let a member
+  approve their own log directly through the REST API.
+- **Approved is final.** Un-approving fails with `23514`, even through the
+  service role, because the points have been paid and nothing takes them back.
+  The endpoint only matches `pending` rows (409 otherwise), so a log can't be
+  reviewed twice.
+- **Pending logs must have a photo** (`trees_photo_required_for_review`).
+  Approved and rejected rows are exempt, so trees from before photos were
+  required stay valid.
+
+What counts where:
+
+- The **leaderboard** `trees_planted` column, the member dashboard's tree count
+  and the public tree totals (`/api/public/stats`, the `stats-counter` smart
+  block) count only approved trees, matching the points.
+- The **map** shows pending and approved trees, but not rejected ones.
+- The member dashboard's recent trees show "Pending review" or "Not approved"
+  until a log is approved.
+
+`test/db/plant-tree.test.ts` covers all of this against the real database.

@@ -3,14 +3,11 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@bg-dev/nuxt-naiveui',
-    '@sidebase/nuxt-auth',
-    '@nuxtjs/supabase'
+    '@nuxtjs/supabase',
+    // Cookie-free page views, collected by Vercel. Turn on Web Analytics in the
+    // Vercel project for data to arrive.
+    '@vercel/analytics/nuxt',
   ],
-  build: {
-    transpile: [
-      'trpc-nuxt',
-    ]
-  },
   vite: {
     optimizeDeps: {
       include: ['cookie', 'grapesjs', 'leaflet']
@@ -20,10 +17,28 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true
   },
-  auth: {
-    baseURL: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/auth` : `${process.env.NUXT_URL}/api/auth`,
-  },
   supabase: {
     redirect: false
+  },
+  app: {
+    head: {
+      htmlAttrs: { lang: 'en' },
+      titleTemplate: '%s · Tree Troupe',
+      link: [{ rel: 'icon', href: '/favicon.ico' }],
+    },
+  },
+  runtimeConfig: {
+    public: {
+      // Absolute URLs for share previews and the sitemap. Vercel sets
+      // VERCEL_PROJECT_PRODUCTION_URL on every deployment; override with
+      // NUXT_PUBLIC_SITE_URL once the site has its own domain.
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL
+        || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000'),
+    },
+  },
+  routeRules: {
+    // Signed-in and admin pages have nothing for search engines.
+    '/dashboard/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+    '/cms/**': { headers: { 'X-Robots-Tag': 'noindex' } },
   }
 })

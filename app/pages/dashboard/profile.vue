@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Profile' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -20,6 +21,30 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: '',
 })
+const avatarUploading = ref(false)
+const avatarError = ref('')
+const avatarInput = useTemplateRef<HTMLInputElement>('avatarInput')
+
+async function handleAvatar(e: Event) {
+  const picked = (e.target as HTMLInputElement).files?.[0]
+  if (!picked) { return }
+  avatarUploading.value = true
+  avatarError.value = ''
+  try {
+    // Shrunk and re-encoded first, which also strips the photo's metadata.
+    const file = await downscaleImage(picked, 512)
+    const body = new FormData()
+    body.append('file', file)
+    const { url } = await $fetch<{ url: string }>('/api/dashboard/avatar', { method: 'POST', body })
+    profile.value = { ...profile.value, avatar_url: url }
+  }
+  catch (err: any) {
+    avatarError.value = err.data?.message || err.message || 'Upload failed'
+  }
+  avatarUploading.value = false
+  if (avatarInput.value) { avatarInput.value.value = '' }
+}
+
 const passwordError = ref('')
 const passwordSaving = ref(false)
 const passwordSaved = ref(false)
@@ -110,6 +135,25 @@ async function handleLogout() {
   await supabase.auth.signOut()
   navigateTo('/')
 }
+
+const deleteOpen = ref(false)
+const deleteConfirm = ref('')
+const deleting = ref(false)
+const deleteError = ref('')
+
+async function handleDeleteAccount() {
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await $fetch('/api/dashboard/account', { method: 'DELETE', body: { confirm: deleteConfirm.value } })
+    await supabase.auth.signOut()
+    navigateTo('/?account=deleted')
+  }
+  catch (e: any) {
+    deleteError.value = e.data?.message || e.message || 'Could not delete your account'
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
@@ -130,9 +174,13 @@ async function handleLogout() {
     <div v-else class="max-w-lg space-y-8">
       <!-- Avatar -->
       <div class="flex items-center gap-4">
-        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-2xl">
-          {{ (form.display_name || user?.email || 'U').charAt(0).toUpperCase() }}
-        </div>
+        <label class="relative cursor-pointer group" title="Change your profile photo">
+          <UserAvatar :name="form.display_name || user?.email || 'U'" :url="profile?.avatar_url" size="lg" />
+          <span class="absolute inset-0 rounded-full bg-black/40 text-white text-xs font-medium flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {{ avatarUploading ? 'Uploading…' : 'Change' }}
+          </span>
+          <input ref="avatarInput" type="file" accept="image/*" class="sr-only" :disabled="avatarUploading" aria-label="Profile photo" @change="handleAvatar">
+        </label>
         <div>
           <div class="font-medium text-gray-900">
             {{ user?.email }}
@@ -143,6 +191,12 @@ async function handleLogout() {
           <div class="text-sm text-green-600 font-medium mt-1">
             {{ profile?.total_points || 0 }} points
           </div>
+          <NuxtLink v-if="profile" :to="`/dashboard/members/${profile.id}`" class="text-sm text-green-700 hover:text-green-800">
+            View my public profile →
+          </NuxtLink>
+          <p v-if="avatarError" class="text-sm text-red-600 mt-1">
+            {{ avatarError }}
+          </p>
         </div>
       </div>
 
@@ -250,6 +304,52 @@ async function handleLogout() {
         >
           Sign Out
         </button>
+      </div>
+
+      <!-- Delete account -->
+      <div class="border-t border-gray-200 pt-6 mt-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">
+          Delete my account
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          This permanently deletes your profile, points, likes, memberships and uploaded photos. Trees you've
+          logged stay in the community totals, without your name, photos or notes. This can't be undone.
+        </p>
+        <button
+          v-if="!deleteOpen"
+          type="button"
+          class="text-sm border border-red-300 text-red-600 px-4 py-2 rounded-full font-medium hover:bg-red-50"
+          @click="deleteOpen = true"
+        >
+          Delete my account…
+        </button>
+        <form v-else class="space-y-3 max-w-md" @submit.prevent="handleDeleteAccount">
+          <label for="delete-confirm" class="block text-sm text-gray-700">
+            Type <strong>DELETE</strong> to confirm
+          </label>
+          <input
+            id="delete-confirm"
+            v-model="deleteConfirm"
+            type="text"
+            autocomplete="off"
+            class="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+          >
+          <p v-if="deleteError" class="text-sm text-red-600">
+            {{ deleteError }}
+          </p>
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              :disabled="deleteConfirm !== 'DELETE' || deleting"
+              class="bg-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+            >
+              {{ deleting ? 'Deleting…' : 'Delete my account forever' }}
+            </button>
+            <button type="button" class="text-sm text-gray-600" @click="deleteOpen = false; deleteConfirm = ''">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
