@@ -21,6 +21,30 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: '',
 })
+const avatarUploading = ref(false)
+const avatarError = ref('')
+const avatarInput = useTemplateRef<HTMLInputElement>('avatarInput')
+
+async function handleAvatar(e: Event) {
+  const picked = (e.target as HTMLInputElement).files?.[0]
+  if (!picked) { return }
+  avatarUploading.value = true
+  avatarError.value = ''
+  try {
+    // Shrunk and re-encoded first, which also strips the photo's metadata.
+    const file = await downscaleImage(picked, 512)
+    const body = new FormData()
+    body.append('file', file)
+    const { url } = await $fetch<{ url: string }>('/api/dashboard/avatar', { method: 'POST', body })
+    profile.value = { ...profile.value, avatar_url: url }
+  }
+  catch (err: any) {
+    avatarError.value = err.data?.message || err.message || 'Upload failed'
+  }
+  avatarUploading.value = false
+  if (avatarInput.value) { avatarInput.value.value = '' }
+}
+
 const passwordError = ref('')
 const passwordSaving = ref(false)
 const passwordSaved = ref(false)
@@ -150,9 +174,13 @@ async function handleDeleteAccount() {
     <div v-else class="max-w-lg space-y-8">
       <!-- Avatar -->
       <div class="flex items-center gap-4">
-        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-2xl">
-          {{ (form.display_name || user?.email || 'U').charAt(0).toUpperCase() }}
-        </div>
+        <label class="relative cursor-pointer group" title="Change your profile photo">
+          <UserAvatar :name="form.display_name || user?.email || 'U'" :url="profile?.avatar_url" size="lg" />
+          <span class="absolute inset-0 rounded-full bg-black/40 text-white text-xs font-medium flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {{ avatarUploading ? 'Uploading…' : 'Change' }}
+          </span>
+          <input ref="avatarInput" type="file" accept="image/*" class="sr-only" :disabled="avatarUploading" aria-label="Profile photo" @change="handleAvatar">
+        </label>
         <div>
           <div class="font-medium text-gray-900">
             {{ user?.email }}
@@ -163,6 +191,12 @@ async function handleDeleteAccount() {
           <div class="text-sm text-green-600 font-medium mt-1">
             {{ profile?.total_points || 0 }} points
           </div>
+          <NuxtLink v-if="profile" :to="`/dashboard/members/${profile.id}`" class="text-sm text-green-700 hover:text-green-800">
+            View my public profile →
+          </NuxtLink>
+          <p v-if="avatarError" class="text-sm text-red-600 mt-1">
+            {{ avatarError }}
+          </p>
         </div>
       </div>
 

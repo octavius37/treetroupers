@@ -64,7 +64,7 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/dashboard/map" class="text-gray-400 hover:text-white text-sm transition-colors">
+              <NuxtLink to="/map" class="text-gray-400 hover:text-white text-sm transition-colors">
                 Tree map
               </NuxtLink>
             </li>

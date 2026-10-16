@@ -746,6 +746,44 @@ returns the caller's profile or throws 401/404, and `isOwnPhotoUrl` /
 Pure helpers are installed as globals in `test/setup/server.ts`, the way Nitro
 auto-imports them; stub the ones that touch auth per test.
 
+### Public map, community admins, community requests and profiles
+
+- **`/map`** is the public tree map (no sign-in). `GET /api/public/trees`
+  returns approved planted trees **rounded to 3 decimals (~100 m) and without
+  names, photos or notes**, plus totals; signed-in members see exact positions
+  on `/dashboard/map`. `TreeMap` takes `public-view` to drop names and links
+  from popups. The homepage hero and the footer link here.
+- **Maps and Nuxt `.client` components**: `TreeMap.client.vue` and
+  `SuggestionMap.client.vue` create Leaflet from a `watch` on the container ref
+  (`immediate`, `flush: 'post'`), not in `onMounted`. Nuxt's `.client` wrapper
+  mounts a placeholder first and renders the template a tick later, so in
+  `onMounted` the ref was still empty and every map silently stayed blank. Do
+  the same in any new `.client` component that needs its own DOM.
+- **Community admins**: a member whose `community_members.role` is `admin` or
+  `moderator` can post announcements to that community's feed from the feed
+  page (`POST /api/dashboard/feed/posts`) and delete them
+  (`DELETE /api/dashboard/feed/posts/:id`); site admins can do both anywhere.
+  `GET /api/dashboard/feed` returns `community.canPost` and per-post
+  `canDelete`. Site admins set roles under **Members** on `/cms/communities`.
+  `20261016110000_community_admins_and_requests.sql` replaced the
+  `community_members: own insert` policy, which let a member join with any role
+  (`admin` included) over the REST API, with one that only allows `member`.
+- **Community requests**: members ask for a missing community on
+  `/dashboard/communities` (`POST /api/dashboard/community-requests`, at most 3
+  pending each). Site admins see them on `/cms/communities` (and a banner on
+  `/cms`); approving creates the community (slug from `slugify`, made unique)
+  with the requester as its admin.
+- **Profiles**: members upload a photo on `/dashboard/profile`
+  (`POST /api/dashboard/avatar`, stored under `avatars/<auth user id>/`, same
+  byte-sniffing as tree photos via `server/utils/images.ts`, old photos
+  removed). `/dashboard/members/:id` is a member's public profile (`GET
+  /api/dashboard/members/:id`): name, photo, bio, points, rank, approved trees,
+  CO₂ and communities, never the email. Names on the leaderboard, feed and tree
+  pages link to it. `UserAvatar` renders a photo or an initial.
+- **Getting started**: the dashboard shows a checklist (join a troupe, log a
+  tree, add a photo or bio) until it's done or hidden (remembered in
+  `localStorage`).
+
 ### Legal pages, account deletion and SEO
 
 - **`/privacy` and `/terms`** are code pages, linked from the footer and from a

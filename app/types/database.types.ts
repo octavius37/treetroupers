@@ -127,6 +127,74 @@ export type Database = {
           },
         ]
       }
+      community_requests: {
+        Row: {
+          area: string | null
+          community_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          parent_community_id: string | null
+          requested_by: string
+          reviewed_at: string | null
+          status: string
+        }
+        Insert: {
+          area?: string | null
+          community_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          parent_community_id?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Update: {
+          area?: string | null
+          community_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          parent_community_id?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_requests_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_parent_community_id_fkey"
+            columns: ["parent_community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_posts: {
         Row: {
           author_id: string | null

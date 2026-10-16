@@ -6,7 +6,7 @@ useHead({ title: 'Community feed' })
 
 interface Feed {
   communities: { id: string, name: string }[]
-  community: { id: string, name: string, description: string | null, isMember: boolean } | null
+  community: { id: string, name: string, description: string | null, isMember: boolean, canPost: boolean } | null
   stats: { trees: number, treesThisMonth: number, members: number, co2KgPerYear: number } | null
   events: FeedPost[]
   posts: FeedPost[]
@@ -72,6 +72,50 @@ async function toggleLike(post: FeedPost) {
   }
   catch {
     apply(!liking)
+  }
+}
+
+// Community admins and moderators post announcements from here.
+const composing = ref(false)
+const posting = ref(false)
+const postError = ref('')
+const draft = reactive({ category: 'latest_news', title: '', body: '', event_at: '' })
+
+async function publish() {
+  if (!feed.value?.community) { return }
+  posting.value = true
+  postError.value = ''
+  try {
+    await $fetch('/api/dashboard/feed/posts', {
+      method: 'POST',
+      body: {
+        community_id: feed.value.community.id,
+        category: draft.category,
+        title: draft.title,
+        body: draft.body,
+        // datetime-local has no timezone; read it as the poster's local time.
+        event_at: draft.category === 'upcoming_events' && draft.event_at ? new Date(draft.event_at).toISOString() : null,
+      },
+    })
+    Object.assign(draft, { category: 'latest_news', title: '', body: '', event_at: '' })
+    composing.value = false
+    await loadFeed()
+  }
+  catch (e: any) {
+    postError.value = e.data?.message || e.message || 'Could not publish'
+  }
+  posting.value = false
+}
+
+async function deletePost(post: FeedPost) {
+  // eslint-disable-next-line no-alert -- deleting a post needs confirmation
+  if (!confirm('Delete this post?')) { return }
+  try {
+    await $fetch(`/api/dashboard/feed/posts/${post.id}`, { method: 'DELETE' })
+    await loadFeed()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || 'Could not delete the post'
   }
 }
 
@@ -206,6 +250,53 @@ onMounted(loadFeed)
             </button>
           </div>
 
+          <!-- Community admins post here -->
+          <div v-if="feed.community.canPost" class="mb-4">
+            <button
+              v-if="!composing"
+              type="button"
+              class="w-full text-left bg-white rounded-2xl border border-dashed border-green-300 px-5 py-4 text-green-700 font-medium hover:bg-green-50"
+              @click="composing = true"
+            >
+              ＋ Post news or an event to {{ feed.community.name }}
+            </button>
+            <form v-else class="bg-white rounded-2xl border border-gray-200 p-5 space-y-4" @submit.prevent="publish">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="post-category" class="block text-sm font-medium text-gray-700 mb-1">Heading</label>
+                  <select id="post-category" v-model="draft.category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white">
+                    <option v-for="(label, value) in FEED_CATEGORY_LABELS" :key="value" :value="value">
+                      {{ label }}
+                    </option>
+                  </select>
+                </div>
+                <div v-if="draft.category === 'upcoming_events'">
+                  <label for="post-event-at" class="block text-sm font-medium text-gray-700 mb-1">Date and time</label>
+                  <input id="post-event-at" v-model="draft.event_at" type="datetime-local" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg">
+                </div>
+              </div>
+              <div>
+                <label for="post-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input id="post-title" v-model="draft.title" type="text" required maxlength="120" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg">
+              </div>
+              <div>
+                <label for="post-body" class="block text-sm font-medium text-gray-700 mb-1">Details</label>
+                <textarea id="post-body" v-model="draft.body" rows="3" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-y" />
+              </div>
+              <p v-if="postError" class="text-sm text-red-600">
+                {{ postError }}
+              </p>
+              <div class="flex gap-3">
+                <button type="submit" :disabled="posting" class="bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                  {{ posting ? 'Publishing...' : 'Publish' }}
+                </button>
+                <button type="button" class="text-sm text-gray-600" @click="composing = false">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
           <div v-if="visiblePosts.length === 0" class="bg-white rounded-2xl border border-gray-200 p-10 text-center">
             <p class="text-gray-500 mb-2">
               Nothing here yet.
@@ -216,7 +307,7 @@ onMounted(loadFeed)
           </div>
 
           <div v-else class="space-y-4">
-            <FeedPostCard v-for="post in visiblePosts" :key="post.id" :post="post" @toggle-like="toggleLike" />
+            <FeedPostCard v-for="post in visiblePosts" :key="post.id" :post="post" @toggle-like="toggleLike" @delete="deletePost" />
           </div>
         </div>
 
@@ -267,9 +358,7 @@ onMounted(loadFeed)
             <ol v-else class="space-y-3">
               <li v-for="(planter, i) in feed.topPlanters" :key="planter.name + i" class="flex items-center gap-3">
                 <span class="w-6 text-center text-lg" aria-hidden="true">{{ ['🥇', '🥈', '🥉'][i] ?? '' }}</span>
-                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-sm flex-shrink-0">
-                  {{ planter.name[0]?.toUpperCase() }}
-                </div>
+                <UserAvatar :name="planter.name" :url="planter.avatarUrl" size="sm" />
                 <span class="flex-1 text-sm text-gray-900 truncate">{{ planter.name }}</span>
                 <span class="text-sm font-semibold text-green-700">{{ planter.trees }}</span>
               </li>

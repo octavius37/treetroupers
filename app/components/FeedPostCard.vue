@@ -11,16 +11,17 @@ export interface FeedPost {
   eventAt: string | null
   createdAt: string
   communityName: string | null
-  author: { name: string, avatarUrl: string | null }
+  author: { id?: string | null, name: string, avatarUrl: string | null }
   tree: { id: string, source: string, quantity: number, species: string | null, photoUrl: string | null } | null
   isMine: boolean
+  canDelete?: boolean
   likeCount: number
   likedByMe: boolean
   likers: string[]
 }
 
 const props = defineProps<{ post: FeedPost }>()
-const emit = defineEmits<{ toggleLike: [post: FeedPost] }>()
+const emit = defineEmits<{ toggleLike: [post: FeedPost], delete: [post: FeedPost] }>()
 
 const ACTIVITY = {
   planted: { emoji: '🌳', ring: 'bg-green-100' },
@@ -73,7 +74,10 @@ const eventDate = computed(() => props.post.eventAt
         </div>
         <div class="min-w-0 flex-1">
           <p class="text-gray-900">
-            <span class="font-semibold">{{ post.isMine ? 'You' : post.author.name }}</span>
+            <NuxtLink v-if="post.author.id && !post.isMine" :to="`/dashboard/members/${post.author.id}`" class="font-semibold hover:text-green-700">
+              {{ post.author.name }}
+            </NuxtLink>
+            <span v-else class="font-semibold">{{ post.isMine ? 'You' : post.author.name }}</span>
             just {{ achievement }}!
           </p>
           <p class="text-xs text-gray-500 mt-0.5">
@@ -105,6 +109,14 @@ const eventDate = computed(() => props.post.eventAt
           <span class="text-xs text-gray-500">
             {{ timeAgo(post.createdAt) }} · {{ post.communityName || 'All communities' }}
           </span>
+          <button
+            v-if="post.canDelete"
+            type="button"
+            class="ml-auto text-xs text-gray-400 hover:text-red-600"
+            @click="emit('delete', post)"
+          >
+            Delete
+          </button>
         </div>
         <h3 class="text-lg font-semibold text-gray-900">
           {{ post.title }}

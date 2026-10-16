@@ -5,11 +5,12 @@ export default defineEventHandler(async (event) => {
 
   const client = serverSupabaseServiceRole(event)
 
-  const [profiles, communities, trees, pendingTrees, species, rewards] = await Promise.all([
+  const [profiles, communities, trees, pendingTrees, communityRequests, species, rewards] = await Promise.all([
     client.from('profiles').select('id', { count: 'exact', head: true }),
     client.from('communities').select('id', { count: 'exact', head: true }),
     client.from('trees').select('id', { count: 'exact', head: true }),
     client.from('trees').select('id', { count: 'exact', head: true }).eq('review_status', 'pending'),
+    client.from('community_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     client.from('tree_species').select('id', { count: 'exact', head: true }),
     client.from('rewards').select('id', { count: 'exact', head: true }),
   ])
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event) => {
       communities: communities.count || 0,
       trees: trees.count || 0,
       pendingTrees: pendingTrees.count || 0,
+      communityRequests: communityRequests.count || 0,
       species: species.count || 0,
       rewards: rewards.count || 0,
     },

@@ -1,7 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 
 const POST_COLUMNS = [
-  'id, kind, category, title, body, photo_url, event_at, created_at, author_id',
+  'id, kind, category, title, body, photo_url, event_at, created_at, author_id, community_id',
   'communities(name)',
   'profiles!author_id(display_name, avatar_url)',
   'trees(id, source, quantity, photo_urls, tree_species(common_name))',
@@ -22,6 +22,7 @@ interface PostRow {
   event_at: string | null
   created_at: string
   author_id: string | null
+  community_id: string | null
   communities: { name: string } | null
   profiles: { display_name: string | null, avatar_url: string | null } | null
   trees: {
@@ -34,7 +35,16 @@ interface PostRow {
   post_likes: { profile_id: string, profiles: { display_name: string | null } | null }[]
 }
 
-function toPost(row: PostRow, viewerId: string) {
+// Who may delete an announcement: its author, a site admin, or an admin of
+// the community it was posted to.
+interface Viewer {
+  id: string
+  isSiteAdmin: boolean
+  postsTo: Set<string>
+}
+
+function toPost(row: PostRow, viewer: Viewer) {
+  const viewerId = viewer.id
   const likes = row.post_likes ?? []
   return {
     id: row.id,
@@ -47,6 +57,7 @@ function toPost(row: PostRow, viewerId: string) {
     createdAt: row.created_at,
     communityName: row.communities?.name ?? null,
     author: {
+      id: row.author_id,
       name: row.profiles?.display_name || 'A Tree Trouper',
       avatarUrl: row.profiles?.avatar_url ?? null,
     },
@@ -62,6 +73,11 @@ function toPost(row: PostRow, viewerId: string) {
         }
       : null,
     isMine: row.author_id === viewerId,
+    canDelete: row.kind === 'announcement' && (
+      viewer.isSiteAdmin
+      || row.author_id === viewerId
+      || (!!row.community_id && viewer.postsTo.has(row.community_id))
+    ),
     likeCount: likes.length,
     likedByMe: likes.some(like => like.profile_id === viewerId),
     likers: likes
@@ -81,13 +97,13 @@ export default defineEventHandler(async (event) => {
 
   const { data: profile, error: profileError } = await client
     .from('profiles')
-    .select('id')
+    .select('id, role')
     .eq('auth_user_id', uid)
     .single()
   if (profileError || !profile) { throw createError({ statusCode: 404, message: 'Profile not found' }) }
 
   const [membershipsRes, communitiesRes] = await Promise.all([
-    client.from('community_members').select('community_id').eq('profile_id', profile.id),
+    client.from('community_members').select('community_id, role').eq('profile_id', profile.id),
     client.from('communities').select('id, name, description, parent_community_id').order('name'),
   ])
   if (membershipsRes.error) { throw createError({ statusCode: 500, message: membershipsRes.error.message }) }
@@ -95,6 +111,11 @@ export default defineEventHandler(async (event) => {
 
   const allCommunities = communitiesRes.data ?? []
   const myIds = new Set((membershipsRes.data ?? []).map(m => m.community_id))
+  const viewer: Viewer = {
+    id: profile.id,
+    isSiteAdmin: profile.role === 'admin',
+    postsTo: new Set((membershipsRes.data ?? []).filter(m => COMMUNITY_POSTER_ROLES.includes(m.role)).map(m => m.community_id)),
+  }
   const myCommunities = allCommunities
     .filter(c => myIds.has(c.id))
     .map(c => ({ id: c.id, name: c.name }))
@@ -178,6 +199,7 @@ export default defineEventHandler(async (event) => {
       name: community.name,
       description: community.description,
       isMember: myIds.has(community.id),
+      canPost: viewer.isSiteAdmin || viewer.postsTo.has(community.id),
     },
     stats: {
       trees: trees.reduce((sum, tree) => sum + tree.quantity, 0),
@@ -187,8 +209,8 @@ export default defineEventHandler(async (event) => {
       members: memberIds.length,
       co2KgPerYear: co2KgPerYear(trees),
     },
-    events: ((eventsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, profile.id)),
-    posts: ((postsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, profile.id)),
+    events: ((eventsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, viewer)),
+    posts: ((postsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, viewer)),
     topPlanters: [...planters.values()]
       .toSorted((a, b) => b.trees - a.trees)
       .slice(0, TOP_PLANTER_LIMIT),

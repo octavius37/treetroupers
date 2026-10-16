@@ -10,7 +10,29 @@ const stats = ref({ trees: 0, points: 0, communities: 0, co2: 0 })
 const recentTrees = ref<any[]>([])
 const loading = ref(true)
 
+// The first steps for a new member, until they're all done or dismissed.
+const DISMISS_KEY = 'tt-welcome-dismissed'
+const dismissed = ref(false)
+const steps = computed(() => [
+  { done: stats.value.communities > 0, label: 'Join your local troupe', to: '/dashboard/communities' },
+  { done: recentTrees.value.length > 0, label: 'Log your first tree', to: '/dashboard/plant' },
+  { done: !!(profile.value?.avatar_url || profile.value?.bio), label: 'Add a photo or bio to your profile', to: '/dashboard/profile' },
+])
+const showWelcome = computed(() => !loading.value && !dismissed.value && steps.value.some(s => !s.done))
+
+function dismissWelcome() {
+  dismissed.value = true
+  try {
+    localStorage.setItem(DISMISS_KEY, '1')
+  }
+  catch {}
+}
+
 onMounted(async () => {
+  try {
+    dismissed.value = localStorage.getItem(DISMISS_KEY) === '1'
+  }
+  catch {}
   if (!authUserId.value) { return }
 
   const { data: profileData } = await supabase
@@ -57,6 +79,39 @@ onMounted(async () => {
         Here's an overview of your Tree Troupe activity.
       </p>
     </div>
+
+    <!-- Getting started -->
+    <section v-if="showWelcome" class="mb-8 bg-green-50 border border-green-200 rounded-2xl p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="font-semibold text-green-900">
+            Getting started 🌱
+          </h2>
+          <p class="text-sm text-green-800 mt-1">
+            {{ steps.filter(s => s.done).length }} of {{ steps.length }} done
+          </p>
+        </div>
+        <button type="button" class="text-sm text-green-800 hover:text-green-900" @click="dismissWelcome">
+          Hide
+        </button>
+      </div>
+      <ol class="mt-4 space-y-2">
+        <li v-for="step in steps" :key="step.label">
+          <NuxtLink
+            :to="step.to"
+            class="flex items-center gap-3 bg-white rounded-xl px-4 py-3 text-sm hover:bg-green-100/50"
+            :class="step.done ? 'text-gray-400 line-through' : 'text-gray-900 font-medium'"
+          >
+            <span
+              class="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0"
+              :class="step.done ? 'bg-green-600 text-white' : 'border-2 border-green-300'"
+              aria-hidden="true"
+            >{{ step.done ? '✓' : '' }}</span>
+            {{ step.label }}
+          </NuxtLink>
+        </li>
+      </ol>
+    </section>
 
     <!-- Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
