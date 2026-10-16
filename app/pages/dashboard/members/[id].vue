@@ -11,6 +11,7 @@ interface Member {
   memberSince: string
   isMe: boolean
   stats: { trees: number, co2KgPerYear: number }
+  badges: { id: string, title: string, description: string | null }[]
   communities: { id: string, name: string, role: string }[]
   trees: { id: string, source: string, quantity: number, status: string, plantedAt: string, species: string | null }[]
 }
@@ -101,6 +102,22 @@ onMounted(load)
           </dd>
         </div>
       </dl>
+
+      <section v-if="member.badges.length" class="mt-6">
+        <h2 class="font-semibold text-gray-900 mb-2">
+          Badges
+        </h2>
+        <ul class="flex flex-wrap gap-2">
+          <li
+            v-for="badge in member.badges"
+            :key="badge.id"
+            :title="badge.description ?? undefined"
+            class="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-sm text-amber-900"
+          >
+            🏅 {{ badge.title }}
+          </li>
+        </ul>
+      </section>
 
       <section v-if="member.communities.length" class="mt-6">
         <h2 class="font-semibold text-gray-900 mb-2">

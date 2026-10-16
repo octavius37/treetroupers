@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@nuxtjs/supabase": "^2.0.4",
+    "@vercel/analytics": "^2.0.1",
     "grapesjs": "^0.23.2",
     "grapesjs-blocks-basic": "^1.0.2",
     "leaflet": "^1.9.4",

@@ -577,10 +577,11 @@ see "Public pages are code" above) is the tips content for now.
   planting-suggestion visibility.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
-- Points for `update_tree`, `verify_tree`, `join_community` and `streak_bonus`.
-  They exist as `point_events` action types (and in the seed), but nothing
-  awards them yet. Deleting a tree doesn't take its points back either
-  (deleting a planting suggestion does).
+- Points for `update_tree` and `verify_tree`. They exist as `point_events`
+  action types (and in the seed), but nothing awards them yet. Deleting a tree
+  doesn't take its points back either (deleting a planting suggestion or leaving
+  a community does). Members who joined communities before
+  `20261016120000_rewards_join_and_streak_points.sql` got no joining points.
 - **Showing tree photos on the dashboard and map.** `/cms/trees` shows each
   log's photo for review, and the community feed shows planted trees' photos,
   but the dashboard and map don't yet.
@@ -648,6 +649,20 @@ Members can remove their own suggestions, so the same migration's
 matching `-1` `suggest_spot` event rather than deleting the original, because
 `sync_total_points` only reacts to inserts. Without it, suggesting and removing
 a spot in a loop added points with nothing left on the map.
+
+**Joining a community** pays 10 points (`join_community`) through
+`on_community_joined`, and leaving takes them back with a `-10` event
+(`on_community_left`), the same pattern as suggestions, so joining and leaving
+in a loop nets nothing. The leave trigger skips profiles that no longer exist,
+since deleting an account cascades to its memberships.
+
+**The streak bonus** pays 25 points (`streak_bonus`) when a member has an
+approved log in each of 4 consecutive weeks, counted by each log's
+`created_at` (which members can't set, unlike `planted_at`). `on_tree_approved_streak`
+checks it whenever a log is approved, against the week that log was made in,
+and pays at most once every 4 weeks. Both are in
+`20261016120000_rewards_join_and_streak_points.sql`; the earning table on
+`/dashboard/rewards` mirrors all of these numbers, so update it with them.
 
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
@@ -783,6 +798,23 @@ auto-imports them; stub the ones that touch auth per test.
 - **Getting started**: the dashboard shows a checklist (join a troupe, log a
   tree, add a photo or bio) until it's done or hidden (remembered in
   `localStorage`).
+
+### Rewards and analytics
+
+- **Rewards unlock at a points threshold; points are never spent**, so claiming
+  doesn't move anyone on the leaderboard. `/dashboard/rewards` lists active
+  rewards with progress, plus how points are earned. Badges (`type = 'badge'`)
+  need no claim and show on member profiles once unlocked. Other rewards are
+  claimed (`POST /api/dashboard/rewards/:id/claim`, which checks the points) and
+  appear on `/cms/rewards` with the member's email, where an admin marks them
+  sent or cancels them (`PUT /api/cms/reward-claims/:id`); `/cms` shows a banner
+  while claims are waiting. A partial unique index allows one open or sent
+  claim per member per reward. The baseline's `reward_redemptions: own insert`
+  policy, which let anyone claim anything directly, was dropped.
+- **Analytics**: `@vercel/analytics/nuxt` (in `nuxt.config.ts` modules) adds
+  Vercel Web Analytics: cookie-free page views, no consent banner needed. Data
+  only arrives once Web Analytics is enabled in the Vercel project. The privacy
+  policy mentions it.
 
 ### Legal pages, account deletion and SEO
 

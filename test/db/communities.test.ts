@@ -138,7 +138,10 @@ describe('member profiles', () => {
     as(organiser)
     const profile = await call(member, { id: member1.profile.id })
 
-    expect(profile).toMatchObject({ id: member1.profile.id, isMe: false, points: 0 })
+    const { data: stored } = await serviceClient.from('profiles').select('total_points').eq('id', member1.profile.id).single()
+    // Joining communities earns points, so this is no longer 0.
+    expect(profile).toMatchObject({ id: member1.profile.id, isMe: false, points: stored!.total_points })
+    expect(profile.points).toBeGreaterThan(0)
     expect(profile.communities.map((c: any) => c.id)).toContain(community)
     expect(JSON.stringify(profile)).not.toContain(member1.authUser.email!)
   })

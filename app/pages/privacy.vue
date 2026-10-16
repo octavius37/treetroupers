@@ -36,6 +36,10 @@ const UPDATED = '16 October 2026'
       position your camera stored). We use only strictly necessary cookies, to keep you signed in; we don't use
       advertising or tracking cookies.
     </p>
+    <p class="mb-4">
+      To see how the site is used, we count page visits with Vercel Web Analytics. It sets no cookies, doesn't
+      follow you across sites, and only gives us totals such as which pages are visited and from which country.
+    </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
       Why we use it
@@ -67,7 +71,7 @@ const UPDATED = '16 October 2026'
     </p>
     <ul class="list-disc pl-6 my-4 space-y-2">
       <li><strong>Supabase</strong>: database, sign-in and photo storage.</li>
-      <li><strong>Vercel</strong>: hosting the website.</li>
+      <li><strong>Vercel</strong>: hosting the website, and counting page visits (without cookies).</li>
       <li><strong>Resend</strong>: sending emails, such as contact-form messages and notices about your tree logs.</li>
     </ul>
 

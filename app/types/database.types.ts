@@ -478,6 +478,7 @@ export type Database = {
       }
       reward_redemptions: {
         Row: {
+          fulfilled_at: string | null
           id: string
           profile_id: string
           redeemed_at: string
@@ -485,6 +486,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          fulfilled_at?: string | null
           id?: string
           profile_id: string
           redeemed_at?: string
@@ -492,6 +494,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          fulfilled_at?: string | null
           id?: string
           profile_id?: string
           redeemed_at?: string

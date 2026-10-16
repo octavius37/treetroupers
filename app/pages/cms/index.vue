@@ -4,7 +4,7 @@ definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 // Forward browser cookies so the Supabase session is available when this fetch
 // runs during SSR; without it serverSupabaseUser can't resolve the user.
 const { data: stats, status } = useFetch<{
-  counts: { profiles: number, communities: number, trees: number, pendingTrees: number, communityRequests: number, species: number, rewards: number }
+  counts: { profiles: number, communities: number, trees: number, pendingTrees: number, communityRequests: number, rewardClaims: number, species: number, rewards: number }
   recentTrees: any[]
   recentUsers: any[]
 }>('/api/cms/stats', {
@@ -45,6 +45,16 @@ const { data: stats, status } = useFetch<{
       >
         <span class="text-sm font-medium">
           {{ stats.counts.communityRequests }} {{ stats.counts.communityRequests === 1 ? 'request' : 'requests' }} for a new community
+        </span>
+        <span class="text-sm font-medium">Review →</span>
+      </NuxtLink>
+      <NuxtLink
+        v-if="stats.counts.rewardClaims > 0"
+        to="/cms/rewards"
+        class="mb-6 flex items-center justify-between bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-xl hover:border-amber-300 transition-colors"
+      >
+        <span class="text-sm font-medium">
+          {{ stats.counts.rewardClaims }} reward {{ stats.counts.rewardClaims === 1 ? 'claim' : 'claims' }} to send
         </span>
         <span class="text-sm font-medium">Review →</span>
       </NuxtLink>

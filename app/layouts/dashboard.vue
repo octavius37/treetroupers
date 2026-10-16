@@ -7,6 +7,7 @@ const sidebarLinks = [
   { to: '/dashboard/suggest', label: 'Suggest a Planting Spot', icon: 'pin' },
   { to: '/dashboard/map', label: 'Tree Map', icon: 'map' },
   { to: '/dashboard/leaderboard', label: 'Leaderboard', icon: 'trophy' },
+  { to: '/dashboard/rewards', label: 'Rewards', icon: 'gift' },
   { to: '/dashboard/communities', label: 'Communities', icon: 'globe' },
   { to: '/dashboard/profile', label: 'Profile', icon: 'user' },
 ]

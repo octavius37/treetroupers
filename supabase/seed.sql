@@ -351,13 +351,12 @@ values
 -- The on_point_event_inserted trigger rolls these into profiles.total_points,
 -- so no manual total is set anywhere. plant_tree and first_tree events are not
 -- listed: the on_tree_approved trigger already wrote them when the approved trees
--- above were inserted.
+-- above were inserted. Nor are join_community events: on_community_joined wrote
+-- them for the memberships.
 
 insert into public.point_events (profile_id, action_type, points, reference_id, reference_type)
 values
   ('00000000-0000-4000-b000-000000000002', 'update_tree', 5, null, 'tree_update'),
-  ('00000000-0000-4000-b000-000000000002', 'join_community', 10,
-   '00000000-0000-4000-c000-000000000003', 'community'),
   ('00000000-0000-4000-b000-000000000001', 'verify_tree', 15, null, 'tree');
 
 -- Community feed -----------------------------------------------------------
