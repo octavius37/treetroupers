@@ -383,10 +383,11 @@ to test a policy, read or write with `anonClient()` (or a signed-in client).
 CI runs these in the `test-db` job, which boots a trimmed stack with
 `supabase start` (migrations + seed from scratch) on every push and PR.
 
-Coverage so far is planting a tree and the points it awards
-(`plant-tree.test.ts`), which also exercises `handle_new_user` and
-`sync_total_points`, and suggesting a spot, including the point being taken back
-when the suggestion is deleted (`suggest-spot.test.ts`), and that PostGIS's
+Coverage so far is logging a tree, its review and the points approval pays
+(`plant-tree.test.ts`), which also exercises `handle_new_user`,
+`sync_total_points` and members being unable to approve their own logs, and
+suggesting a spot, including the point being taken back when the suggestion is
+deleted (`suggest-spot.test.ts`), and that PostGIS's
 `spatial_ref_sys` stays out of the REST API (`api-exposure.test.ts`). Next
 candidates: the remaining RLS policies — see "Known Schema Issues".
 
@@ -482,6 +483,11 @@ Verified directly against the hosted project:
   advisor should show no errors. Check that `trees.lat`/`lng` still have values
   for the planted trees on remote.
 
+  `20261016080000_review_tree_logs_before_awarding_points` came after that. It
+  backfills every existing tree as approved, so nothing already logged goes back
+  into the queue. Once its run passes, new logs from the app need a photo and
+  wait at `/cms/trees` for approval before they pay points.
+
 - `pages: public read` **is applied on remote**, recorded as history version
   `20260802000000` so it matches the repo file exactly. The corresponding
   Supabase advisory is cleared.
@@ -573,9 +579,9 @@ see "Public pages are code" above) is the tips content for now.
   They exist as `point_events` action types (and in the seed), but nothing
   awards them yet. Deleting a tree doesn't take its points back either
   (deleting a planting suggestion does).
-- **Showing tree photos.** The plant/donate/earn forms upload a photo and
-  `trees.photo_urls` stores it, but no page displays it yet — not the dashboard,
-  the map or `/cms/trees`.
+- **Showing tree photos to members.** `/cms/trees` shows each log's photo for
+  review, but no member-facing page displays it yet — not the dashboard or the
+  map.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
@@ -583,28 +589,37 @@ Done since this list was last updated: the interactive tree map
 (`server/api/contact.post.ts`, via Resend — needs `RESEND_API_KEY`); species
 seeding (all 100 hosted species are now in `seed.sql`); points for planting and
 for suggesting a spot (see "Points" below); photo upload for trees (Supabase
-Storage, see "Photo upload" below).
+Storage, see "Photo upload" below); admin review of every tree log, with points
+for donated and earned trees (see "Tree log review" below).
 
 ### Points
 
-Planting a tree awards points through the `on_tree_planted` trigger on `trees`
-(`20261005122551_award_points_for_planted_trees.sql`), not in application code,
-so every insert path scores the same:
+Tree logs earn points when an admin **approves** them, through the
+`on_tree_approved` trigger on `trees`
+(`20261016080000_review_tree_logs_before_awarding_points.sql`), not in
+application code, so every path scores the same. See "Tree log review" below for
+the approval flow.
 
-- 20 points (`plant_tree`) for each tree with `source = 'planted'`.
-- A one-off 50-point `first_tree` bonus for a profile's first planted tree. It is
-  withheld if the profile has a planted tree from an earlier transaction (which
-  includes anyone who planted before the migration), and a partial unique index
-  stops a profile getting it twice. Trees from the *same* transaction are
+- 20 points (`plant_tree`) for an approved tree with `source = 'planted'`.
+- 5 points per tree (`donate_tree`) for an approved donated log, and 2 per tree
+  (`earn_tree`) for an approved earned log, each times the log's `quantity`.
+  There is no cap: the reviewer checks the quantity against the photo.
+- A one-off 50-point `first_tree` bonus for a profile's first approved planted
+  tree. It is withheld if the profile has a planted tree approved in an earlier
+  transaction (trees from before review existed count from `created_at`, so
+  anyone who planted before points existed gets none), and a partial unique index
+  stops a profile getting it twice. Trees approved in the *same* transaction are
   deliberately not counted: row triggers fire after the whole statement, so in a
-  multi-row insert (as in `seed.sql`) each row sees the others, and a plain "no
-  other planted tree" check would award nobody.
-- Donated and earned entries earn nothing: they have no location and a
-  self-reported `quantity`, so there is nothing to verify.
+  multi-row insert or approval (as in `seed.sql`) each row sees the others, and a
+  plain "no other approved tree" check would award nobody.
 
-Trees logged before the migration were not backfilled. The trigger function is
-`SECURITY DEFINER` because `point_events` has no insert policy; the
-`test/db/plant-tree.test.ts` direct-insert test fails if that is ever removed.
+Points are paid once, on the change to `approved` (or on an insert that is
+already approved, which only the service role and `seed.sql` can do). Trees
+logged before review existed were backfilled as approved with no points paid:
+planted ones had been paid on insert by the old `on_tree_planted` trigger
+(`20261005122551_award_points_for_planted_trees.sql`, now dropped), and donated
+and earned ones were not backfilled. The trigger function is `SECURITY DEFINER`
+because `point_events` has no insert policy.
 
 The same migration replaced the `trees: authenticated insert` policy, which only
 checked that the caller was signed in, with `trees: own insert`, which requires
@@ -613,7 +628,8 @@ user credit trees to anyone. `tree_updates: authenticated insert` still has the
 old shape (any `author_id`); it awards nothing today, but needs the same fix
 before updates earn points.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
-not list them.
+not list them. Seeded trees are inserted with `review_status = 'approved'` so
+they are paid; without it they would sit in the review queue.
 
 Suggesting a planting spot awards 1 point (`suggest_spot`) through the
 `on_planting_suggestion_created` trigger on `planting_suggestions`
@@ -663,6 +679,50 @@ is true: submitting mid-upload saves the tree without its photo. On submit,
 in the schema, since `tree_updates` can hold several; these forms only ever send
 one).
 
-Known gaps: nothing deletes uploads that never end up on a tree (a removed
-photo, an abandoned form), and `trees.post.ts` stores whatever `photo_url` the
-client sends without checking it points into `tree-photos/<uid>/`.
+**A photo is required on every log**, because it is the proof an admin reviews
+(see "Tree log review" below). `trees.post.ts` refuses a log with no
+`photo_url` (400), or with one outside the caller's own
+`tree-photos/<auth user id>/` folder, and the forms keep submit disabled until a
+photo is attached.
+
+Known gap: nothing deletes uploads that never end up on a tree (a removed photo,
+an abandoned form).
+
+### Tree log review
+
+Every tree log (planted, donated or earned) starts as `review_status =
+'pending'` and pays no points until an admin approves it at `/cms/trees`, which
+opens on the "Pending review" queue and shows each log's photo with Approve and
+Reject buttons. The CMS overview shows a banner while anything is waiting.
+Approving calls `PUT /api/cms/trees/:id/review` with `{ decision: 'approved' |
+'rejected' }`, behind `requireAdmin`. It records `reviewed_by` (the admin's
+profile), and the database sets `reviewed_at`.
+
+`review_status` is separate from `status`, which is still the tree's life
+(planted/growing/mature/removed), cycled by the existing status button.
+
+The database enforces the rules, not only the endpoint:
+
+- **Members can't review their own logs.** The `guard_tree_review` trigger
+  forces anything `anon`/`authenticated` inserts to `pending`, and refuses
+  their updates to `review_status`/`reviewed_by`/`reviewed_at` with `42501`.
+  Without it, `trees: own insert` and `trees: own update` would let a member
+  approve their own log directly through the REST API.
+- **Approved is final.** Un-approving fails with `23514`, even through the
+  service role, because the points have been paid and nothing takes them back.
+  The endpoint only matches `pending` rows (409 otherwise), so a log can't be
+  reviewed twice.
+- **Pending logs must have a photo** (`trees_photo_required_for_review`).
+  Approved and rejected rows are exempt, so trees from before photos were
+  required stay valid.
+
+What counts where:
+
+- The **leaderboard** `trees_planted` column, the member dashboard's tree count
+  and the public tree totals (`/api/public/stats`, the `stats-counter` smart
+  block) count only approved trees, matching the points.
+- The **map** shows pending and approved trees, but not rejected ones.
+- The member dashboard's recent trees show "Pending review" or "Not approved"
+  until a log is approved.
+
+`test/db/plant-tree.test.ts` covers all of this against the real database.

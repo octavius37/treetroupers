@@ -4,7 +4,7 @@ definePageMeta({ layout: 'cms', middleware: 'cms-auth' })
 // Forward browser cookies so the Supabase session is available when this fetch
 // runs during SSR; without it serverSupabaseUser can't resolve the user.
 const { data: stats, status } = useFetch<{
-  counts: { profiles: number, communities: number, trees: number, species: number, rewards: number }
+  counts: { profiles: number, communities: number, trees: number, pendingTrees: number, species: number, rewards: number }
   recentTrees: any[]
   recentUsers: any[]
 }>('/api/cms/stats', {
@@ -28,6 +28,17 @@ const { data: stats, status } = useFetch<{
     </div>
 
     <template v-else-if="stats">
+      <NuxtLink
+        v-if="stats.counts.pendingTrees > 0"
+        to="/cms/trees"
+        class="mb-6 flex items-center justify-between bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-xl hover:border-amber-300 transition-colors"
+      >
+        <span class="text-sm font-medium">
+          {{ stats.counts.pendingTrees }} tree {{ stats.counts.pendingTrees === 1 ? 'log is' : 'logs are' }} waiting for review
+        </span>
+        <span class="text-sm font-medium">Review →</span>
+      </NuxtLink>
+
       <!-- Stats Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <NuxtLink to="/cms/users" class="bg-white rounded-xl p-5 border border-gray-200 hover:border-green-300 transition-colors">
@@ -160,17 +171,20 @@ const { data: stats, status } = useFetch<{
             <div v-for="tree in stats.recentTrees" :key="tree.id" class="px-6 py-3 flex items-center justify-between">
               <div class="min-w-0">
                 <div class="text-sm font-medium text-gray-900">
-                  {{ tree.tree_species?.common_name || 'Unknown species' }}
+                  {{ treeLogLabel(tree) }}
                 </div>
                 <div class="text-xs text-gray-500">
                   by {{ tree.profiles?.display_name || 'Unknown' }}
                 </div>
               </div>
-              <div v-if="tree.verified" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex-shrink-0">
-                Verified
+              <div v-if="tree.review_status === 'approved'" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                Approved
+              </div>
+              <div v-else-if="tree.review_status === 'rejected'" class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                Rejected
               </div>
               <div v-else class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex-shrink-0">
-                Pending
+                Pending review
               </div>
             </div>
           </div>

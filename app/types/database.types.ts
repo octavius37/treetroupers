@@ -464,6 +464,9 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string
@@ -482,6 +485,9 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           species_id?: string | null
           status?: string
@@ -500,6 +506,9 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source?: string
           species_id?: string | null
           status?: string
@@ -522,6 +531,20 @@ export type Database = {
           {
             foreignKeyName: "trees_planted_by_fkey"
             columns: ["planted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -576,6 +599,9 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string
@@ -603,6 +629,9 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           source: string
           species_id: string | null
           status: string

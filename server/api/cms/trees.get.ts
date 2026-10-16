@@ -3,7 +3,7 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const { filter } = getQuery(event)
+  const { filter, review } = getQuery(event)
   const client = serverSupabaseServiceRole(event)
 
   let query = client
@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     .order('created_at', { ascending: false })
 
   if (filter && filter !== 'all') { query = query.eq('status', filter) }
+  if (review && review !== 'all') { query = query.eq('review_status', review) }
 
   const { data, error } = await query
   if (error) { throw createError({ statusCode: 500, message: error.message }) }

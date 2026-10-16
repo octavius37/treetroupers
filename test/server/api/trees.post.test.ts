@@ -7,6 +7,9 @@ import { serverSupabaseServiceRole } from '../../mocks/supabase-server'
 
 const authUserId = vi.fn()
 
+const PHOTOS = 'http://127.0.0.1:54421/storage/v1/object/public/tree-photos/'
+const PHOTO_URL = `${PHOTOS}auth-user-1/3f1c2b9e-0000-4000-8000-000000000001.jpg`
+
 const VALID_BODY = {
   species_id: 'species-1',
   community_id: 'community-1',
@@ -14,6 +17,7 @@ const VALID_BODY = {
   lng: 4.9041,
   notes: 'Planted by the canal',
   planted_at: '2026-08-11',
+  photo_url: PHOTO_URL,
 }
 
 function withTables(tables: Record<string, TableConfig> = {}) {
@@ -22,6 +26,8 @@ function withTables(tables: Record<string, TableConfig> = {}) {
     trees: { data: { id: 'tree-1' } },
     ...tables,
   })
+  const getPublicUrl = (path: string) => ({ data: { publicUrl: `${PHOTOS}${path}` } })
+  Object.assign(supabase.client, { storage: { from: () => ({ getPublicUrl }) } })
   vi.mocked(serverSupabaseServiceRole).mockReturnValue(supabase.client)
   return supabase
 }
@@ -130,5 +136,51 @@ describe('POST /api/dashboard/trees', () => {
     withTables({ trees: { data: { id: 'tree-1', planted_by: 'profile-1' } } })
 
     await expect(handler(createTestEvent())).resolves.toEqual({ id: 'tree-1', planted_by: 'profile-1' })
+  })
+
+  // The photo is the proof an admin reviews before any points are paid.
+  it.each([
+    ['missing', undefined],
+    ['empty', ''],
+  ])('throws 400 when the photo is %s, before touching the database', async (_, photo_url) => {
+    setRequestBody({ ...VALID_BODY, photo_url })
+    const supabase = withTables()
+
+    const error = await captureError(() => handler(createTestEvent()))
+
+    expect(error.statusCode).toBe(400)
+    expect(error.message).toBe('Please add a photo as proof')
+    expect(supabase.calls).toHaveLength(0)
+  })
+
+  it.each([
+    ['another user\'s upload', `${PHOTOS}auth-user-2/photo.jpg`],
+    ['a path that climbs out of the user\'s folder', `${PHOTOS}auth-user-1/../auth-user-2/photo.jpg`],
+    ['a different site', 'https://example.com/tree-photos/auth-user-1/photo.jpg'],
+  ])('throws 400 for %s', async (_, photo_url) => {
+    setRequestBody({ ...VALID_BODY, photo_url })
+    const supabase = withTables()
+
+    const error = await captureError(() => handler(createTestEvent()))
+
+    expect(error.statusCode).toBe(400)
+    expect(supabase.callsFor('trees')).toHaveLength(0)
+  })
+
+  it('stores the photo as the tree\'s only photo', async () => {
+    const supabase = withTables()
+
+    await handler(createTestEvent())
+
+    expect((supabase.callFor('trees').payload as { photo_urls: string[] }).photo_urls).toEqual([PHOTO_URL])
+  })
+
+  it('does not let the client set the review status', async () => {
+    setRequestBody({ ...VALID_BODY, review_status: 'approved' })
+    const supabase = withTables()
+
+    await handler(createTestEvent())
+
+    expect(supabase.callFor('trees').payload).not.toHaveProperty('review_status')
   })
 })

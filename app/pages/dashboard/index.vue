@@ -21,7 +21,8 @@ onMounted(async () => {
 
   if (profileData) {
     const [treesRes, communitiesRes] = await Promise.all([
-      supabase.from('trees').select('id', { count: 'exact', head: true }).eq('planted_by', profileData.id),
+      // Only approved logs count, matching the leaderboard and points.
+      supabase.from('trees').select('id', { count: 'exact', head: true }).eq('planted_by', profileData.id).eq('review_status', 'approved'),
       supabase.from('community_members').select('id', { count: 'exact', head: true }).eq('profile_id', profileData.id),
     ])
     stats.value = {
@@ -154,13 +155,20 @@ onMounted(async () => {
         <div v-for="tree in recentTrees" :key="tree.id" class="px-6 py-4 flex items-center justify-between">
           <div>
             <div class="font-medium text-gray-900">
-              {{ tree.tree_species?.common_name || 'Unknown species' }}
+              {{ treeLogLabel(tree) }}
             </div>
             <div class="text-sm text-gray-500">
               {{ new Date(tree.planted_at).toLocaleDateString() }}
             </div>
           </div>
+          <div v-if="tree.review_status === 'pending'" class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+            Pending review
+          </div>
+          <div v-else-if="tree.review_status === 'rejected'" class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-600">
+            Not approved
+          </div>
           <div
+            v-else
             class="text-xs px-2 py-1 rounded-full capitalize"
             :class="{
               'bg-amber-100 text-amber-700': tree.status === 'planted',

@@ -7,6 +7,8 @@
 const props = defineProps<{
   modelValue: string | null
   label: string
+  hint?: string
+  required?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -58,7 +60,12 @@ function remove() {
 
 <template>
   <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">{{ props.label }}</label>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      {{ props.label }}<span v-if="props.required" class="text-red-500" aria-hidden="true"> *</span>
+    </label>
+    <p v-if="props.hint" class="text-xs text-gray-500 mb-2">
+      {{ props.hint }}
+    </p>
 
     <div v-if="props.modelValue" class="relative">
       <img :src="props.modelValue" alt="Uploaded proof photo" class="w-full h-48 object-cover rounded-lg">

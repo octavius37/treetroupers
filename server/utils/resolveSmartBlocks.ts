@@ -17,7 +17,8 @@ function statCell(n: number | null, label: string) {
 async function renderStatsCounter(event: H3Event) {
   const client = serverSupabaseServiceRole(event)
   const [trees, communities, members] = await Promise.all([
-    client.from('trees').select('id', { count: 'exact', head: true }),
+    // Only trees an admin has approved count towards the public total.
+    client.from('trees').select('id', { count: 'exact', head: true }).eq('review_status', 'approved'),
     client.from('communities').select('id', { count: 'exact', head: true }),
     client.from('profiles').select('id', { count: 'exact', head: true }),
   ])

@@ -23,6 +23,8 @@ onMounted(async () => {
   const { data } = await supabase
     .from('trees')
     .select('*, tree_species(common_name), profiles!planted_by(display_name)')
+    // Pending trees show while they wait for review; rejected ones don't.
+    .neq('review_status', 'rejected')
     .order('planted_at', { ascending: false })
   trees.value = data || []
   loading.value = false

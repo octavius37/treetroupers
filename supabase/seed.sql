@@ -317,24 +317,26 @@ values
 -- Real Utrecht coordinates. `location` is built via ST_MakePoint(lng, lat) —
 -- note the argument order — and lat/lng generated columns follow from it.
 
-insert into public.trees (id, planted_by, species_id, community_id, location, status, notes, planted_at)
+-- Inserted as already approved, so the on_tree_approved trigger pays their
+-- points straight away. New logs from the app start as 'pending'.
+insert into public.trees (id, planted_by, species_id, community_id, location, status, notes, planted_at, review_status)
 values
   ('00000000-0000-4000-e000-000000000001', '00000000-0000-4000-b000-000000000002',
    '00000000-0000-4000-d000-000000000001', '00000000-0000-4000-c000-000000000003',
    ST_SetSRID(ST_MakePoint(5.1080, 52.0930), 4326)::geography,
-   'growing', 'Planted beside the canal path.', now() - interval '400 days'),
+   'growing', 'Planted beside the canal path.', now() - interval '400 days', 'approved'),
   ('00000000-0000-4000-e000-000000000002', '00000000-0000-4000-b000-000000000002',
    '00000000-0000-4000-d000-000000000002', '00000000-0000-4000-c000-000000000003',
    ST_SetSRID(ST_MakePoint(5.1105, 52.0948), 4326)::geography,
-   'planted', 'Community planting day.', now() - interval '30 days'),
+   'planted', 'Community planting day.', now() - interval '30 days', 'approved'),
   ('00000000-0000-4000-e000-000000000003', '00000000-0000-4000-b000-000000000001',
    '00000000-0000-4000-d000-000000000003', '00000000-0000-4000-c000-000000000002',
    ST_SetSRID(ST_MakePoint(5.1214, 52.0907), 4326)::geography,
-   'mature', 'Established lime near the station.', now() - interval '1200 days'),
+   'mature', 'Established lime near the station.', now() - interval '1200 days', 'approved'),
   ('00000000-0000-4000-e000-000000000004', '00000000-0000-4000-b000-000000000001',
    '00000000-0000-4000-d000-000000000004', '00000000-0000-4000-c000-000000000002',
    ST_SetSRID(ST_MakePoint(5.1290, 52.0855), 4326)::geography,
-   'growing', 'Park edge, partial shade.', now() - interval '200 days');
+   'growing', 'Park edge, partial shade.', now() - interval '200 days', 'approved');
 
 insert into public.tree_updates (tree_id, author_id, content, created_at)
 values
@@ -348,8 +350,8 @@ values
 -- Point events -------------------------------------------------------------
 -- The on_point_event_inserted trigger rolls these into profiles.total_points,
 -- so no manual total is set anywhere. plant_tree and first_tree events are not
--- listed: the on_tree_planted trigger already wrote them when the trees above
--- were inserted.
+-- listed: the on_tree_approved trigger already wrote them when the approved trees
+-- above were inserted.
 
 insert into public.point_events (profile_id, action_type, points, reference_id, reference_type)
 values
