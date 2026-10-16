@@ -710,6 +710,30 @@ included, from `/api/cms/feed-posts/:id`.
 The feed used to list `tree_updates`. That table is untouched (the leaderboard
 still counts `updates_posted`) but nothing displays it now.
 
+### Legal pages, account deletion and SEO
+
+- **`/privacy` and `/terms`** are code pages, linked from the footer and from a
+  required "16 or older and agree" checkbox on `/register`. They describe what
+  the site actually does (what members see, which processors — Supabase,
+  Vercel, Resend — and what deletion removes), so update them when that
+  changes. Bump the `UPDATED` date at the top of each.
+- **Deleting an account** (`DELETE /api/dashboard/account`, from the profile
+  page, needs `{ confirm: 'DELETE' }`) removes the user's files under
+  `<auth user id>/` in `tree-photos` and `avatars`, deletes their pending logs
+  and tree updates, strips photos and notes from their other trees, then deletes
+  the auth user; the profile and everything referencing it cascade. Trees stay,
+  with `planted_by` null, so community totals don't drop. Files go first, so a
+  storage failure leaves the account intact and the request can be retried.
+- **Titles** use `titleTemplate: '%s · Tree Troupe'` (`nuxt.config.ts`); give
+  every new page `useHead({ title })`. `app.vue` sets the default description
+  and share preview (`og:image` is the homepage hero); public pages override the
+  description with `useSeoMeta`. Absolute URLs come from
+  `runtimeConfig.public.siteUrl`: `NUXT_PUBLIC_SITE_URL`, else Vercel's
+  `VERCEL_PROJECT_PRODUCTION_URL`.
+- **`/robots.txt` and `/sitemap.xml`** are server routes
+  (`server/routes/`). The sitemap lists the public code pages; add new ones to
+  `PUBLIC_PATHS`. `/dashboard/**` and `/cms/**` send `X-Robots-Tag: noindex`.
+
 ### Photo upload
 
 `POST /api/dashboard/tree-photo` uploads one image to the `tree-photos`

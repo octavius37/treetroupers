@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'My dashboard' })
 
 const authUserId = useAuthUserId()
 const supabase = useSupabaseClient()

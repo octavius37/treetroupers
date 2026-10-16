@@ -2,6 +2,7 @@
 import type { FeedPost } from '~/components/FeedPostCard.vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Community feed' })
 
 interface Feed {
   communities: { id: string, name: string }[]

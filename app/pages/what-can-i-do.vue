@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'What Can I Do?' })
+useSeoMeta({ description: 'Practical ways to make a difference: individual, community and global actions for trees and the climate.' })
 </script>
 
 <template>

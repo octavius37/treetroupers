@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Profile' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -109,6 +110,25 @@ async function handleChangePassword() {
 async function handleLogout() {
   await supabase.auth.signOut()
   navigateTo('/')
+}
+
+const deleteOpen = ref(false)
+const deleteConfirm = ref('')
+const deleting = ref(false)
+const deleteError = ref('')
+
+async function handleDeleteAccount() {
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await $fetch('/api/dashboard/account', { method: 'DELETE', body: { confirm: deleteConfirm.value } })
+    await supabase.auth.signOut()
+    navigateTo('/?account=deleted')
+  }
+  catch (e: any) {
+    deleteError.value = e.data?.message || e.message || 'Could not delete your account'
+    deleting.value = false
+  }
 }
 </script>
 
@@ -250,6 +270,52 @@ async function handleLogout() {
         >
           Sign Out
         </button>
+      </div>
+
+      <!-- Delete account -->
+      <div class="border-t border-gray-200 pt-6 mt-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">
+          Delete my account
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          This permanently deletes your profile, points, likes, memberships and uploaded photos. Trees you've
+          logged stay in the community totals, without your name, photos or notes. This can't be undone.
+        </p>
+        <button
+          v-if="!deleteOpen"
+          type="button"
+          class="text-sm border border-red-300 text-red-600 px-4 py-2 rounded-full font-medium hover:bg-red-50"
+          @click="deleteOpen = true"
+        >
+          Delete my account…
+        </button>
+        <form v-else class="space-y-3 max-w-md" @submit.prevent="handleDeleteAccount">
+          <label for="delete-confirm" class="block text-sm text-gray-700">
+            Type <strong>DELETE</strong> to confirm
+          </label>
+          <input
+            id="delete-confirm"
+            v-model="deleteConfirm"
+            type="text"
+            autocomplete="off"
+            class="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+          >
+          <p v-if="deleteError" class="text-sm text-red-600">
+            {{ deleteError }}
+          </p>
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              :disabled="deleteConfirm !== 'DELETE' || deleting"
+              class="bg-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+            >
+              {{ deleting ? 'Deleting…' : 'Delete my account forever' }}
+            </button>
+            <button type="button" class="text-sm text-gray-600" @click="deleteOpen = false; deleteConfirm = ''">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

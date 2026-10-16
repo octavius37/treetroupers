@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Tree map' })
 
 const supabase = useSupabaseClient()
 const trees = ref<any[]>([])

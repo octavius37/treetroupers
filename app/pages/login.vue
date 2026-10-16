@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'Sign in' })
+useSeoMeta({ description: 'Sign in to your Tree Troupe account.' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()

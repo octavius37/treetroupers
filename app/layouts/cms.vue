@@ -1,4 +1,6 @@
 <script setup lang="ts">
+useHead({ title: 'CMS' })
+
 const route = useRoute()
 const router = useRouter()
 const { pages, loading: pagesLoading, reload: reloadPages, ensureLoaded } = useCmsPages()

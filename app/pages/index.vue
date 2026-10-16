@@ -1,13 +1,18 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-useHead({ title: 'Home' })
+useHead({ title: 'Tree Troupe — plant trees together', titleTemplate: '%s' })
+useSeoMeta({ description: 'Join a local tree troupe, log the trees you plant, donate or earn, and see your community\'s impact grow on the map.' })
 
 const user = useSupabaseUser()
+const route = useRoute()
 </script>
 
 <template>
   <div>
+    <div v-if="route.query.account === 'deleted'" class="bg-green-50 border-b border-green-200 text-green-800 text-sm text-center px-4 py-3">
+      Your account has been deleted. Thank you for every tree you planted with us. 🌳
+    </div>
     <section class="relative h-[400px] overflow-hidden">
       <ImageSlot
         src="/images/home-hero-tree-sunset.jpg"

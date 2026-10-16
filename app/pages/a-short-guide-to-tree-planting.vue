@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'A short guide to tree planting' })
+useSeoMeta({ description: 'Step-by-step guide to planting a tree that thrives: where, what, when and how.' })
 
 // Ordered steps, so the content lives as data rather than repeated markup.
 const steps = [

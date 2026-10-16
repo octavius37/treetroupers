@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Communities' })
 
 const supabase = useSupabaseClient()
 const authUserId = useAuthUserId()

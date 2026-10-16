@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Climate change & trees' })
+useSeoMeta({ description: 'How trees help fight climate change, and how Tree Troupe helps you plant them individually and together.' })
 </script>
 
 <template>

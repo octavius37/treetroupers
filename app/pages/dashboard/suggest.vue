@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Suggest a planting spot' })
 
 interface Point { lat: number, lng: number }
 

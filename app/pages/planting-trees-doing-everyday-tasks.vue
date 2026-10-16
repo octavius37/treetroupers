@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Planting trees doing everyday tasks' })
+useSeoMeta({ description: 'Apps and services that plant trees while you search, shop, bank or focus.' })
 
 // Uniform cards, so the content lives as data rather than eight near-identical
 // markup blocks. Order is meaningful and matches the published page.

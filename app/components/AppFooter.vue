@@ -147,8 +147,12 @@
         </a>
       </div>
 
-      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-        &copy; {{ new Date().getFullYear() }} Tree Troupe. All rights reserved.
+      <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
+        <span>&copy; {{ new Date().getFullYear() }} Tree Troupe. All rights reserved.</span>
+        <span class="flex gap-5">
+          <NuxtLink to="/privacy" class="hover:text-white transition-colors">Privacy policy</NuxtLink>
+          <NuxtLink to="/terms" class="hover:text-white transition-colors">Terms of use</NuxtLink>
+        </span>
       </div>
     </div>
   </footer>
