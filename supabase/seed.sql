@@ -360,6 +360,49 @@ values
    '00000000-0000-4000-c000-000000000003', 'community'),
   ('00000000-0000-4000-b000-000000000001', 'verify_tree', 15, null, 'tree');
 
+-- Community feed -----------------------------------------------------------
+-- Activity posts for the trees above were written by the on_tree_approved_post
+-- trigger. These are the admin-written ones, plus a few likes.
+
+-- The trigger dates them now(); date them when each tree was planted instead.
+update public.feed_posts fp
+set created_at = t.planted_at
+from public.trees t
+where fp.tree_id = t.id;
+
+insert into public.feed_posts (id, kind, community_id, author_id, category, title, body, event_at, created_at)
+values
+  ('00000000-0000-4000-9000-000000000001', 'announcement', '00000000-0000-4000-c000-000000000002',
+   '00000000-0000-4000-b000-000000000001', 'upcoming_events',
+   'Autumn planting day in Park Lepelenburg',
+   E'Join us to plant 40 native saplings along the park edge. Gloves and spades provided; bring a flask.\n\nMeet at the north gate.',
+   date_trunc('day', now()) + interval '12 days 10 hours', now() - interval '2 days'),
+  ('00000000-0000-4000-9000-000000000002', 'announcement', '00000000-0000-4000-c000-000000000003',
+   '00000000-0000-4000-b000-000000000001', 'upcoming_events',
+   'Watering walk along the canal',
+   'A gentle hour checking on this year''s trees. Everyone welcome, no experience needed.',
+   date_trunc('day', now()) + interval '5 days 18 hours', now() - interval '1 day'),
+  ('00000000-0000-4000-9000-000000000003', 'announcement', '00000000-0000-4000-c000-000000000002',
+   '00000000-0000-4000-b000-000000000001', 'latest_news',
+   'The council has approved 15 new planting spots',
+   'Thanks to everyone who suggested spots on the map. Fifteen of them are now cleared for planting this season.',
+   null, now() - interval '3 days'),
+  ('00000000-0000-4000-9000-000000000004', 'announcement', null,
+   '00000000-0000-4000-b000-000000000001', 'latest_news',
+   'Welcome to your community feed',
+   'Events, news and everyone''s latest trees, all in one place. Give a like to congratulate a fellow planter!',
+   null, now() - interval '4 days');
+
+insert into public.post_likes (post_id, profile_id)
+select fp.id, '00000000-0000-4000-b000-000000000001'
+from public.feed_posts fp
+where fp.tree_id = '00000000-0000-4000-e000-000000000002';
+
+insert into public.post_likes (post_id, profile_id)
+values
+  ('00000000-0000-4000-9000-000000000001', '00000000-0000-4000-b000-000000000002'),
+  ('00000000-0000-4000-9000-000000000004', '00000000-0000-4000-b000-000000000002');
+
 -- Rewards ------------------------------------------------------------------
 
 insert into public.rewards (id, title, description, points_required, type, active)

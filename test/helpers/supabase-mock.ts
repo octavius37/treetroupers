@@ -139,6 +139,14 @@ export function createSupabaseMock(tables: Record<string, TableConfig> = {}): Su
         call.filters.push({ method: 'in', column, value })
         return builder
       },
+      gte(column: string, value: unknown) {
+        call.filters.push({ method: 'gte', column, value })
+        return builder
+      },
+      or(value: string) {
+        call.filters.push({ method: 'or', column: '', value })
+        return builder
+      },
       ilike(column: string, value: unknown) {
         call.filters.push({ method: 'ilike', column, value })
         return builder

@@ -53,7 +53,8 @@ The database has these core tables (types defined in `app/types/database.types.t
 - **community_members** — join table (profile_id, community_id, role)
 - **tree_species** — common_name, scientific_name, avg_co2_kg_per_year
 - **trees** — planted_by (profile), species_id, community_id, lat/lng, notes, verified flag, photo_url
-- **tree_updates** — social feed posts: author_id, tree_id, content, photo_url
+- **tree_updates** — per-tree updates: author_id, tree_id, content, photo_url. No longer shown in the feed (see "Community feed")
+- **feed_posts** / **post_likes** — the community feed: admin announcements, automatic posts for approved tree logs, and likes
 - **point_events** — ledger of earned points: profile_id, action_type, points, reference_id
 - **rewards** / **reward_redemptions** — gamification rewards system
 
@@ -319,9 +320,9 @@ inside a Nitro build. `#supabase/server` is aliased in `vitest.config.ts` to
 `test/mocks/supabase-server.ts` — import that file by *relative path* in tests so
 it type-checks, and the code under test reaches the same module instance through
 the alias. The auto-imported h3 helpers (`defineEventHandler`, `createError`,
-`readBody`, `readMultipartFormData`, `getRouterParam`) are installed as globals
+`readBody`, `readMultipartFormData`, `getRouterParam`, `getQuery`) are installed as globals
 by `test/setup/server.ts`; use `setRequestBody()` / `setMultipartFormData()` /
-`setRouterParams()` from `test/helpers/nitro.ts` to drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
+`setRouterParams()` / `setQuery()` from `test/helpers/nitro.ts` to drive them. Auto-imported project utilities (`requireAdmin`, `authUserId`) are
 stubbed per test via `Object.assign(globalThis, …)`.
 
 `createSupabaseMock({ table: { data, error, count } })` returns `{ client, calls }`.
@@ -385,9 +386,10 @@ CI runs these in the `test-db` job, which boots a trimmed stack with
 
 Coverage so far is logging a tree, its review and the points approval pays
 (`plant-tree.test.ts`), which also exercises `handle_new_user`,
-`sync_total_points` and members being unable to approve their own logs, and
-suggesting a spot, including the point being taken back when the suggestion is
-deleted (`suggest-spot.test.ts`), and that PostGIS's
+`sync_total_points` and members being unable to approve their own logs, the
+community feed — activity posts, community scoping, likes and RLS
+(`feed.test.ts`), suggesting a spot, including the point being taken back when
+the suggestion is deleted (`suggest-spot.test.ts`), and that PostGIS's
 `spatial_ref_sys` stays out of the REST API (`api-exposure.test.ts`). Next
 candidates: the remaining RLS policies — see "Known Schema Issues".
 
@@ -579,9 +581,9 @@ see "Public pages are code" above) is the tips content for now.
   They exist as `point_events` action types (and in the seed), but nothing
   awards them yet. Deleting a tree doesn't take its points back either
   (deleting a planting suggestion does).
-- **Showing tree photos to members.** `/cms/trees` shows each log's photo for
-  review, but no member-facing page displays it yet — not the dashboard or the
-  map.
+- **Showing tree photos on the dashboard and map.** `/cms/trees` shows each
+  log's photo for review, and the community feed shows planted trees' photos,
+  but the dashboard and map don't yet.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
@@ -590,7 +592,8 @@ Done since this list was last updated: the interactive tree map
 seeding (all 100 hosted species are now in `seed.sql`); points for planting and
 for suggesting a spot (see "Points" below); photo upload for trees (Supabase
 Storage, see "Photo upload" below); admin review of every tree log, with points
-for donated and earned trees (see "Tree log review" below).
+for donated and earned trees (see "Tree log review" below); the community feed
+(see "Community feed" below).
 
 ### Points
 
@@ -649,6 +652,63 @@ a spot in a loop added points with nothing left on the map.
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
 left out of the seed; no trees reference it.
+
+### Community feed
+
+`/dashboard/feed` is each community's home page: a banner with the community's
+tree, this-month and member counts, a feed with Everything/Trees/News/Events
+filters, upcoming events and the community's top planters. Members of several
+communities switch between them with the pills at the top (`?community=<id>`).
+Posting earns no points.
+
+Everything comes from one endpoint, `GET /api/dashboard/feed?community_id=`,
+which reads `feed_posts` (`20261016090000_create_community_feed.sql`). A post is
+one of two kinds:
+
+- **`announcement`** — written by an admin at **`/cms/feed`** ("Community
+  Posts"), under a heading (`category`: `upcoming_events` or `latest_news`), for
+  one community or, with none, for everyone. Events need `event_at`. To add a
+  heading, widen the `feed_posts.category` check in a new migration and add it
+  to `FEED_CATEGORIES` (`server/utils/feed.ts`) and `FEED_CATEGORY_LABELS`
+  (`app/utils/feedCategories.ts`).
+- **`activity`** — "X just planted/donated/earned …", written by the
+  `on_tree_approved_post` trigger when a tree log is **approved**, so rejected
+  and pending logs are never announced. It stores only `tree_id`; the wording
+  comes from the tree when the feed is read. A unique index allows one per tree,
+  and deleting the tree deletes the post. The migration backfilled one for each
+  tree already approved, dated when it was logged. Only planted trees show
+  their photo: donation and earning proofs are often receipts or screenshots
+  with personal details on them.
+
+Communities nest, so a feed covers more than one community:
+
+- announcements for the community, for **every community containing it**, and
+  for everyone (an Utrecht event shows in Lombok's feed);
+- activity from the community and **every community inside it** (Lombok's trees
+  show in Utrecht's feed), plus activity on logs with no community from the
+  community's members.
+- The stats and top planters count approved trees from the community and those
+  inside it.
+
+`communityAncestors`/`communityDescendants` in `server/utils/feed.ts` walk the
+tree in memory (the whole `communities` table is read), and the stats read every
+approved tree in scope. Both are fine at this size; move them into SQL when
+either table gets large.
+
+**Likes** (`post_likes`, one per profile per post) are toggled with
+`POST`/`DELETE /api/dashboard/feed/posts/:id/like`. They show as "Congratulate"
+on activity, "Like" on news and "I'm interested" on events. You can't
+congratulate yourself: your own activity posts show who congratulated you
+instead of a button.
+
+Both tables have RLS with a public `select` policy and **no write policies**:
+announcements are written through `/api/cms/feed-posts` (`requireAdmin`), likes
+through the like endpoints (signed in), and activity by the trigger, which is
+`SECURITY DEFINER` for that reason. Admins can delete any post, activity
+included, from `/api/cms/feed-posts/:id`.
+
+The feed used to list `tree_updates`. That table is untouched (the leaderboard
+still counts `updates_posted`) but nothing displays it now.
 
 ### Photo upload
 

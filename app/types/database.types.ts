@@ -127,6 +127,77 @@ export type Database = {
           },
         ]
       }
+      feed_posts: {
+        Row: {
+          author_id: string | null
+          body: string | null
+          category: string | null
+          community_id: string | null
+          created_at: string
+          event_at: string | null
+          id: string
+          kind: string
+          photo_url: string | null
+          title: string | null
+          tree_id: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string | null
+          category?: string | null
+          community_id?: string | null
+          created_at?: string
+          event_at?: string | null
+          id?: string
+          kind: string
+          photo_url?: string | null
+          title?: string | null
+          tree_id?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          body?: string | null
+          category?: string | null
+          community_id?: string | null
+          created_at?: string
+          event_at?: string | null
+          id?: string
+          kind?: string
+          photo_url?: string | null
+          title?: string | null
+          tree_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pages: {
         Row: {
           content: string | null
@@ -257,6 +328,46 @@ export type Database = {
           },
           {
             foreignKeyName: "point_events_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
