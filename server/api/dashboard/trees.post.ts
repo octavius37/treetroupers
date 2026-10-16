@@ -8,16 +8,14 @@ export default defineEventHandler(async (event) => {
   const client = serverSupabaseServiceRole(event)
 
   // Every log needs a photo as proof: an admin approves it from the photo, and
-  // only then are its points paid. It must be one this user uploaded through
-  // /api/dashboard/tree-photo, which stores under tree-photos/<auth user id>/.
-  const ownPhotos = client.storage.from('tree-photos').getPublicUrl(`${uid}/`).data.publicUrl
-  const photoUrl = typeof body.photo_url === 'string' ? body.photo_url : ''
-  if (!photoUrl) {
+  // only then are its points paid.
+  if (typeof body.photo_url !== 'string' || !body.photo_url) {
     throw createError({ statusCode: 400, message: 'Please add a photo as proof' })
   }
-  if (!photoUrl.startsWith(ownPhotos) || photoUrl.includes('..')) {
+  if (!isOwnPhotoUrl(client, uid, body.photo_url)) {
     throw createError({ statusCode: 400, message: 'The photo must be uploaded through Tree Troupe' })
   }
+  const photoUrl = body.photo_url
 
   const { data: profile, error: profileError } = await client
     .from('profiles')

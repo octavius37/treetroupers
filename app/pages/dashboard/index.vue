@@ -6,7 +6,7 @@ const authUserId = useAuthUserId()
 const supabase = useSupabaseClient()
 
 const profile = ref<any>(null)
-const stats = ref({ trees: 0, points: 0, communities: 0 })
+const stats = ref({ trees: 0, points: 0, communities: 0, co2: 0 })
 const recentTrees = ref<any[]>([])
 const loading = ref(true)
 
@@ -24,11 +24,12 @@ onMounted(async () => {
     const [treesRes, communitiesRes] = await Promise.all([
       // Only approved logs count, matching the leaderboard and points. A donated
       // or earned log can be several trees.
-      supabase.from('trees').select('quantity').eq('planted_by', profileData.id).eq('review_status', 'approved'),
+      supabase.from('trees').select('quantity, source, tree_species(avg_co2_kg_per_year)').eq('planted_by', profileData.id).eq('review_status', 'approved'),
       supabase.from('community_members').select('id', { count: 'exact', head: true }).eq('profile_id', profileData.id),
     ])
     stats.value = {
       trees: (treesRes.data ?? []).reduce((sum: number, t: { quantity: number }) => sum + t.quantity, 0),
+      co2: co2KgPerYear((treesRes.data ?? []) as any),
       points: profileData.total_points || 0,
       communities: communitiesRes.count || 0,
     }
@@ -58,7 +59,7 @@ onMounted(async () => {
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div class="bg-white rounded-xl p-6 border border-gray-200">
         <div class="text-sm text-gray-500 mb-1">
           Trees
@@ -73,6 +74,14 @@ onMounted(async () => {
         </div>
         <div class="text-3xl font-bold text-green-600">
           {{ stats.points }}
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 border border-gray-200" title="An estimate from the species of each tree you've planted">
+        <div class="text-sm text-gray-500 mb-1">
+          CO₂ absorbed / year
+        </div>
+        <div class="text-3xl font-bold text-green-600">
+          {{ formatCo2(stats.co2) }}
         </div>
       </div>
       <div class="bg-white rounded-xl p-6 border border-gray-200">
@@ -154,7 +163,7 @@ onMounted(async () => {
         </NuxtLink>
       </div>
       <div v-else class="divide-y divide-gray-100">
-        <div v-for="tree in recentTrees" :key="tree.id" class="px-6 py-4 flex items-center justify-between">
+        <NuxtLink v-for="tree in recentTrees" :key="tree.id" :to="`/dashboard/trees/${tree.id}`" class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
           <div>
             <div class="font-medium text-gray-900">
               {{ treeLogLabel(tree) }}
@@ -181,7 +190,7 @@ onMounted(async () => {
           >
             {{ tree.status }}
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </div>
   </div>

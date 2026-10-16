@@ -8,6 +8,9 @@ const loading = ref(true)
 const filterReview = ref<ReviewFilter>('pending')
 const filterStatus = ref<'all' | 'planted' | 'growing' | 'mature' | 'removed'>('all')
 const reviewing = ref<string | null>(null)
+// The log being rejected, while the admin writes the reason for the member.
+const rejecting = ref<string | null>(null)
+const rejectNote = ref('')
 const error = ref('')
 
 const REVIEW_FILTERS: { value: ReviewFilter, label: string }[] = [
@@ -43,11 +46,13 @@ async function cycleStatus(tree: any) {
   }
 }
 
-async function review(tree: any, decision: 'approved' | 'rejected') {
+async function review(tree: any, decision: 'approved' | 'rejected', note = '') {
   error.value = ''
   reviewing.value = tree.id
   try {
-    await $fetch(`/api/cms/trees/${tree.id}/review`, { method: 'PUT', body: { decision } })
+    await $fetch(`/api/cms/trees/${tree.id}/review`, { method: 'PUT', body: { decision, note } })
+    rejecting.value = null
+    rejectNote.value = ''
     await loadTrees()
   }
   catch (e: any) {
@@ -171,6 +176,12 @@ onMounted(loadTrees)
                 <div v-if="tree.notes" class="text-gray-500 mt-1 max-w-xs">
                   {{ tree.notes }}
                 </div>
+                <div v-if="tree.review_note" class="text-xs text-red-600 mt-1 max-w-xs">
+                  Note: {{ tree.review_note }}
+                </div>
+                <NuxtLink :to="`/dashboard/trees/${tree.id}`" class="text-xs text-green-700 hover:text-green-800">
+                  Open tree page →
+                </NuxtLink>
                 <div class="text-xs text-gray-400 mt-1">
                   {{ new Date(tree.planted_at).toLocaleDateString() }}
                 </div>
@@ -196,7 +207,32 @@ onMounted(loadTrees)
                 </template>
               </td>
               <td class="px-4 py-4">
-                <div v-if="tree.review_status === 'pending'" class="flex flex-col gap-2">
+                <form
+                  v-if="tree.review_status === 'pending' && rejecting === tree.id"
+                  class="flex flex-col gap-2 w-56"
+                  @submit.prevent="review(tree, 'rejected', rejectNote)"
+                >
+                  <label :for="`reason-${tree.id}`" class="text-xs text-gray-600">Reason, shown to the member</label>
+                  <textarea
+                    :id="`reason-${tree.id}`"
+                    v-model="rejectNote"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="e.g. The tree isn't visible in the photo"
+                    class="text-sm px-3 py-2 border border-gray-300 rounded-lg resize-none"
+                  />
+                  <button
+                    type="submit"
+                    class="text-xs px-3 py-1.5 rounded-full font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                    :disabled="reviewing === tree.id"
+                  >
+                    Reject log
+                  </button>
+                  <button type="button" class="text-xs text-gray-500" @click="rejecting = null">
+                    Cancel
+                  </button>
+                </form>
+                <div v-else-if="tree.review_status === 'pending'" class="flex flex-col gap-2">
                   <button
                     class="text-xs px-3 py-1.5 rounded-full font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
                     :disabled="reviewing === tree.id"
@@ -207,7 +243,7 @@ onMounted(loadTrees)
                   <button
                     class="text-xs px-3 py-1.5 rounded-full font-medium border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50"
                     :disabled="reviewing === tree.id"
-                    @click="review(tree, 'rejected')"
+                    @click="rejecting = tree.id; rejectNote = ''"
                   >
                     Reject
                   </button>
@@ -221,7 +257,9 @@ onMounted(loadTrees)
                 </span>
               </td>
               <td class="px-4 py-4 hidden sm:table-cell">
+                <span v-if="tree.source !== 'planted'" class="text-xs text-gray-400">—</span>
                 <button
+                  v-else
                   class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors capitalize"
                   :class="{
                     'bg-amber-100 text-amber-700 hover:bg-amber-200': tree.status === 'planted',

@@ -627,9 +627,9 @@ because `point_events` has no insert policy.
 The same migration replaced the `trees: authenticated insert` policy, which only
 checked that the caller was signed in, with `trees: own insert`, which requires
 `planted_by` to be the caller's own profile. Without that, points would let any
-user credit trees to anyone. `tree_updates: authenticated insert` still has the
-old shape (any `author_id`); it awards nothing today, but needs the same fix
-before updates earn points.
+user credit trees to anyone. `tree_updates` got the same fix in
+`20261016100000_tree_pages_and_review_notes.sql`: a direct insert must be by the
+tree's own planter, as themselves.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
 not list them. Seeded trees are inserted with `review_status = 'approved'` so
 they are paid; without it they would sit in the review queue.
@@ -709,6 +709,42 @@ included, from `/api/cms/feed-posts/:id`.
 
 The feed used to list `tree_updates`. That table is untouched (the leaderboard
 still counts `updates_posted`) but nothing displays it now.
+
+### Tree pages, review notes and CO₂
+
+Every log has a page at **`/dashboard/trees/:id`**, linked from the dashboard,
+the map (list and popups), the feed's activity posts and `/cms/trees`.
+
+- **Who sees what** (`GET /api/dashboard/trees/:id`): any member sees an
+  approved or pending tree; a rejected log is visible only to its planter. The
+  proof photo follows the privacy policy: the planter always sees it, everyone
+  else only on an approved *planted* tree. The reviewer's note is for the
+  planter only.
+- **The planter can** edit notes and, for planted trees, the growth status
+  (`PATCH`); delete the log while it is pending or rejected (`DELETE`, 409 once
+  approved, since its points are paid); and post updates with an optional photo
+  (`POST …/updates`, stored in `tree_updates`, no points).
+- **Rejection reasons**: `/cms/trees` asks for a reason when rejecting, sent as
+  `note` to `PUT /api/cms/trees/:id/review` and stored in `trees.review_note`,
+  which `guard_tree_review` protects like the other review columns. The planter
+  sees it on the tree page.
+- **Review emails**: the review endpoint emails the planter the outcome through
+  `sendEmail` (`server/utils/email.ts`), which never throws, so a failed email
+  doesn't undo a review. It needs `RESEND_API_KEY`, and `RESEND_FROM` set to a
+  sender on a domain verified in Resend: Resend's default test sender
+  (`onboarding@resend.dev`, also used by the contact form) only delivers to the
+  Resend account owner. Links in emails use `runtimeConfig.public.siteUrl`.
+- **CO₂** is estimated by `co2KgPerYear` (`shared/utils/co2.ts`, auto-imported
+  in app and server) from each approved planted tree's species
+  `avg_co2_kg_per_year`. Donated and earned trees have no species, so they don't
+  count. It shows on the dashboard, the community banner and the tree page,
+  formatted by `formatCo2`.
+
+Server helpers worth reusing: `requireViewer(event)` (`server/utils/viewer.ts`)
+returns the caller's profile or throws 401/404, and `isOwnPhotoUrl` /
+`treePhotoPath` (`server/utils/photos.ts`) check and parse `tree-photos` URLs.
+Pure helpers are installed as globals in `test/setup/server.ts`, the way Nitro
+auto-imports them; stub the ones that touch auth per test.
 
 ### Legal pages, account deletion and SEO
 

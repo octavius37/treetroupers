@@ -12,7 +12,7 @@ export interface FeedPost {
   createdAt: string
   communityName: string | null
   author: { name: string, avatarUrl: string | null }
-  tree: { source: string, quantity: number, species: string | null, photoUrl: string | null } | null
+  tree: { id: string, source: string, quantity: number, species: string | null, photoUrl: string | null } | null
   isMine: boolean
   likeCount: number
   likedByMe: boolean
@@ -79,6 +79,11 @@ const eventDate = computed(() => props.post.eventAt
           <p class="text-xs text-gray-500 mt-0.5">
             {{ timeAgo(post.createdAt) }}<template v-if="post.communityName">
               · {{ post.communityName }}
+            </template>
+            <template v-if="post.tree">
+              · <NuxtLink :to="`/dashboard/trees/${post.tree.id}`" class="text-green-700 hover:text-green-800">
+                View tree
+              </NuxtLink>
             </template>
           </p>
         </div>

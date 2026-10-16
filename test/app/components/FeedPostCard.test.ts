@@ -15,7 +15,7 @@ function post(overrides: Partial<FeedPost> = {}): FeedPost {
     createdAt: new Date().toISOString(),
     communityName: 'Lombok',
     author: { name: 'Ada', avatarUrl: null },
-    tree: { source: 'planted', quantity: 1, species: 'English Oak', photoUrl: null },
+    tree: { id: 'tree-1', source: 'planted', quantity: 1, species: 'English Oak', photoUrl: null },
     isMine: false,
     likeCount: 0,
     likedByMe: false,
@@ -30,11 +30,11 @@ async function mount(p: FeedPost) {
 
 describe('FeedPostCard', () => {
   it.each([
-    [{ source: 'planted', quantity: 1, species: 'English Oak', photoUrl: null }, 'Ada just planted an English Oak!'],
-    [{ source: 'planted', quantity: 1, species: 'Silver Birch', photoUrl: null }, 'Ada just planted a Silver Birch!'],
-    [{ source: 'planted', quantity: 1, species: null, photoUrl: null }, 'Ada just planted a tree!'],
-    [{ source: 'donated', quantity: 10, species: null, photoUrl: null }, 'Ada just donated 10 trees!'],
-    [{ source: 'earned', quantity: 1, species: null, photoUrl: null }, 'Ada just earned a tree!'],
+    [{ id: 'tree-1', source: 'planted', quantity: 1, species: 'English Oak', photoUrl: null }, 'Ada just planted an English Oak!'],
+    [{ id: 'tree-1', source: 'planted', quantity: 1, species: 'Silver Birch', photoUrl: null }, 'Ada just planted a Silver Birch!'],
+    [{ id: 'tree-1', source: 'planted', quantity: 1, species: null, photoUrl: null }, 'Ada just planted a tree!'],
+    [{ id: 'tree-1', source: 'donated', quantity: 10, species: null, photoUrl: null }, 'Ada just donated 10 trees!'],
+    [{ id: 'tree-1', source: 'earned', quantity: 1, species: null, photoUrl: null }, 'Ada just earned a tree!'],
   ])('announces %o', async (tree, text) => {
     const wrapper = await mount(post({ tree }))
     expect(wrapper.text().replace(/\s+/g, ' ')).toContain(text)

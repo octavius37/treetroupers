@@ -52,6 +52,7 @@ export function installNitroGlobals() {
     readMultipartFormData: async () => multipartParts,
     getRouterParam: (_event: H3Event, name: string) => routerParams[name],
     getQuery: () => query,
+    useRuntimeConfig: () => ({ public: { siteUrl: 'http://localhost:3000' } }),
   })
 }
 

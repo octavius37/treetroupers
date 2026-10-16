@@ -35,7 +35,11 @@ function popupFor(t: MappedTree) {
   const status = document.createElement('div')
   status.className = 'text-xs text-gray-400 mt-1 capitalize'
   status.textContent = t.status
-  el.append(title, meta, status)
+  const link = document.createElement('a')
+  link.href = `/dashboard/trees/${t.id}`
+  link.className = 'block text-green-700 mt-2'
+  link.textContent = 'View tree →'
+  el.append(title, meta, status, link)
   return el
 }
 

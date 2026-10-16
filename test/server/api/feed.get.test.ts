@@ -1,7 +1,6 @@
 import type { TableConfig } from '../../helpers/supabase-mock'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import handler from '~~/server/api/dashboard/feed.get'
-import * as feedUtils from '~~/server/utils/feed'
 import { captureError, createTestEvent, setQuery } from '../../helpers/nitro'
 import { createSupabaseMock } from '../../helpers/supabase-mock'
 import { serverSupabaseServiceRole } from '../../mocks/supabase-server'
@@ -27,7 +26,7 @@ function activityRow(overrides: Record<string, unknown> = {}) {
     author_id: 'profile-other',
     communities: { name: 'Lombok' },
     profiles: { display_name: 'Ada', avatar_url: null },
-    trees: { source: 'planted', quantity: 1, photo_urls: ['https://photos/oak.jpg'], tree_species: { common_name: 'English Oak' } },
+    trees: { id: 'tree-1', source: 'planted', quantity: 1, photo_urls: ['https://photos/oak.jpg'], tree_species: { common_name: 'English Oak' } },
     post_likes: [],
     ...overrides,
   }
@@ -52,7 +51,7 @@ describe('GET /api/dashboard/feed', () => {
     vi.mocked(serverSupabaseServiceRole).mockReset()
     authUserId.mockReset().mockResolvedValue('auth-user-1')
     // Nitro auto-imports these from server/utils; they have their own tests.
-    Object.assign(globalThis, { authUserId, ...feedUtils })
+    Object.assign(globalThis, { authUserId })
     setQuery({})
   })
 
@@ -152,7 +151,7 @@ describe('GET /api/dashboard/feed', () => {
     expect(posts[0]).toMatchObject({
       kind: 'activity',
       author: { name: 'Ada' },
-      tree: { source: 'planted', quantity: 1, species: 'English Oak', photoUrl: 'https://photos/oak.jpg' },
+      tree: { id: 'tree-1', source: 'planted', quantity: 1, species: 'English Oak', photoUrl: 'https://photos/oak.jpg' },
       isMine: false,
       likeCount: 2,
       likedByMe: true,
@@ -184,16 +183,17 @@ describe('GET /api/dashboard/feed', () => {
     withTables({
       trees: {
         data: [
-          { planted_by: 'p-1', quantity: 1, planted_at: '2020-01-01T00:00:00Z', profiles: { display_name: 'Ada', avatar_url: null } },
-          { planted_by: 'p-2', quantity: 10, planted_at: thisMonth, profiles: { display_name: 'Bo', avatar_url: null } },
-          { planted_by: 'p-1', quantity: 1, planted_at: thisMonth, profiles: { display_name: 'Ada', avatar_url: null } },
+          { planted_by: 'p-1', source: 'planted', quantity: 1, planted_at: '2020-01-01T00:00:00Z', profiles: { display_name: 'Ada', avatar_url: null }, tree_species: { avg_co2_kg_per_year: 22.5 } },
+          { planted_by: 'p-2', source: 'donated', quantity: 10, planted_at: thisMonth, profiles: { display_name: 'Bo', avatar_url: null }, tree_species: null },
+          { planted_by: 'p-1', source: 'planted', quantity: 1, planted_at: thisMonth, profiles: { display_name: 'Ada', avatar_url: null }, tree_species: { avg_co2_kg_per_year: 10 } },
         ],
       },
     })
 
     const feed = await handler(createTestEvent())
 
-    expect(feed.stats).toEqual({ trees: 12, treesThisMonth: 11, members: 1 })
+    // CO₂ counts only the planted trees with a species: 22.5 + 10, rounded.
+    expect(feed.stats).toEqual({ trees: 12, treesThisMonth: 11, members: 1, co2KgPerYear: 33 })
     expect(feed.topPlanters).toEqual([
       { name: 'Bo', avatarUrl: null, trees: 10 },
       { name: 'Ada', avatarUrl: null, trees: 2 },

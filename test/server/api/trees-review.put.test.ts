@@ -68,7 +68,25 @@ describe('PUT /api/cms/trees/:id/review', () => {
 
     const call = supabase.callFor('trees')
     expect(call.operation).toBe('update')
-    expect(call.payload).toEqual({ review_status: decision, reviewed_by: 'profile-admin' })
+    expect(call.payload).toEqual({ review_status: decision, reviewed_by: 'profile-admin', review_note: null })
+  })
+
+  it('stores the reviewer\'s note for the planter, trimmed', async () => {
+    setRequestBody({ decision: 'rejected', note: '  The photo is too dark to see the tree.  ' })
+    const supabase = withTrees()
+
+    await handler(createTestEvent())
+
+    expect((supabase.callFor('trees').payload as { review_note: string }).review_note).toBe('The photo is too dark to see the tree.')
+  })
+
+  it('caps the note at 500 characters', async () => {
+    setRequestBody({ decision: 'rejected', note: 'x'.repeat(600) })
+    const supabase = withTrees()
+
+    await handler(createTestEvent())
+
+    expect((supabase.callFor('trees').payload as { review_note: string }).review_note).toHaveLength(500)
   })
 
   // Approving pays points, so a log that has already been reviewed must not be

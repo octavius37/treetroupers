@@ -1,8 +1,6 @@
 import type { TableConfig } from '../../helpers/supabase-mock'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import handler from '~~/server/api/dashboard/leaderboard.get'
-import * as feedUtils from '~~/server/utils/feed'
-import * as rankUtils from '~~/server/utils/rank'
 import { captureError, createTestEvent, setQuery } from '../../helpers/nitro'
 import { createSupabaseMock } from '../../helpers/supabase-mock'
 import { serverSupabaseServiceRole } from '../../mocks/supabase-server'
@@ -33,7 +31,7 @@ describe('GET /api/dashboard/leaderboard', () => {
   beforeEach(() => {
     vi.mocked(serverSupabaseServiceRole).mockReset()
     authUserId.mockReset().mockResolvedValue('auth-me')
-    Object.assign(globalThis, { authUserId, ...feedUtils, ...rankUtils })
+    Object.assign(globalThis, { authUserId })
     setQuery({})
   })
 

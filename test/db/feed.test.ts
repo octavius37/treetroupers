@@ -5,7 +5,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import feed from '~~/server/api/dashboard/feed.get'
 import unlike from '~~/server/api/dashboard/feed/posts/[id]/like.delete'
 import like from '~~/server/api/dashboard/feed/posts/[id]/like.post'
-import * as feedUtils from '~~/server/utils/feed'
 import { anonClient, createTestUser, deleteTestUser, serviceClient, signedInClient } from '../helpers/local-supabase'
 import { createTestEvent, setQuery, setRouterParams } from '../helpers/nitro'
 import { serverSupabaseServiceRole } from '../mocks/supabase-server'
@@ -91,7 +90,6 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.mocked(serverSupabaseServiceRole).mockReturnValue(serviceClient as never)
-  Object.assign(globalThis, feedUtils)
 })
 
 afterAll(async () => {

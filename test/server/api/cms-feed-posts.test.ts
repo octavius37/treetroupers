@@ -2,7 +2,6 @@ import type { TableConfig } from '../../helpers/supabase-mock'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import create from '~~/server/api/cms/feed-posts.post'
 import remove from '~~/server/api/cms/feed-posts/[id].delete'
-import * as feedUtils from '~~/server/utils/feed'
 import { captureError, createTestEvent, setRequestBody, setRouterParams } from '../../helpers/nitro'
 import { createSupabaseMock } from '../../helpers/supabase-mock'
 import { serverSupabaseServiceRole } from '../../mocks/supabase-server'
@@ -20,7 +19,7 @@ function withPosts(config: TableConfig = { data: { id: 'post-1' } }) {
 beforeEach(() => {
   vi.mocked(serverSupabaseServiceRole).mockReset()
   requireAdmin.mockReset().mockResolvedValue({ user: { sub: 'auth-1' }, profile: { id: 'profile-admin', role: 'admin' } })
-  Object.assign(globalThis, { requireAdmin, ...feedUtils })
+  Object.assign(globalThis, { requireAdmin })
   setRequestBody({ ...NEWS })
   setRouterParams({ id: 'post-1' })
 })

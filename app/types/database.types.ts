@@ -575,6 +575,7 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
           review_status: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -596,6 +597,7 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_note?: string | null
           review_status?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -617,6 +619,7 @@ export type Database = {
           planted_at?: string
           planted_by?: string | null
           quantity?: number
+          review_note?: string | null
           review_status?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -710,6 +713,7 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
           review_status: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -740,6 +744,7 @@ export type Database = {
           planted_at: string
           planted_by: string | null
           quantity: number
+          review_note: string | null
           review_status: string
           reviewed_at: string | null
           reviewed_by: string | null

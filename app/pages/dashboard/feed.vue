@@ -7,7 +7,7 @@ useHead({ title: 'Community feed' })
 interface Feed {
   communities: { id: string, name: string }[]
   community: { id: string, name: string, description: string | null, isMember: boolean } | null
-  stats: { trees: number, treesThisMonth: number, members: number } | null
+  stats: { trees: number, treesThisMonth: number, members: number, co2KgPerYear: number } | null
   events: FeedPost[]
   posts: FeedPost[]
   topPlanters: { name: string, avatarUrl: string | null, trees: number }[]
@@ -145,7 +145,7 @@ onMounted(loadFeed)
           {{ feed.community.description }}
         </p>
 
-        <dl v-if="feed.stats" class="grid grid-cols-3 gap-3 sm:gap-6 mt-8 max-w-xl">
+        <dl v-if="feed.stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mt-8 max-w-3xl">
           <div class="bg-white/15 backdrop-blur rounded-2xl px-4 py-3">
             <dt class="text-xs sm:text-sm text-green-50">
               Trees
@@ -168,6 +168,14 @@ onMounted(loadFeed)
             </dt>
             <dd class="text-2xl sm:text-3xl font-bold">
               {{ feed.stats.members.toLocaleString() }}
+            </dd>
+          </div>
+          <div class="bg-white/15 backdrop-blur rounded-2xl px-4 py-3" title="An estimate from each planted tree's species">
+            <dt class="text-xs sm:text-sm text-green-50">
+              CO₂ absorbed / year
+            </dt>
+            <dd class="text-2xl sm:text-3xl font-bold">
+              {{ formatCo2(feed.stats.co2KgPerYear) }}
             </dd>
           </div>
         </dl>

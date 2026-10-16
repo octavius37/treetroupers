@@ -4,7 +4,7 @@ const POST_COLUMNS = [
   'id, kind, category, title, body, photo_url, event_at, created_at, author_id',
   'communities(name)',
   'profiles!author_id(display_name, avatar_url)',
-  'trees(source, quantity, photo_urls, tree_species(common_name))',
+  'trees(id, source, quantity, photo_urls, tree_species(common_name))',
   'post_likes(profile_id, profiles(display_name))',
 ].join(', ')
 
@@ -25,6 +25,7 @@ interface PostRow {
   communities: { name: string } | null
   profiles: { display_name: string | null, avatar_url: string | null } | null
   trees: {
+    id: string
     source: string
     quantity: number
     photo_urls: string[]
@@ -51,6 +52,7 @@ function toPost(row: PostRow, viewerId: string) {
     },
     tree: row.trees
       ? {
+          id: row.trees.id,
           source: row.trees.source,
           quantity: row.trees.quantity,
           species: row.trees.tree_species?.common_name ?? null,
@@ -139,7 +141,7 @@ export default defineEventHandler(async (event) => {
       .limit(EVENT_LIMIT),
     client
       .from('trees')
-      .select('planted_by, quantity, planted_at, profiles!planted_by(display_name, avatar_url)')
+      .select('planted_by, source, quantity, planted_at, profiles!planted_by(display_name, avatar_url), tree_species(avg_co2_kg_per_year)')
       .in('community_id', inside)
       .eq('review_status', 'approved'),
   ])
@@ -149,8 +151,10 @@ export default defineEventHandler(async (event) => {
 
   const trees = (treesRes.data ?? []) as unknown as {
     planted_by: string | null
+    source: string
     quantity: number
     planted_at: string
+    tree_species: { avg_co2_kg_per_year: number | null } | null
     profiles: { display_name: string | null, avatar_url: string | null } | null
   }[]
 
@@ -181,6 +185,7 @@ export default defineEventHandler(async (event) => {
         .filter(tree => new Date(tree.planted_at) >= monthStart)
         .reduce((sum, tree) => sum + tree.quantity, 0),
       members: memberIds.length,
+      co2KgPerYear: co2KgPerYear(trees),
     },
     events: ((eventsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, profile.id)),
     posts: ((postsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, profile.id)),
