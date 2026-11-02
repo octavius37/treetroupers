@@ -15,11 +15,10 @@ export default defineEventHandler(async (event) => {
 
   const client = serverSupabaseServiceRole(event)
 
-  const { data: request } = await client.from('community_requests').select('*').eq('id', id).eq('status', 'pending').maybeSingle()
-  if (!request) { throw createError({ statusCode: 409, message: 'This request has already been dealt with' }) }
-
-  let communityId: string | null = null
   if (decision === 'approved') {
+    const { data: request } = await client.from('community_requests').select('name').eq('id', id).eq('status', 'pending').maybeSingle()
+    if (!request) { throw createError({ statusCode: 409, message: 'This request has already been dealt with' }) }
+
     const base = slugify(request.name)
     const { data: taken } = await client.from('communities').select('slug').like('slug', `${base}%`)
     const slugs = new Set((taken ?? []).map(c => c.slug))
@@ -28,31 +27,29 @@ export default defineEventHandler(async (event) => {
       slug = `${base}-${n}`
     }
 
-    const { data: community, error } = await client
-      .from('communities')
-      .insert({
-        name: request.name,
-        slug,
-        description: request.description ?? (request.area ? `Tree planting in ${request.area}.` : null),
-        type: 'custom',
-        parent_community_id: request.parent_community_id,
-      })
-      .select('id')
-      .single()
-    if (error) { throw createError({ statusCode: 500, message: error.message }) }
-    communityId = community.id
-
-    const { error: memberError } = await client
-      .from('community_members')
-      .upsert({ community_id: community.id, profile_id: request.requested_by, role: 'admin' }, { onConflict: 'profile_id,community_id' })
-    if (memberError) { throw createError({ statusCode: 500, message: memberError.message }) }
+    // Creating the community, making the requester its admin and marking the
+    // request approved happen in one transaction (approve_community_request),
+    // so a failure part-way can't leave a community behind a pending request.
+    const { data: communityId, error } = await client.rpc('approve_community_request', { p_request_id: id, p_slug: slug })
+    if (error) {
+      // P0002: no longer pending (another admin got there first).
+      // 23505: the slug was taken in the meantime.
+      if (error.code === 'P0002') { throw createError({ statusCode: 409, message: 'This request has already been dealt with' }) }
+      if (error.code === '23505') { throw createError({ statusCode: 409, message: 'A community with that name was just created; try again' }) }
+      throw createError({ statusCode: 500, message: error.message })
+    }
+    return { status: decision, communityId: communityId as string }
   }
 
-  const { error } = await client
+  const { data: declined, error } = await client
     .from('community_requests')
-    .update({ status: decision, community_id: communityId, reviewed_at: new Date().toISOString() })
+    .update({ status: 'declined', reviewed_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('status', 'pending')
+    .select('id')
+    .maybeSingle()
   if (error) { throw createError({ statusCode: 500, message: error.message }) }
+  if (!declined) { throw createError({ statusCode: 409, message: 'This request has already been dealt with' }) }
 
-  return { status: decision, communityId }
+  return { status: decision, communityId: null }
 })

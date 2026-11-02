@@ -145,7 +145,7 @@ export default defineEventHandler(async (event) => {
     ...(memberIds.length ? [`and(kind.eq.activity,community_id.is.null,author_id.in.(${memberIds}))`] : []),
   ]
 
-  const [postsRes, eventsRes, treesRes] = await Promise.all([
+  const [postsRes, eventsRes, statsRes] = await Promise.all([
     client
       .from('feed_posts')
       .select(POST_COLUMNS)
@@ -160,36 +160,19 @@ export default defineEventHandler(async (event) => {
       .or(announcements)
       .order('event_at', { ascending: true })
       .limit(EVENT_LIMIT),
-    client
-      .from('trees')
-      .select('planted_by, source, quantity, planted_at, profiles!planted_by(display_name, avatar_url), tree_species(avg_co2_kg_per_year)')
-      .in('community_id', inside)
-      .eq('review_status', 'approved'),
+    // Totals and top planters are added up in SQL: fetching every tree here
+    // would be cut off at PostgREST's 1000-row limit.
+    client.rpc('tree_stats', { p_community_ids: inside, p_top: TOP_PLANTER_LIMIT }),
   ])
-  for (const res of [postsRes, eventsRes, treesRes]) {
+  for (const res of [postsRes, eventsRes, statsRes]) {
     if (res.error) { throw createError({ statusCode: 500, message: res.error.message }) }
   }
 
-  const trees = (treesRes.data ?? []) as unknown as {
-    planted_by: string | null
-    source: string
-    quantity: number
-    planted_at: string
-    tree_species: { avg_co2_kg_per_year: number | null } | null
-    profiles: { display_name: string | null, avatar_url: string | null } | null
-  }[]
-
-  const monthStart = new Date()
-  monthStart.setUTCDate(1)
-  monthStart.setUTCHours(0, 0, 0, 0)
-
-  const planters = new Map<string, { name: string, avatarUrl: string | null, trees: number }>()
-  for (const tree of trees) {
-    if (!tree.planted_by) { continue }
-    const planter = planters.get(tree.planted_by)
-      ?? { name: tree.profiles?.display_name || 'A Tree Trouper', avatarUrl: tree.profiles?.avatar_url ?? null, trees: 0 }
-    planter.trees += tree.quantity
-    planters.set(tree.planted_by, planter)
+  const stats = statsRes.data as {
+    trees: number
+    treesThisMonth: number
+    co2KgPerYear: number
+    topPlanters: { id: string, name: string, avatarUrl: string | null, trees: number }[]
   }
 
   return {
@@ -202,17 +185,13 @@ export default defineEventHandler(async (event) => {
       canPost: viewer.isSiteAdmin || viewer.postsTo.has(community.id),
     },
     stats: {
-      trees: trees.reduce((sum, tree) => sum + tree.quantity, 0),
-      treesThisMonth: trees
-        .filter(tree => new Date(tree.planted_at) >= monthStart)
-        .reduce((sum, tree) => sum + tree.quantity, 0),
+      trees: Number(stats.trees),
+      treesThisMonth: Number(stats.treesThisMonth),
       members: memberIds.length,
-      co2KgPerYear: co2KgPerYear(trees),
+      co2KgPerYear: Number(stats.co2KgPerYear),
     },
     events: ((eventsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, viewer)),
     posts: ((postsRes.data ?? []) as unknown as PostRow[]).map(row => toPost(row, viewer)),
-    topPlanters: [...planters.values()]
-      .toSorted((a, b) => b.trees - a.trees)
-      .slice(0, TOP_PLANTER_LIMIT),
+    topPlanters: stats.topPlanters.map(p => ({ name: p.name, avatarUrl: p.avatarUrl, trees: Number(p.trees) })),
   }
 })

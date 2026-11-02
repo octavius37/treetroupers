@@ -10,11 +10,17 @@ const authUserId = vi.fn()
 function withClient(tables: Record<string, TableConfig> = {}, files: Record<string, string[]> = {}) {
   const supabase = createSupabaseMock({ profiles: { data: { id: 'profile-1' } }, ...tables })
   const removed: string[][] = []
+  // Behaves like Storage: list returns at most `limit` files, remove deletes them.
+  const remaining = Object.fromEntries(Object.entries(files).map(([bucket, names]) => [bucket, [...names]]))
   const storage = {
     from: (bucket: string) => ({
-      list: vi.fn(async () => ({ data: (files[bucket] ?? []).map(name => ({ name })), error: null })),
+      list: vi.fn(async (_prefix: string, { limit }: { limit: number }) => ({
+        data: (remaining[bucket] ?? []).slice(0, limit).map(name => ({ name })),
+        error: null,
+      })),
       remove: vi.fn(async (paths: string[]) => {
         removed.push(paths)
+        remaining[bucket] = (remaining[bucket] ?? []).filter(name => !paths.includes(`auth-user-1/${name}`))
         return { error: null }
       }),
     }),
@@ -67,6 +73,17 @@ describe('DELETE /api/dashboard/account', () => {
     expect(trees[1]).toMatchObject({ operation: 'update', payload: { photo_urls: [], notes: null } })
     expect(client.callFor('tree_updates')).toMatchObject({ operation: 'delete' })
     expect(client.deleteUser).toHaveBeenCalledWith('auth-user-1')
+  })
+
+  // Storage lists 1000 files at a time; everything past that used to be left behind.
+  it('removes every file, past the first 1000', async () => {
+    const names = Array.from({ length: 2500 }, (_, i) => `${i}.jpg`)
+    const client = withClient({}, { 'tree-photos': names })
+
+    await handler(createTestEvent())
+
+    expect(client.removed.map(batch => batch.length)).toEqual([1000, 1000, 500])
+    expect(client.removed.flat()).toHaveLength(2500)
   })
 
   it('keeps the account when its data can\'t be cleaned up', async () => {

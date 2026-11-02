@@ -440,8 +440,10 @@ Found while extracting the schema into migrations.
    `20261014092702_make_leaderboard_security_invoker.sql`, which sets
    `security_invoker = true` so the view applies the caller's RLS. The rows it
    returns didn't change: it reads only `profiles`, `trees` and `tree_updates`,
-   all of which have `public read` policies. The anon read in
-   `plant-tree.test.ts` covers it.
+   all of which had `public read` policies. Since
+   `20261102140000_member_only_tree_reads_and_sql_aggregates.sql` `trees` is
+   readable by signed-in members only, so anonymous readers of the view see no
+   trees; the member read in `plant-tree.test.ts` covers it.
 
 4. **Two functions still have a mutable `search_path`** (WARN):
    `handle_new_user` and `sync_total_points`. (`insert_tree` and
@@ -710,9 +712,23 @@ Communities nest, so a feed covers more than one community:
   inside it.
 
 `communityAncestors`/`communityDescendants` in `server/utils/feed.ts` walk the
-tree in memory (the whole `communities` table is read), and the stats read every
-approved tree in scope. Both are fine at this size; move them into SQL when
-either table gets large.
+tree in memory (the whole `communities` table is read), which is fine at this
+size. The stats and top planters come from the `tree_stats` SQL function.
+
+**Don't add up rows in JavaScript.** PostgREST stops every row list at
+`max_rows` (1000) without an error, so a total computed from fetched rows
+silently stops growing. `20261102140000_member_only_tree_reads_and_sql_aggregates.sql`
+moved the totals into SQL functions that each return one json value:
+`tree_stats(p_community_ids, p_top)` (trees by quantity, this month, CO₂, top
+planters; used by the feed, `/api/public/stats`, the stats smart block and
+`/map`), `public_tree_map()` (the public map's trees) and
+`leaderboard_points(p_since, p_community_ids)`. They are revoked from
+`anon`/`authenticated` and called through the service role. A "tree" is
+always counted by `quantity`, so a log of 50 donated trees is 50 everywhere
+(the CMS overview's count of rows is labelled "Tree logs"). The feed still
+fetches the scope's member ids for its activity filter and member count, which
+is the next thing to move once a community scope passes 1000 members.
+`test/db/totals.test.ts` logs 1100 trees to prove nothing is cut off.
 
 **Likes** (`post_likes`, one per profile per post) are toggled with
 `POST`/`DELETE /api/dashboard/feed/posts/:id/like`. They show as "Congratulate"
@@ -770,7 +786,10 @@ auto-imports them; stub the ones that touch auth per test.
 - **`/map`** is the public tree map (no sign-in). `GET /api/public/trees`
   returns approved planted trees **rounded to 3 decimals (~100 m) and without
   names, photos or notes**, plus totals; signed-in members see exact positions
-  on `/dashboard/map`. `TreeMap` takes `public-view` to drop names and links
+  on `/dashboard/map`. The rounding only protects anything because exact rows
+  are not public: `trees: members read` (replacing `trees: public read`) lets
+  only signed-in members read `trees`, and `test/db/plant-tree.test.ts` checks
+  an anonymous read gets nothing. Keep it that way, or the rounding is cosmetic. `TreeMap` takes `public-view` to drop names and links
   from popups. The homepage hero and the footer link here.
 - **Maps and Nuxt `.client` components**: `TreeMap.client.vue` and
   `SuggestionMap.client.vue` create Leaflet from a `watch` on the container ref
@@ -791,7 +810,9 @@ auto-imports them; stub the ones that touch auth per test.
   `/dashboard/communities` (`POST /api/dashboard/community-requests`, at most 3
   pending each). Site admins see them on `/cms/communities` (and a banner on
   `/cms`); approving creates the community (slug from `slugify`, made unique)
-  with the requester as its admin.
+  with the requester as its admin, in one transaction
+  (`approve_community_request`), so a failure part-way leaves the request
+  pending and nothing created.
 - **Profiles**: members upload a photo on `/dashboard/profile`
   (`POST /api/dashboard/avatar`, stored under `avatars/<auth user id>/`, same
   byte-sniffing as tree photos via `server/utils/images.ts`, old photos
@@ -832,7 +853,8 @@ auto-imports them; stub the ones that touch auth per test.
   changes. Bump the `UPDATED` date at the top of each.
 - **Deleting an account** (`DELETE /api/dashboard/account`, from the profile
   page, needs `{ confirm: 'DELETE' }`) removes the user's files under
-  `<auth user id>/` in `tree-photos` and `avatars`, deletes their pending logs
+  `<auth user id>/` in `tree-photos` and `avatars` (a page of 1000 at a time
+  until the folder is empty), deletes their pending logs
   and tree updates, strips photos and notes from their other trees, then deletes
   the auth user; the profile and everything referencing it cascade. Trees stay,
   with `planted_by` null, so community totals don't drop. Files go first, so a

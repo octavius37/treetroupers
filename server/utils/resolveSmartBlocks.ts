@@ -17,13 +17,14 @@ function statCell(n: number | null, label: string) {
 async function renderStatsCounter(event: H3Event) {
   const client = serverSupabaseServiceRole(event)
   const [trees, communities, members] = await Promise.all([
-    // Only trees an admin has approved count towards the public total.
-    client.from('trees').select('id', { count: 'exact', head: true }).eq('review_status', 'approved'),
+    // Approved trees, counted by quantity (a log of 50 donated trees is 50),
+    // the same way as the map and dashboards.
+    client.rpc('tree_stats', { p_top: 0 }),
     client.from('communities').select('id', { count: 'exact', head: true }),
     client.from('profiles').select('id', { count: 'exact', head: true }),
   ])
   return `<section class="py-20 px-4"><div class="max-w-7xl mx-auto"><div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">${
-    statCell(trees.count, 'Trees Planted')
+    statCell(Number((trees.data as { trees?: number } | null)?.trees ?? 0), 'Trees Planted')
   }${statCell(communities.count, 'Communities')
   }${statCell(members.count, 'Active Members')
   }</div></div></section>`

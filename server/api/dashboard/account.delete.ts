@@ -8,16 +8,26 @@ function failOn(error: { message: string } | null) {
   if (error) { throw createError({ statusCode: 500, message: error.message }) }
 }
 
+const PAGE = 1000
+
+// Storage lists at most PAGE files at a time, so keep removing a page until
+// the folder is empty. Each pass lists from the start, since removing shifts
+// what comes next.
 async function removeUserFiles(client: Pick<SupabaseClient, 'storage'>, bucket: string, uid: string) {
-  const { data: files, error } = await client.storage.from(bucket).list(uid, { limit: 1000 })
-  // A bucket that was never created holds nothing to delete.
-  if (error && !/not found/i.test(error.message)) {
-    throw createError({ statusCode: 500, message: `Could not delete your photos: ${error.message}` })
-  }
-  if (!files?.length) { return }
-  const { error: removeError } = await client.storage.from(bucket).remove(files.map(f => `${uid}/${f.name}`))
-  if (removeError) {
-    throw createError({ statusCode: 500, message: `Could not delete your photos: ${removeError.message}` })
+  for (;;) {
+    // oxlint-disable-next-line no-await-in-loop -- each page must be gone before the next is listed
+    const { data: files, error } = await client.storage.from(bucket).list(uid, { limit: PAGE })
+    // A bucket that was never created holds nothing to delete.
+    if (error && !/not found/i.test(error.message)) {
+      throw createError({ statusCode: 500, message: `Could not delete your photos: ${error.message}` })
+    }
+    if (!files?.length) { return }
+    // oxlint-disable-next-line no-await-in-loop -- as above
+    const { error: removeError } = await client.storage.from(bucket).remove(files.map(f => `${uid}/${f.name}`))
+    if (removeError) {
+      throw createError({ statusCode: 500, message: `Could not delete your photos: ${removeError.message}` })
+    }
+    if (files.length < PAGE) { return }
   }
 }
 

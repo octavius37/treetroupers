@@ -92,8 +92,14 @@ async function events(profileId = profile.id) {
   return data!
 }
 
+// Trees are readable by signed-in members only, and the leaderboard view
+// applies the reader's RLS, so read it as a member.
+async function asMember() {
+  return signedInClient(other.authUser.email!)
+}
+
 async function leaderboardTrees(profileId = profile.id) {
-  const { data } = await anonClient().from('leaderboard').select('trees_planted').eq('id', profileId).single()
+  const { data } = await (await asMember()).from('leaderboard').select('trees_planted').eq('id', profileId).single()
   return data!.trees_planted
 }
 
@@ -143,14 +149,22 @@ describe('logging a planted tree', () => {
     expect(tree!.planted_at.startsWith('2026-08-11')).toBe(true)
   })
 
-  it('makes the tree publicly readable, but leaves it off the leaderboard until approved', async () => {
-    const { data: trees } = await anonClient().from('trees').select('id').eq('planted_by', profile.id)
+  it('makes the tree readable by other members, but leaves it off the leaderboard until approved', async () => {
+    const { data: trees } = await (await asMember()).from('trees').select('id').eq('planted_by', profile.id)
     expect(trees).toHaveLength(1)
     expect(await leaderboardTrees()).toBe(0)
   })
 
+  // Exact locations and planters are for members; visitors get the rounded,
+  // anonymous /map instead.
+  it('hides trees from anyone who isn\'t signed in', async () => {
+    const { data, error } = await anonClient().from('trees').select('id, lat, lng, planted_by').eq('planted_by', profile.id)
+    expect(error).toBeNull()
+    expect(data).toEqual([])
+  })
+
   it('finds the tree by distance with trees_near_point', async () => {
-    const { data, error } = await anonClient()
+    const { data, error } = await (await asMember())
       .rpc('trees_near_point', { p_lat: 52.3676, p_lng: 4.9041, p_metres: 10 })
     expect(error).toBeNull()
     expect(data?.map(tree => tree.id)).toContain(firstTreeId)
@@ -226,7 +240,7 @@ describe('points on approval', () => {
     await reviewTree(tree.id, 'rejected')
 
     expect(await totalPoints()).toBe(146)
-    const { data } = await anonClient().from('trees').select('review_status').eq('id', tree.id).single()
+    const { data } = await (await asMember()).from('trees').select('review_status').eq('id', tree.id).single()
     expect(data!.review_status).toBe('rejected')
   })
 

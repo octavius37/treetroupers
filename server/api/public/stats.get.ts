@@ -6,14 +6,15 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 export default defineEventHandler(async (event) => {
   const client = serverSupabaseServiceRole(event)
   const [trees, communities, members] = await Promise.all([
-    // Only trees an admin has approved count towards the public total.
-    client.from('trees').select('id', { count: 'exact', head: true }).eq('review_status', 'approved'),
+    // Approved trees, counted by quantity (a log of 50 donated trees is 50),
+    // the same way as the map and dashboards.
+    client.rpc('tree_stats', { p_top: 0 }),
     client.from('communities').select('id', { count: 'exact', head: true }),
     client.from('profiles').select('id', { count: 'exact', head: true }),
   ])
 
   return {
-    trees: trees.count ?? 0,
+    trees: Number((trees.data as { trees?: number } | null)?.trees ?? 0),
     communities: communities.count ?? 0,
     members: members.count ?? 0,
   }

@@ -759,6 +759,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_community_request: {
+        Args: { p_request_id: string; p_slug: string }
+        Returns: string
+      }
       insert_tree: {
         Args: {
           p_community_id: string
@@ -798,6 +802,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      leaderboard_points: {
+        Args: { p_community_ids?: string[]; p_since?: string }
+        Returns: Json
+      }
+      public_tree_map: { Args: never; Returns: Json }
+      tree_stats: {
+        Args: { p_community_ids?: string[]; p_top?: number }
+        Returns: Json
       }
       trees_near_point: {
         Args: { p_lat: number; p_lng: number; p_metres?: number }

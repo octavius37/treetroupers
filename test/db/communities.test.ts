@@ -122,6 +122,31 @@ describe('community requests', () => {
     await expect(call(decideRequest, { id }, { decision: 'declined' })).rejects.toMatchObject({ statusCode: 409 })
   })
 
+  // Creating the community, the admin membership and marking the request
+  // approved happen in one transaction: a failure part-way leaves no trace.
+  it('leaves nothing behind when approval fails part-way', async () => {
+    as(member1)
+    const { id } = await call(requestCommunity, {}, { name: 'Clashing Troupe' })
+    const { data: existing } = await serviceClient.from('communities').select('slug').eq('id', community).single()
+
+    // The community insert succeeds in isolation; the duplicate slug makes the
+    // whole call fail, as a mid-transaction error would.
+    const { error } = await serviceClient.rpc('approve_community_request', { p_request_id: id, p_slug: existing!.slug })
+    expect(error?.code).toBe('23505')
+
+    const { data: request } = await serviceClient.from('community_requests').select('status, community_id').eq('id', id).single()
+    expect(request).toEqual({ status: 'pending', community_id: null })
+    const { count } = await serviceClient.from('communities').select('*', { count: 'exact', head: true }).eq('name', 'Clashing Troupe')
+    expect(count).toBe(0)
+
+    // Approving again then works, once.
+    const approved = await call(decideRequest, { id }, { decision: 'approved' })
+    created.push(approved.communityId!)
+    await expect(call(decideRequest, { id }, { decision: 'approved' })).rejects.toMatchObject({ statusCode: 409 })
+    const { count: after } = await serviceClient.from('communities').select('*', { count: 'exact', head: true }).eq('name', 'Clashing Troupe')
+    expect(after).toBe(1)
+  })
+
   it('lets a requester see their own requests, and nobody else\'s', async () => {
     as(organiser)
     const { id } = await call(requestCommunity, {}, { name: 'Private Plans' })

@@ -79,7 +79,7 @@ const { data: stats, status } = useFetch<{
         </NuxtLink>
         <NuxtLink to="/cms/trees" class="bg-white rounded-xl p-5 border border-gray-200 hover:border-green-300 transition-colors">
           <div class="text-sm text-gray-500 mb-1">
-            Trees
+            Tree logs
           </div>
           <div class="text-2xl font-bold text-green-600">
             {{ stats.counts.trees }}

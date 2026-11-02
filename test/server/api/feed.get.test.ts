@@ -34,12 +34,12 @@ function activityRow(overrides: Record<string, unknown> = {}) {
 
 function withTables(tables: Record<string, TableConfig> = {}) {
   const supabase = createSupabaseMock({
-    profiles: { data: { id: 'profile-me' } },
+    'profiles': { data: { id: 'profile-me' } },
     // Answers both membership queries: the viewer's own, and the community's.
-    community_members: { data: [{ community_id: 'lombok', profile_id: 'profile-me' }] },
-    communities: { data: COMMUNITIES },
-    feed_posts: { data: [activityRow()] },
-    trees: { data: [] },
+    'community_members': { data: [{ community_id: 'lombok', profile_id: 'profile-me' }] },
+    'communities': { data: COMMUNITIES },
+    'feed_posts': { data: [activityRow()] },
+    'rpc:tree_stats': { data: { trees: 0, treesThisMonth: 0, co2KgPerYear: 0, topPlanters: [] } },
     ...tables,
   })
   vi.mocked(serverSupabaseServiceRole).mockReturnValue(supabase.client)
@@ -117,10 +117,7 @@ describe('GET /api/dashboard/feed', () => {
 
     expect(events!.filters).toContainEqual({ method: 'eq', column: 'category', value: 'upcoming_events' })
     expect(events!.filters.find(f => f.method === 'or')!.value).not.toContain('kind.eq.activity')
-    expect(supabase.callFor('trees').filters).toEqual([
-      { method: 'in', column: 'community_id', value: ['utrecht', 'lombok'] },
-      { method: 'eq', column: 'review_status', value: 'approved' },
-    ])
+    expect(supabase.callFor('rpc:tree_stats').payload).toEqual({ p_community_ids: ['utrecht', 'lombok'], p_top: 5 })
   })
 
   it('includes announcements from communities containing a neighbourhood', async () => {
@@ -178,21 +175,20 @@ describe('GET /api/dashboard/feed', () => {
     expect(posts[0]!.isMine).toBe(true)
   })
 
-  it('totals approved trees and ranks planters by trees', async () => {
-    const thisMonth = new Date().toISOString()
+  // The totals come from tree_stats, summed in SQL so they can't be cut off at
+  // PostgREST's 1000-row limit (test/db/feed.test.ts checks the SQL itself).
+  it('passes the community\'s totals and top planters through', async () => {
     withTables({
-      trees: {
-        data: [
-          { planted_by: 'p-1', source: 'planted', quantity: 1, planted_at: '2020-01-01T00:00:00Z', profiles: { display_name: 'Ada', avatar_url: null }, tree_species: { avg_co2_kg_per_year: 22.5 } },
-          { planted_by: 'p-2', source: 'donated', quantity: 10, planted_at: thisMonth, profiles: { display_name: 'Bo', avatar_url: null }, tree_species: null },
-          { planted_by: 'p-1', source: 'planted', quantity: 1, planted_at: thisMonth, profiles: { display_name: 'Ada', avatar_url: null }, tree_species: { avg_co2_kg_per_year: 10 } },
-        ],
-      },
+      'rpc:tree_stats': { data: {
+        trees: 12,
+        treesThisMonth: 11,
+        co2KgPerYear: 33,
+        topPlanters: [{ id: 'p-2', name: 'Bo', avatarUrl: null, trees: 10 }, { id: 'p-1', name: 'Ada', avatarUrl: null, trees: 2 }],
+      } },
     })
 
     const feed = await handler(createTestEvent())
 
-    // CO₂ counts only the planted trees with a species: 22.5 + 10, rounded.
     expect(feed.stats).toEqual({ trees: 12, treesThisMonth: 11, members: 1, co2KgPerYear: 33 })
     expect(feed.topPlanters).toEqual([
       { name: 'Bo', avatarUrl: null, trees: 10 },
