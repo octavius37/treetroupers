@@ -173,8 +173,11 @@ describe('the review note', () => {
     const id = await logTree()
     const client = await signedInClient(planter.authUser.email!)
 
-    const { error } = await client.from('trees').update({ review_note: 'Looks great!' }).eq('id', id)
+    // Members have no update policy on trees, so RLS hides the row from the update.
+    const { data } = await client.from('trees').update({ review_note: 'Looks great!' }).eq('id', id).select('id')
 
-    expect(error?.code).toBe('42501')
+    expect(data).toEqual([])
+    const { data: stored } = await serviceClient.from('trees').select('review_note').eq('id', id).single()
+    expect(stored!.review_note).toBeNull()
   })
 })

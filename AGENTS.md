@@ -628,7 +628,11 @@ because `point_events` has no insert policy.
 The same migration replaced the `trees: authenticated insert` policy, which only
 checked that the caller was signed in, with `trees: own insert`, which requires
 `planted_by` to be the caller's own profile. Without that, points would let any
-user credit trees to anyone. `tree_updates` got the same fix in
+user credit trees to anyone. Both `trees: own insert` and `trees: own update`
+were later dropped
+(`20261102125441_close_member_write_paths_to_points_and_trees.sql`): members
+write trees only through the `/api/dashboard/trees*` endpoints, never directly.
+`tree_updates` got the same fix as the insert policy in
 `20261016100000_tree_pages_and_review_notes.sql`: a direct insert must be by the
 tree's own planter, as themselves.
 Since the trigger writes `plant_tree`/`first_tree` events itself, `seed.sql` must
@@ -810,7 +814,10 @@ auto-imports them; stub the ones that touch auth per test.
   sent or cancels them (`PUT /api/cms/reward-claims/:id`); `/cms` shows a banner
   while claims are waiting. A partial unique index allows one open or sent
   claim per member per reward. The baseline's `reward_redemptions: own insert`
-  policy, which let anyone claim anything directly, was dropped.
+  policy, which let anyone claim anything directly, was dropped. Because claims
+  check `profiles.total_points`, `profiles: own update` now pins it alongside
+  `role` (`20261102125441_close_member_write_paths_to_points_and_trees.sql`);
+  before that, a member could set their own points with one REST call.
 - **Analytics**: `@vercel/analytics/nuxt` (in `nuxt.config.ts` modules) adds
   Vercel Web Analytics: cookie-free page views, no consent banner needed. Data
   only arrives once Web Analytics is enabled in the Vercel project. The privacy
@@ -893,11 +900,15 @@ profile), and the database sets `reviewed_at`.
 
 The database enforces the rules, not only the endpoint:
 
-- **Members can't review their own logs.** The `guard_tree_review` trigger
-  forces anything `anon`/`authenticated` inserts to `pending`, and refuses
-  their updates to `review_status`/`reviewed_by`/`reviewed_at` with `42501`.
-  Without it, `trees: own insert` and `trees: own update` would let a member
-  approve their own log directly through the REST API.
+- **Members can't write trees directly at all.** There is no insert or update
+  policy on `trees` for `anon`/`authenticated`, so a direct insert fails with
+  `42501` and a direct update matches no rows. Every write goes through an
+  endpoint that checks each field. Before
+  `20261102125441_close_member_write_paths_to_points_and_trees.sql`, members
+  could change a log's `quantity`, `photo_urls` or `created_at` after approval,
+  the last of which could fake the streak bonus. The `guard_tree_review`
+  trigger still forces `anon`/`authenticated` inserts to `pending` and refuses
+  their changes to the review columns, in case a write policy comes back.
 - **Approved is final.** Un-approving fails with `23514`, even through the
   service role, because the points have been paid and nothing takes them back.
   The endpoint only matches `pending` rows (409 otherwise), so a log can't be

@@ -267,61 +267,62 @@ describe('points on approval', () => {
   })
 })
 
-describe('members can\'t approve their own logs', () => {
-  it('stores a direct insert as pending even when it asks to be approved', async () => {
+// Members write trees only through the endpoints, which check each field. Over
+// the REST API they could otherwise approve their own logs, change a log after
+// it was approved, or backdate created_at to earn the streak bonus.
+describe('members can\'t write trees directly', () => {
+  it('refuses a direct insert, even of their own log', async () => {
     const before = await totalPoints()
-    const client = await signedInClient(authUser.email!)
-
-    const { data, error } = await client
-      .from('trees')
-      .insert({
-        planted_by: profile.id,
-        location: 'SRID=4326;POINT(5.12 52.09)',
-        photo_urls: [photoFor(authUser)],
-        review_status: 'approved',
-        reviewed_by: profile.id,
-      })
-      .select('id, review_status, reviewed_by')
-      .single()
-
-    expect(error).toBeNull()
-    expect(data).toMatchObject({ review_status: 'pending', reviewed_by: null })
-    expect(await totalPoints()).toBe(before)
-  })
-
-  it('refuses a member\'s update to their own log\'s review status', async () => {
-    const before = await totalPoints()
-    const tree = await plant()
-    const client = await signedInClient(authUser.email!)
-
-    const { error } = await client.from('trees').update({ review_status: 'approved' }).eq('id', tree.id)
-
-    expect(error?.code).toBe('42501') // insufficient_privilege, raised by guard_tree_review
-    expect(await totalPoints()).toBe(before)
-  })
-
-  it('refuses a log with no photo, however it is inserted', async () => {
     const client = await signedInClient(authUser.email!)
 
     const { error } = await client.from('trees').insert({
       planted_by: profile.id,
       location: 'SRID=4326;POINT(5.12 52.09)',
+      photo_urls: [photoFor(authUser)],
+      review_status: 'approved',
+    })
+
+    expect(error?.code).toBe('42501') // insufficient_privilege: no insert policy
+    expect(await totalPoints()).toBe(before)
+  })
+
+  it('ignores a member\'s update to their own pending log\'s review status', async () => {
+    const before = await totalPoints()
+    const tree = await plant()
+    const client = await signedInClient(authUser.email!)
+
+    // With no update policy, RLS hides every row from the update rather than erroring.
+    const { data, error } = await client.from('trees').update({ review_status: 'approved' }).eq('id', tree.id).select('id')
+
+    expect(error).toBeNull()
+    expect(data).toEqual([])
+    const { data: stored } = await serviceClient.from('trees').select('review_status').eq('id', tree.id).single()
+    expect(stored!.review_status).toBe('pending')
+    expect(await totalPoints()).toBe(before)
+  })
+
+  it('ignores a member\'s change to an approved log\'s quantity or created_at', async () => {
+    const tree = await logAs(authUser, { source: 'donated', quantity: '1' })
+    await reviewTree(tree.id, 'approved')
+    const client = await signedInClient(authUser.email!)
+
+    const { data } = await client
+      .from('trees')
+      .update({ quantity: 1000, created_at: '2026-01-01T00:00:00Z' })
+      .eq('id', tree.id)
+      .select('id')
+
+    expect(data).toEqual([])
+    const { data: stored } = await serviceClient.from('trees').select('quantity, created_at').eq('id', tree.id).single()
+    expect(stored).toEqual({ quantity: 1, created_at: tree.created_at })
+  })
+
+  it('refuses a pending log with no photo, even from the service role', async () => {
+    const { error } = await serviceClient.from('trees').insert({
+      planted_by: profile.id,
+      location: 'SRID=4326;POINT(5.12 52.09)',
     })
 
     expect(error?.code).toBe('23514') // trees_photo_required_for_review
-  })
-
-  // Without an ownership check on insert, a signed-in user could log trees, and
-  // so points, against anyone's profile.
-  it('refuses a direct insert that credits another profile', async () => {
-    const client = await signedInClient(authUser.email!)
-
-    const { error } = await client.from('trees').insert({
-      planted_by: other.profile.id,
-      location: 'SRID=4326;POINT(5.12 52.09)',
-      photo_urls: [photoFor(authUser)],
-    })
-
-    expect(error?.code).toBe('42501') // insufficient_privilege: RLS rejected the row
   })
 })

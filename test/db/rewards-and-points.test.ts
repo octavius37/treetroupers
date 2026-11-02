@@ -129,6 +129,20 @@ describe('rewards', () => {
     await expect(claim(createTestEvent())).rejects.toMatchObject({ statusCode: 403 })
   })
 
+  // Claims are checked against total_points, so a member setting their own
+  // would unlock every reward. Other profile fields stay editable.
+  it('refuses a member\'s direct change to their own points', async () => {
+    const before = await points()
+    const client = await signedInClient(user.authUser.email!)
+
+    const { error } = await client.from('profiles').update({ total_points: 1_000_000 }).eq('id', user.profile.id)
+    expect(error?.code).toBe('42501') // insufficient_privilege: the policy's check failed
+    expect(await points()).toBe(before)
+
+    const { error: bioError } = await client.from('profiles').update({ bio: 'Still editable' }).eq('id', user.profile.id)
+    expect(bioError).toBeNull()
+  })
+
   // The baseline's own-insert policy let anyone claim any reward directly.
   it('refuses a claim inserted directly through the REST API', async () => {
     const id = await createReward(1_000_000, 'physical')
