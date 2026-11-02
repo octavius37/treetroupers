@@ -94,7 +94,26 @@ async function toggleActive(reward: any) {
   }
 }
 
-onMounted(loadRewards)
+// Members claim unlocked (non-badge) rewards; an admin sends them and marks
+// the claim done here.
+const claims = ref<any[]>([])
+
+async function loadClaims() {
+  claims.value = await $fetch('/api/cms/reward-claims')
+}
+
+async function settleClaim(claim: any, status: 'fulfilled' | 'cancelled') {
+  error.value = ''
+  try {
+    await $fetch(`/api/cms/reward-claims/${claim.id}`, { method: 'PUT', body: { status } })
+    await loadClaims()
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to update the claim'
+  }
+}
+
+onMounted(() => Promise.all([loadRewards(), loadClaims()]))
 </script>
 
 <template>
@@ -105,7 +124,8 @@ onMounted(loadRewards)
           Rewards
         </h1>
         <p class="text-gray-600 mt-1">
-          Manage gamification rewards and point thresholds.
+          Rewards unlock when a member's points reach the threshold; points are never spent. Badges
+          show on profiles; other rewards are claimed by the member and sent by you.
         </p>
       </div>
       <button
@@ -115,6 +135,42 @@ onMounted(loadRewards)
         + New Reward
       </button>
     </div>
+
+    <div v-if="error && !showForm" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {{ error }}
+    </div>
+
+    <section v-if="claims.length" class="mb-8 bg-white rounded-xl border border-gray-200">
+      <h2 class="px-6 py-4 border-b border-gray-200 font-semibold text-gray-900">
+        Claims
+      </h2>
+      <ul class="divide-y divide-gray-100">
+        <li v-for="c in claims" :key="c.id" class="px-6 py-3 flex flex-col sm:flex-row sm:items-center gap-3 text-sm">
+          <div class="flex-1">
+            <div class="font-medium text-gray-900">
+              {{ c.reward }}
+            </div>
+            <div class="text-gray-600">
+              {{ c.member.name }}<template v-if="c.member.email">
+                · <a :href="`mailto:${c.member.email}`" class="text-green-700 hover:text-green-800">{{ c.member.email }}</a>
+              </template>
+              · claimed {{ new Date(c.claimedAt).toLocaleDateString() }}
+            </div>
+          </div>
+          <div v-if="c.status === 'pending'" class="flex gap-2">
+            <button class="text-xs px-3 py-1.5 rounded-full font-medium bg-green-600 text-white hover:bg-green-700" @click="settleClaim(c, 'fulfilled')">
+              Mark as sent
+            </button>
+            <button class="text-xs px-3 py-1.5 rounded-full font-medium border border-gray-300 text-gray-700 hover:bg-gray-50" @click="settleClaim(c, 'cancelled')">
+              Cancel
+            </button>
+          </div>
+          <span v-else class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+            Sent {{ c.fulfilledAt ? new Date(c.fulfilledAt).toLocaleDateString() : '' }}
+          </span>
+        </li>
+      </ul>
+    </section>
 
     <!-- Form Modal -->
     <div v-if="showForm" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">

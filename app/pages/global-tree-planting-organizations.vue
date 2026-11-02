@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Global tree planting organizations' })
+useSeoMeta({ description: 'Trusted organisations planting trees around the world that you can support.' })
 </script>
 
 <template>

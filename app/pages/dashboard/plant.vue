@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Plant a tree' })
 
 const supabase = useSupabaseClient()
 const authUserId = useAuthUserId()
@@ -111,7 +112,7 @@ async function handleSubmit() {
         Tree Logged! 🌳
       </h3>
       <p class="text-gray-600 mb-4">
-        Your tree has been added to the map. Keep up the great work!
+        Your tree has been added to the map. Once an admin has checked your photo you'll get 20 points, plus 50 if it's your first tree.
       </p>
       <div class="flex gap-3 justify-center">
         <button
@@ -208,7 +209,13 @@ async function handleSubmit() {
       </div>
 
       <!-- Photo -->
-      <PhotoUpload v-model="form.photo_url" v-model:uploading="photoUploading" label="Photo" />
+      <PhotoUpload
+        v-model="form.photo_url"
+        v-model:uploading="photoUploading"
+        label="Photo"
+        hint="A photo of the tree you planted. An admin checks it before your points are added."
+        required
+      />
 
       <!-- Notes -->
       <div>
@@ -224,7 +231,7 @@ async function handleSubmit() {
 
       <button
         type="submit"
-        :disabled="submitting || photoUploading"
+        :disabled="submitting || photoUploading || !form.photo_url"
         class="w-full bg-green-600 text-white py-3 rounded-full font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
       >
         {{ submitting ? 'Saving...' : 'Log This Tree' }}

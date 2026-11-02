@@ -1,4 +1,6 @@
 <script setup lang="ts">
+useHead({ title: 'CMS' })
+
 const route = useRoute()
 const router = useRouter()
 const { pages, loading: pagesLoading, reload: reloadPages, ensureLoaded } = useCmsPages()
@@ -12,6 +14,7 @@ const sidebarLinks = [
   { to: '/cms/users', label: 'Users', icon: 'users' },
   { to: '/cms/tree-species', label: 'Tree Species', icon: 'species' },
   { to: '/cms/trees', label: 'Trees', icon: 'trees' },
+  { to: '/cms/feed', label: 'Community Posts', icon: 'feed' },
   { to: '/cms/rewards', label: 'Rewards', icon: 'rewards' },
 ]
 

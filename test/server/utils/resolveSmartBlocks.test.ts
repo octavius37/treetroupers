@@ -47,7 +47,7 @@ describe('resolveSmartBlocks', () => {
 
   describe('stats-counter', () => {
     it('replaces the marker with live counts', async () => {
-      withData({ trees: { count: 128 }, communities: { count: 7 }, profiles: { count: 42 } })
+      withData({ 'rpc:tree_stats': { data: { trees: 128 } }, 'communities': { count: 7 }, 'profiles': { count: 42 } })
 
       const html = await resolveSmartBlocks(createTestEvent(), STATS_BLOCK)
 
@@ -61,17 +61,20 @@ describe('resolveSmartBlocks', () => {
     })
 
     it('counts with a head-only query rather than fetching rows', async () => {
-      const supabase = withData({ trees: { count: 1 }, communities: { count: 1 }, profiles: { count: 1 } })
+      const supabase = withData({ 'rpc:tree_stats': { data: { trees: 1 } }, 'communities': { count: 1 }, 'profiles': { count: 1 } })
 
       await resolveSmartBlocks(createTestEvent(), STATS_BLOCK)
 
-      for (const table of ['trees', 'communities', 'profiles']) {
+      for (const table of ['communities', 'profiles']) {
         expect(supabase.callFor(table).options).toEqual({ count: 'exact', head: true })
       }
+      // Trees are summed by quantity in SQL, not counted as rows.
+      expect(supabase.callFor('rpc:tree_stats').payload).toEqual({ p_top: 0 })
+      expect(supabase.callsFor('trees')).toHaveLength(0)
     })
 
     it('renders 0 when a count comes back null', async () => {
-      withData({ trees: { count: null }, communities: { count: null }, profiles: { count: null } })
+      withData({ 'rpc:tree_stats': { data: null }, 'communities': { count: null }, 'profiles': { count: null } })
 
       const html = await resolveSmartBlocks(createTestEvent(), STATS_BLOCK)
 
@@ -80,7 +83,7 @@ describe('resolveSmartBlocks', () => {
     })
 
     it('preserves surrounding content', async () => {
-      withData({ trees: { count: 1 }, communities: { count: 1 }, profiles: { count: 1 } })
+      withData({ 'rpc:tree_stats': { data: { trees: 1 } }, 'communities': { count: 1 }, 'profiles': { count: 1 } })
 
       const html = await resolveSmartBlocks(
         createTestEvent(),
@@ -173,9 +176,9 @@ describe('resolveSmartBlocks', () => {
   describe('both blocks in one page', () => {
     it('resolves each one', async () => {
       withData({
-        trees: { count: 5 },
-        profiles: { count: 9 },
-        communities: { count: 2, data: [{ name: 'Riverside', slug: 'riverside', description: 'By the water' }] },
+        'rpc:tree_stats': { data: { trees: 5 } },
+        'profiles': { count: 9 },
+        'communities': { count: 2, data: [{ name: 'Riverside', slug: 'riverside', description: 'By the water' }] },
       })
 
       const html = await resolveSmartBlocks(

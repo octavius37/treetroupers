@@ -1,5 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
+useHead({ title: 'Join Tree Troupe' })
+useSeoMeta({ description: 'Create your free Tree Troupe account and start logging the trees you plant.' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -11,6 +13,7 @@ const displayName = ref('')
 const error = ref('')
 const loading = ref(false)
 const success = ref(false)
+const agreed = ref(false)
 
 watch(user, (val) => {
   if (val) { navigateTo('/dashboard') }
@@ -133,9 +136,19 @@ async function handleRegister() {
             >
           </div>
 
+          <label class="flex items-start gap-3 text-sm text-gray-600">
+            <input v-model="agreed" type="checkbox" required class="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+            <span>
+              I'm 16 or older and agree to the
+              <NuxtLink to="/terms" target="_blank" class="text-green-600 hover:text-green-700 underline">terms of use</NuxtLink>
+              and
+              <NuxtLink to="/privacy" target="_blank" class="text-green-600 hover:text-green-700 underline">privacy policy</NuxtLink>.
+            </span>
+          </label>
+
           <button
             type="submit"
-            :disabled="loading"
+            :disabled="loading || !agreed"
             class="w-full bg-green-600 text-white py-3 rounded-full font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
           >
             {{ loading ? 'Creating account...' : 'Create Account' }}

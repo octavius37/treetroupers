@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Tree map' })
 
 const supabase = useSupabaseClient()
 const trees = ref<any[]>([])
@@ -23,6 +24,8 @@ onMounted(async () => {
   const { data } = await supabase
     .from('trees')
     .select('*, tree_species(common_name), profiles!planted_by(display_name)')
+    // Pending trees show while they wait for review; rejected ones don't.
+    .neq('review_status', 'rejected')
     .order('planted_at', { ascending: false })
   trees.value = data || []
   loading.value = false
@@ -83,17 +86,17 @@ onMounted(async () => {
             @click="focus = { lat: Number(tree.lat), lng: Number(tree.lng) }"
           >
             <div class="font-medium text-gray-900">
-              {{ tree.tree_species?.common_name || 'Unknown species' }}
+              {{ treeLogLabel(tree) }}
             </div>
             <div class="text-sm text-gray-500">
-              Planted by {{ tree.profiles?.display_name || 'Unknown' }} · {{ new Date(tree.planted_at).toLocaleDateString() }}
+              {{ tree.source === 'planted' ? 'Planted' : 'Logged' }} by {{ tree.profiles?.display_name || 'Unknown' }} · {{ new Date(tree.planted_at).toLocaleDateString() }}
             </div>
             <div v-if="tree.lat != null && tree.lng != null" class="text-xs text-gray-400 mt-1">
               📍 {{ Number(tree.lat).toFixed(4) }}, {{ Number(tree.lng).toFixed(4) }}
             </div>
           </button>
           <div
-            class="text-xs px-2 py-1 rounded-full capitalize flex-shrink-0"
+            class="ml-auto text-xs px-2 py-1 rounded-full capitalize flex-shrink-0"
             :class="{
               'bg-amber-100 text-amber-700': tree.status === 'planted',
               'bg-blue-100 text-blue-700': tree.status === 'growing',
@@ -103,6 +106,9 @@ onMounted(async () => {
           >
             {{ tree.status }}
           </div>
+          <NuxtLink :to="`/dashboard/trees/${tree.id}`" class="ml-3 text-sm text-green-700 hover:text-green-800 flex-shrink-0">
+            View →
+          </NuxtLink>
         </div>
       </div>
     </div>

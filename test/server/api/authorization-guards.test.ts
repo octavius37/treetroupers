@@ -84,7 +84,8 @@ describe('server/api/dashboard/** authorization', () => {
     async (_name, path) => {
       // Dashboard endpoints act on the caller's own rows, so they need an
       // identity even though they don't need admin.
-      expect(await read(path)).toMatch(/\bawait\s+(authUserId|requireAdmin)\s*\(/)
+      // requireViewer (server/utils/viewer.ts) wraps authUserId.
+      expect(await read(path)).toMatch(/\bawait\s+(authUserId|requireAdmin|requireViewer)\s*\(/)
     },
   )
 })
@@ -101,5 +102,14 @@ describe('server/api/public/** exposure', () => {
         expect(source, `${name} queries pages`).toContain(`'status'`)
       }
     }
+  })
+})
+
+describe('requireViewer', () => {
+  it('establishes the caller with authUserId before querying', async () => {
+    const source = await readFile(fileURLToPath(new URL('../../../server/utils/viewer.ts', import.meta.url)), 'utf8')
+    const auth = source.indexOf('await authUserId(')
+    expect(auth).toBeGreaterThan(-1)
+    expect(auth).toBeLessThan(source.indexOf('.from('))
   })
 })

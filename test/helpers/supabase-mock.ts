@@ -66,7 +66,7 @@ function resultFor(config: TableConfig | undefined, operation: Operation): Requi
 }
 
 export interface SupabaseMock {
-  client: { from: ReturnType<typeof vi.fn> }
+  client: { from: ReturnType<typeof vi.fn>, rpc: ReturnType<typeof vi.fn> }
   /** Every `.from()` chain, in order, with its filters and terminal method. */
   calls: RecordedCall[]
   /** The single call against `table`; throws unless there is exactly one. */
@@ -139,6 +139,26 @@ export function createSupabaseMock(tables: Record<string, TableConfig> = {}): Su
         call.filters.push({ method: 'in', column, value })
         return builder
       },
+      gt(column: string, value: unknown) {
+        call.filters.push({ method: 'gt', column, value })
+        return builder
+      },
+      lte(column: string, value: unknown) {
+        call.filters.push({ method: 'lte', column, value })
+        return builder
+      },
+      like(column: string, value: unknown) {
+        call.filters.push({ method: 'like', column, value })
+        return builder
+      },
+      gte(column: string, value: unknown) {
+        call.filters.push({ method: 'gte', column, value })
+        return builder
+      },
+      or(value: string) {
+        call.filters.push({ method: 'or', column: '', value })
+        return builder
+      },
       ilike(column: string, value: unknown) {
         call.filters.push({ method: 'ilike', column, value })
         return builder
@@ -173,10 +193,18 @@ export function createSupabaseMock(tables: Record<string, TableConfig> = {}): Su
     return builder
   })
 
+  // `.rpc(fn, args)` is recorded like a table called `rpc:<fn>` (configure its
+  // result under that key), with the arguments as the payload.
+  const rpc = vi.fn((fn: string, args?: unknown) => {
+    const table = `rpc:${fn}`
+    calls.push({ table, operation: 'select', payload: args, filters: [], terminal: 'await' })
+    return Promise.resolve(resultFor(tables[table], 'select'))
+  })
+
   const callsFor = (table: string) => calls.filter(call => call.table === table)
 
   return {
-    client: { from },
+    client: { from, rpc },
     calls,
     callsFor,
     callFor(table: string) {

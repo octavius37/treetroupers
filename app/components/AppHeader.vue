@@ -103,10 +103,10 @@ async function handleLogout() {
             </NuxtLink>
           </template>
           <NuxtLink
-            to="/dashboard"
+            :to="user ? '/dashboard' : '/register'"
             class="bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
           >
-            My Tree Troupe
+            {{ user ? 'My Tree Troupe' : 'Join for free' }}
           </NuxtLink>
         </div>
 
@@ -147,7 +147,7 @@ async function handleLogout() {
           </template>
           <div class="border-t border-gray-100 mt-2 pt-2">
             <template v-if="user">
-              <button class="w-full text-left px-3 py-2 text-sm text-gray-600" @click="handleLogout; mobileMenuOpen = false">
+              <button class="w-full text-left px-3 py-2 text-sm text-gray-600" @click="handleLogout(); mobileMenuOpen = false">
                 Logout
               </button>
             </template>
@@ -157,11 +157,11 @@ async function handleLogout() {
               </NuxtLink>
             </template>
             <NuxtLink
-              to="/dashboard"
+              :to="user ? '/dashboard' : '/register'"
               class="block mx-3 mt-2 text-center bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium"
               @click="mobileMenuOpen = false"
             >
-              My Tree Troupe
+              {{ user ? 'My Tree Troupe' : 'Join for free' }}
             </NuxtLink>
           </div>
         </nav>

@@ -84,7 +84,49 @@ async function handleDelete(id: string) {
   }
 }
 
-onMounted(loadCommunities)
+// Requests from members for new communities.
+const requests = ref<any[]>([])
+
+async function loadRequests() {
+  requests.value = await $fetch('/api/cms/community-requests')
+}
+
+async function decide(request: any, decision: 'approved' | 'declined') {
+  error.value = ''
+  try {
+    await $fetch(`/api/cms/community-requests/${request.id}`, { method: 'PUT', body: { decision } })
+    await Promise.all([loadRequests(), loadCommunities()])
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to update the request'
+  }
+}
+
+// Members of one community at a time, to set who can post to its feed.
+const membersOf = ref<string | null>(null)
+const members = ref<any[]>([])
+
+async function toggleMembers(community: any) {
+  if (membersOf.value === community.id) {
+    membersOf.value = null
+    return
+  }
+  membersOf.value = community.id
+  members.value = await $fetch(`/api/cms/communities/${community.id}/members`)
+}
+
+async function setRole(member: any, role: string) {
+  error.value = ''
+  try {
+    await $fetch(`/api/cms/communities/${membersOf.value}/members/${member.profile_id}`, { method: 'PUT', body: { role } })
+    member.role = role
+  }
+  catch (e: any) {
+    error.value = e.data?.message || e.message || 'Failed to change the role'
+  }
+}
+
+onMounted(() => Promise.all([loadCommunities(), loadRequests()]))
 </script>
 
 <template>
@@ -105,6 +147,45 @@ onMounted(loadCommunities)
         + New Community
       </button>
     </div>
+
+    <div v-if="error && !showForm" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {{ error }}
+    </div>
+
+    <!-- Requests for new communities -->
+    <section v-if="requests.length" class="mb-8 bg-amber-50 border border-amber-200 rounded-xl p-5">
+      <h2 class="font-semibold text-amber-900 mb-3">
+        {{ requests.length }} {{ requests.length === 1 ? 'request' : 'requests' }} for a new community
+      </h2>
+      <ul class="space-y-3">
+        <li v-for="r in requests" :key="r.id" class="bg-white rounded-lg border border-amber-100 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="flex-1 text-sm">
+            <div class="font-medium text-gray-900">
+              {{ r.name }}<span v-if="r.area" class="text-gray-500 font-normal"> · {{ r.area }}</span>
+            </div>
+            <div class="text-gray-600">
+              Requested by {{ r.profiles?.display_name || 'a member' }}<template v-if="r.parent">
+                · part of {{ r.parent.name }}
+              </template>
+            </div>
+            <div v-if="r.description" class="text-gray-500 mt-1">
+              {{ r.description }}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="text-xs px-3 py-1.5 rounded-full font-medium bg-green-600 text-white hover:bg-green-700" @click="decide(r, 'approved')">
+              Create it
+            </button>
+            <button class="text-xs px-3 py-1.5 rounded-full font-medium border border-gray-300 text-gray-700 hover:bg-gray-50" @click="decide(r, 'declined')">
+              Decline
+            </button>
+          </div>
+        </li>
+      </ul>
+      <p class="text-xs text-amber-800 mt-3">
+        Creating a community makes the requester its admin, so they can post news and events to it.
+      </p>
+    </section>
 
     <!-- Form Modal -->
     <div v-if="showForm" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -217,25 +298,62 @@ onMounted(loadCommunities)
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr v-for="community in communities" :key="community.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">
-              {{ community.name }}
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">
-              {{ community.slug }}
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell max-w-xs truncate">
-              {{ community.description || '—' }}
-            </td>
-            <td class="px-6 py-4 text-right space-x-3">
-              <button class="text-sm text-green-600 hover:text-green-700 font-medium" @click="openEdit(community)">
-                Edit
-              </button>
-              <button class="text-sm text-red-500 hover:text-red-600 font-medium" @click="handleDelete(community.id)">
-                Delete
-              </button>
-            </td>
-          </tr>
+          <template v-for="community in communities" :key="community.id">
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                {{ community.name }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">
+                {{ community.slug }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell max-w-xs truncate">
+                {{ community.description || '—' }}
+              </td>
+              <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                <button class="text-sm text-gray-600 hover:text-gray-800 font-medium" @click="toggleMembers(community)">
+                  {{ membersOf === community.id ? 'Hide members' : 'Members' }}
+                </button>
+                <button class="text-sm text-green-600 hover:text-green-700 font-medium" @click="openEdit(community)">
+                  Edit
+                </button>
+                <button class="text-sm text-red-500 hover:text-red-600 font-medium" @click="handleDelete(community.id)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+            <tr v-if="membersOf === community.id">
+              <td colspan="4" class="px-6 pb-5 bg-gray-50">
+                <p class="text-xs text-gray-500 py-2">
+                  Admins and moderators can post news and events to this community's feed.
+                </p>
+                <p v-if="members.length === 0" class="text-sm text-gray-500">
+                  No members yet.
+                </p>
+                <ul v-else class="divide-y divide-gray-200 bg-white rounded-lg border border-gray-200">
+                  <li v-for="m in members" :key="m.profile_id" class="px-4 py-2 flex items-center gap-3 text-sm">
+                    <UserAvatar :name="m.profiles?.display_name || '?'" :url="m.profiles?.avatar_url" size="sm" />
+                    <span class="flex-1">{{ m.profiles?.display_name || 'Unnamed member' }}</span>
+                    <select
+                      :value="m.role"
+                      :aria-label="`Role for ${m.profiles?.display_name}`"
+                      class="px-2 py-1 border border-gray-300 rounded-lg bg-white text-sm"
+                      @change="setRole(m, ($event.target as HTMLSelectElement).value)"
+                    >
+                      <option value="member">
+                        Member
+                      </option>
+                      <option value="moderator">
+                        Moderator
+                      </option>
+                      <option value="admin">
+                        Admin
+                      </option>
+                    </select>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>

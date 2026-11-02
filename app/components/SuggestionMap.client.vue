@@ -87,9 +87,12 @@ function fitToData() {
   map.fitBounds(L.latLngBounds(points.map(p => [p.lat, p.lng])), { padding: [40, 40], maxZoom: 14 })
 }
 
-onMounted(() => {
-  if (!container.value) { return }
-  map = L.map(container.value, { worldCopyJump: true }).setView([20, 0], 2)
+// Nuxt's .client wrapper mounts a placeholder first and renders this template
+// a tick later, so onMounted fires before the map's element exists and the map
+// was never created. Create it when the element appears instead.
+watch(container, (el) => {
+  if (!el || map) { return }
+  map = L.map(el, { worldCopyJump: true }).setView([20, 0], 2)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -106,7 +109,7 @@ onMounted(() => {
   drawSuggestions()
   drawPending()
   fitToData()
-})
+}, { immediate: true, flush: 'post' })
 
 onBeforeUnmount(() => {
   map?.remove()
