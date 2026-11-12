@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  await enforceRateLimit(event, 'feed-post', profile.id)
   const { data, error } = await client
     .from('feed_posts')
     .insert({ kind: 'announcement', community_id: communityId, author_id: profile.id, ...announcement })

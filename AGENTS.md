@@ -384,7 +384,9 @@ to test a policy, read or write with `anonClient()` (or a signed-in client).
 CI runs these in the `test-db` job, which boots a trimmed stack with
 `supabase start` (migrations + seed from scratch) on every push and PR.
 
-Coverage so far is logging a tree, its review and the points approval pays
+`pre-launch-hardening.test.ts` covers deleting a tree's points, photo column
+privacy, `member_tree_map`, the orphan finder (skipped where Storage isn't
+running, as in CI) and rate limits. Coverage so far is logging a tree, its review and the points approval pays
 (`plant-tree.test.ts`), which also exercises `handle_new_user`,
 `sync_total_points` and members being unable to approve their own logs, the
 community feed — activity posts, community scoping, likes and RLS
@@ -445,20 +447,15 @@ Found while extracting the schema into migrations.
    readable by signed-in members only, so anonymous readers of the view see no
    trees; the member read in `plant-tree.test.ts` covers it.
 
-4. **Two functions still have a mutable `search_path`** (WARN):
-   `handle_new_user` and `sync_total_points`. (`insert_tree` and
-   `trees_near_point` were pinned by the PostGIS move.) Pin it
-   (`set search_path = public, extensions`) when you next touch them.
-   `handle_new_user` is the one that matters, because it is `SECURITY DEFINER`:
-   a mutable `search_path` on a definer-rights function is the classic
-   privilege-escalation shape.
+4. **Mutable `search_path` on `handle_new_user` / `sync_total_points` — fixed**
+   in `20261112100000_pre_launch_hardening.sql` (`set search_path = ''`; both
+   bodies are fully qualified).
 
-5. **`handle_new_user` is callable over the API** (WARN) — it is `SECURITY
-   DEFINER` and `anon`/`authenticated` hold `EXECUTE`, so it is reachable at
-   `/rest/v1/rpc/handle_new_user`. It is only ever meant to run as the
-   `on_auth_user_created` trigger. It would fail without a trigger record, but it
-   has no business being exposed: `revoke execute on function
-   public.handle_new_user() from anon, authenticated;`
+5. **`handle_new_user` callable over the API — fixed** in the same migration:
+   `EXECUTE` is revoked from `anon`/`authenticated` on both functions. Triggers
+   don't need it to fire. New trigger functions should do the same (see the
+   `revoke execute` lines in recent migrations), because the baseline's default
+   privileges grant `EXECUTE` on every new function to `anon`/`authenticated`.
 
 Also note `profiles` has no INSERT policy — rows are created solely by the
 `on_auth_user_created` trigger, which is intentional.
@@ -580,13 +577,8 @@ see "Public pages are code" above) is the tips content for now.
 - **End-to-end tests** — no browser coverage of login → plant a tree →
   leaderboard, or of the admin CMS gate.
 - Points for `update_tree` and `verify_tree`. They exist as `point_events`
-  action types (and in the seed), but nothing awards them yet. Deleting a tree
-  doesn't take its points back either (deleting a planting suggestion or leaving
-  a community does). Members who joined communities before
+  action types (and in the seed), but nothing awards them yet. Members who joined communities before
   `20261016120000_rewards_join_and_streak_points.sql` got no joining points.
-- **Showing tree photos on the dashboard and map.** `/cms/trees` shows each
-  log's photo for review, and the community feed shows planted trees' photos,
-  but the dashboard and map don't yet.
 
 Done since this list was last updated: the interactive tree map
 (`TreeMap.client.vue`, Leaflet + OpenStreetMap rather than Mapbox) and the
@@ -673,6 +665,15 @@ and pays at most once every 4 weeks. Both are in
 `tree_species` in `seed.sql` mirrors the hosted table. The hosted table also
 holds a duplicate "English Oak" row (`Quercus Rubor`, no description), which was
 left out of the seed; no trees reference it.
+
+**Deleting a tree** takes its points back through `on_tree_deleted`
+(`20261112100000_pre_launch_hardening.sql`): one negative event per action type
+the tree paid (`plant_tree`, `donate_tree`, `earn_tree`, `first_tree`,
+`streak_bonus`), skipping profiles that no longer exist. Only admins can delete
+an approved tree (`DELETE /api/cms/trees/:id`); the planter can delete a log only
+while it is pending or rejected, when it has paid nothing. The first-tree unique
+index counts only positive rows so the reversal can be inserted; a profile whose
+bonus was reversed still can't earn a second one.
 
 ### Community feed
 
@@ -904,8 +905,36 @@ one).
 `tree-photos/<auth user id>/` folder, and the forms keep submit disabled until a
 photo is attached.
 
-Known gap: nothing deletes uploads that never end up on a tree (a removed photo,
-an abandoned form).
+**Unused uploads are deleted daily.** `GET /api/cron/cleanup`, run by Vercel
+Cron (`vercel.json`, 03:17 UTC), deletes `tree-photos` files older than a day
+that no tree, tree update or feed post references (`orphaned_tree_photos()`),
+up to 10,000 a run, and prunes old rate-limit rows. It needs **`CRON_SECRET`**
+set in Vercel: Vercel sends it as a bearer token, and without it the endpoint
+refuses to run. `authorization-guards.test.ts` checks every `server/api/cron/**`
+handler checks it before touching anything.
+
+**Who can see a photo.** `trees.photo_urls` is not readable over the REST API:
+`anon`/`authenticated` have column-level `select` on every other column of
+`trees` (`20261112100000_pre_launch_hardening.sql`), so donation and earning
+proofs (often receipts) can't be read by other members. Photos reach the app
+only through endpoints that apply the rules: the planter always; others only on
+an approved planted tree. `GET /api/dashboard/trees` (your own logs, used by the
+dashboard) and `GET /api/dashboard/tree-map` (the member map, through
+`member_tree_map(p_viewer)`) are the ones to use. **A new column on `trees` needs
+adding to that grant**, or members can't read it, and a `select('*')` on `trees`
+from the browser fails with `42501`. `trees_near_point` returns whole rows, so it
+is service-role only too.
+
+### Rate limits
+
+`enforceRateLimit(event, action, who)` (`server/utils/rateLimit.ts`) counts a
+request in Postgres (`hit_rate_limit`, table `rate_limit_hits`, no policies) and
+throws 429 over the limit, so it holds across Vercel's serverless instances. It
+is called after a request passes validation, so invalid requests aren't counted.
+Limits are in `RATE_LIMITS`: per account for photo and avatar uploads, tree logs,
+tree updates, feed posts, likes, suggestions and community requests; per IP for
+the contact form. If the check itself errors, the request is allowed. The
+contact form also has a hidden honeypot field (`website`) and length limits.
 
 ### Tree log review
 

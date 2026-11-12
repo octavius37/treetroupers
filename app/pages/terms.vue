@@ -3,7 +3,7 @@ definePageMeta({ layout: 'default' })
 useHead({ title: 'Terms of use' })
 useSeoMeta({ description: 'The rules for using Tree Troupe: your account, what you post, points and rewards.' })
 
-const UPDATED = '16 October 2026'
+const UPDATED = '12 November 2026'
 </script>
 
 <template>
@@ -36,7 +36,7 @@ const UPDATED = '16 October 2026'
     <ul class="list-disc pl-6 my-4 space-y-2">
       <li>Only log trees you really planted, donated or earned, with a genuine photo as proof.</li>
       <li>Only plant trees where you have permission to.</li>
-      <li>Admins review every log and may reject it, or remove logs, points or accounts that break these rules.</li>
+      <li>Admins review every log and may reject it, or remove logs, points or accounts that break these rules. When a log is removed, the points it earned are removed too.</li>
     </ul>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
@@ -55,6 +55,10 @@ const UPDATED = '16 October 2026'
     <p class="mb-4">
       Points and rewards are a bit of fun to celebrate your contribution. They have no cash value, and we may
       change how they work.
+    </p>
+    <p class="mb-4">
+      To keep the site fair and free of spam, there are limits on how often you can upload photos, log trees and
+      post. They're generous for normal use; if you hit one, try again a little later.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">

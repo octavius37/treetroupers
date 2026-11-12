@@ -143,6 +143,10 @@ export function createSupabaseMock(tables: Record<string, TableConfig> = {}): Su
         call.filters.push({ method: 'gt', column, value })
         return builder
       },
+      lt(column: string, value: unknown) {
+        call.filters.push({ method: 'lt', column, value })
+        return builder
+      },
       lte(column: string, value: unknown) {
         call.filters.push({ method: 'lte', column, value })
         return builder

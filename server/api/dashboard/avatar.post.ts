@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
   if (!contentType) { throw createError({ statusCode: 400, message: `${file.filename} is not a JPEG, PNG or WebP image` }) }
   if (file.data.length > MAX_FILE_SIZE) { throw createError({ statusCode: 400, message: `${file.filename} exceeds the 4MB limit` }) }
 
+  await enforceRateLimit(event, 'avatar', uid)
   const client = serverSupabaseServiceRole(event)
   const path = `${uid}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[contentType]}`
   const options = { contentType, cacheControl: '31536000' }

@@ -4,6 +4,7 @@ import * as feed from '../../server/utils/feed'
 import * as images from '../../server/utils/images'
 import * as photos from '../../server/utils/photos'
 import * as rank from '../../server/utils/rank'
+import * as rateLimit from '../../server/utils/rateLimit'
 import * as slugify from '../../server/utils/slugify'
 import * as viewer from '../../server/utils/viewer'
 import * as co2 from '../../shared/utils/co2'
@@ -16,8 +17,9 @@ installNitroGlobals()
 // without RESEND_API_KEY, which tests never set.) Utilities that touch auth or
 // the database, such as requireAdmin and authUserId, are stubbed per test.
 // requireViewer is real too: it goes through the stubbed authUserId and the
-// mocked client, so tests drive it the same way.
-Object.assign(globalThis, co2, email, feed, images, photos, rank, slugify, viewer)
+// mocked client, so tests drive it the same way. enforceRateLimit goes through
+// the mocked client's rpc, which allows the request unless a test says otherwise.
+Object.assign(globalThis, co2, email, feed, images, photos, rank, rateLimit, slugify, viewer)
 
 beforeEach(() => {
   resetNitroGlobals()

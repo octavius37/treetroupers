@@ -8,6 +8,8 @@ const form = reactive({
   email: '',
   subject: '',
   message: '',
+  // Honeypot, hidden from people; see server/api/contact.post.ts.
+  website: '',
 })
 
 const submitted = ref(false)
@@ -65,12 +67,17 @@ async function handleSubmit() {
         </div>
 
         <form v-else class="space-y-6" @submit.prevent="handleSubmit">
+          <div class="absolute -left-[9999px]" aria-hidden="true">
+            <label for="website">Leave this empty</label>
+            <input id="website" v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off">
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
                 id="name"
                 v-model="form.name"
+                maxlength="100"
                 type="text"
                 required
                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
@@ -81,6 +88,7 @@ async function handleSubmit() {
               <input
                 id="email"
                 v-model="form.email"
+                maxlength="200"
                 type="email"
                 required
                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
@@ -92,6 +100,7 @@ async function handleSubmit() {
             <input
               id="subject"
               v-model="form.subject"
+              maxlength="200"
               type="text"
               required
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
@@ -102,6 +111,7 @@ async function handleSubmit() {
             <textarea
               id="message"
               v-model="form.message"
+              maxlength="5000"
               rows="5"
               required
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition resize-none"

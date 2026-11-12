@@ -4,7 +4,7 @@ useHead({ title: 'Privacy policy' })
 useSeoMeta({ description: 'What Tree Troupe collects about you, why, who we share it with, and your rights.' })
 
 // Bump this when the policy changes; it is shown at the top of the page.
-const UPDATED = '16 October 2026'
+const UPDATED = '12 November 2026'
 </script>
 
 <template>
@@ -30,6 +30,7 @@ const UPDATED = '16 October 2026'
       <li><strong>Trees you log:</strong> the photo you upload as proof, the species, date and notes, the quantity for donated or earned trees, and, for trees you plant, the GPS location of the tree.</li>
       <li><strong>Your activity:</strong> the communities you join, planting spots you suggest, your points, the posts you like, and updates you post about your trees.</li>
       <li><strong>Messages</strong> you send through the contact form: your name, email address and message.</li>
+      <li><strong>Abuse prevention:</strong> to stop automated spam, we count how often each account uploads, posts and logs trees, and how often each IP address sends contact-form messages. These counts, including the IP address, are deleted within a day.</li>
     </ul>
     <p class="mb-4">
       Before a photo is uploaded, the site shrinks it and removes its hidden metadata (including any GPS
@@ -56,7 +57,7 @@ const UPDATED = '16 October 2026'
     <ul class="list-disc pl-6 my-4 space-y-2">
       <li>Your display name, profile photo, bio, points, and the communities you belong to.</li>
       <li>Trees you've logged, with their species and date. Signed-in members can see where planted trees are on the map. Visitors who aren't signed in see an approximate location only, without your name.</li>
-      <li>The photo of a tree you planted, once an admin has approved it. Photos of donation or earning proof are only seen by admins.</li>
+      <li>The photo of a tree you planted, once an admin has approved it. Photos of donation or earning proof are only seen by you and admins.</li>
     </ul>
     <p class="mb-4">
       Your email address is never shown to other members.
@@ -82,6 +83,8 @@ const UPDATED = '16 October 2026'
       We keep your account until you delete it. When you delete your account, your profile, points, likes,
       memberships, suggestions, updates and uploaded photos are deleted. The trees you logged stay in the
       community totals and on the map, but are no longer linked to you, and their photos and notes are removed.
+      Photos you upload but never attach to a tree log (for example, a form you didn't finish) are deleted
+      after a day.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">

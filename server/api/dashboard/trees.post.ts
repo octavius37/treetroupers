@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
   }
   const photoUrl = body.photo_url
 
+  await enforceRateLimit(event, 'tree-log', uid)
   const { data: profile, error: profileError } = await client
     .from('profiles')
     .select('id')
