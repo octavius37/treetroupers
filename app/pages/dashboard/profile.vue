@@ -87,8 +87,8 @@ async function handleChangePassword() {
   passwordError.value = ''
   passwordSaved.value = false
 
-  if (passwordForm.newPassword.length < 6) {
-    passwordError.value = 'New password must be at least 6 characters'
+  if (passwordForm.newPassword.length < 8) {
+    passwordError.value = 'New password must be at least 8 characters'
     return
   }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -265,10 +265,11 @@ async function handleDeleteAccount() {
               id="new-password"
               v-model="passwordForm.newPassword"
               type="password"
+              minlength="8"
               required
               autocomplete="new-password"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
             >
           </div>
 
@@ -278,6 +279,7 @@ async function handleDeleteAccount() {
               id="confirm-new-password"
               v-model="passwordForm.confirmPassword"
               type="password"
+              minlength="8"
               required
               autocomplete="new-password"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"

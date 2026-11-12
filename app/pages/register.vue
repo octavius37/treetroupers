@@ -27,8 +27,8 @@ async function handleRegister() {
     return
   }
 
-  if (password.value.length < 6) {
-    error.value = 'Password must be at least 6 characters'
+  if (password.value.length < 8) {
+    error.value = 'Your password needs at least 8 characters'
     return
   }
 
@@ -37,6 +37,12 @@ async function handleRegister() {
     email: email.value,
     password: password.value,
     options: {
+      // Where the confirmation link lands. /login, not /dashboard: the auth
+      // middleware would bounce a not-yet-signed-in visitor to /login and drop
+      // the link's code, while /login lets supabase-js sign them in, after
+      // which it forwards to /dashboard. Must match the Redirect URLs in
+      // Supabase (https://<domain>/**), or Supabase uses the Site URL instead.
+      emailRedirectTo: `${window.location.origin}/login`,
       data: {
         display_name: displayName.value,
       },
@@ -117,10 +123,11 @@ async function handleRegister() {
               id="reg-password"
               v-model="password"
               type="password"
+              minlength="8"
               required
               autocomplete="new-password"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
             >
           </div>
 
@@ -130,6 +137,7 @@ async function handleRegister() {
               id="reg-confirm"
               v-model="confirmPassword"
               type="password"
+              minlength="8"
               required
               autocomplete="new-password"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"

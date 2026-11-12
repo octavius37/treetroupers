@@ -15,8 +15,8 @@ const done = ref(false)
 
 async function handleSubmit() {
   error.value = ''
-  if (password.value.length < 6) {
-    error.value = 'Your password needs at least 6 characters.'
+  if (password.value.length < 8) {
+    error.value = 'Your password needs at least 8 characters.'
     return
   }
   if (password.value !== confirm.value) {
@@ -72,9 +72,10 @@ async function handleSubmit() {
             id="new-password"
             v-model="password"
             type="password"
+            minlength="8"
             required
             autocomplete="new-password"
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
           >
         </div>
@@ -84,6 +85,7 @@ async function handleSubmit() {
             id="confirm-password"
             v-model="confirm"
             type="password"
+            minlength="8"
             required
             autocomplete="new-password"
             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"

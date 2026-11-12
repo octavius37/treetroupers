@@ -106,6 +106,19 @@ version, so re-check auth and SSR afterwards.
 
 - **Auth**: Supabase Auth for login, signup and password reset (`useSupabaseClient()`, `useSupabaseUser()`). The sidebase template's `@sidebase/nuxt-auth` demo login (which accepted `jsmith`/`hunter2`), tRPC and the `Welcome/*` demo components have been removed.
 - **Password reset**: `/forgot-password` sends Supabase's reset email with `redirectTo: <origin>/reset-password`, where the user chooses a new password. That URL must be in the hosted project's **Auth → URL Configuration → Redirect URLs** (locally, `supabase/config.toml` allows `localhost:3000/**`). If it isn't, Supabase lands the link on the Site URL instead; `plugins/password-recovery.client.ts` catches the `PASSWORD_RECOVERY` event there and forwards to `/reset-password`. With Supabase's default (PKCE) email template the link only works in the browser that requested it; the page explains this when it fails.
+- **Email confirmation and passwords**: new sign-ups must confirm their email
+  before they can sign in, and passwords need at least 8 characters, in the
+  hosted project (Authentication → Providers → Email) and locally
+  (`supabase/config.toml`; confirmation emails land in Mailpit). Both depend on
+  Supabase sending email through Resend's SMTP in production. The confirmation
+  link redirects to **`/login`**, not `/dashboard`: the `auth` middleware would
+  send a not-yet-signed-in visitor to `/login` and drop the link's `?code=`,
+  while on `/login` supabase-js exchanges it and the page forwards to the
+  dashboard. `/login` offers "Send the link again" on `email_not_confirmed`.
+  Existing members with shorter passwords can still sign in; the 8-character
+  rule applies when a password is set. After changing `[auth]` settings in
+  `config.toml`, run `supabase stop` then `supabase start`: a plain `start`
+  reuses the running auth container and keeps the old settings.
 - **Styling**: Tailwind utility classes. Primary colour is `green-600`. Design is clean/white with rounded elements and green accents, matching the original Squarespace site aesthetic.
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
