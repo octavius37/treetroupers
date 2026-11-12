@@ -25,7 +25,7 @@ const UPDATED = '12 November 2026'
       Your account
     </h2>
     <ul class="list-disc pl-6 my-4 space-y-2">
-      <li>You need to be 16 or older.</li>
+      <li>You need to be 16 or older. By signing up you confirm that you are. If we learn that someone under 16 has an account, we'll delete it.</li>
       <li>Keep your password to yourself. You're responsible for what happens on your account.</li>
       <li>You can delete your account at any time from your profile page.</li>
     </ul>
@@ -62,12 +62,40 @@ const UPDATED = '12 November 2026'
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
-      The service
+      Decisions and complaints
     </h2>
     <p class="mb-4">
-      We run Tree Troupe on a volunteer basis and provide it as it is. We'll do our best to keep it running and
-      your data safe, but we can't promise it will always be available or error-free. These terms are governed by
-      Dutch law.
+      If an admin rejects your log, or removes your content, points or account, we'll tell you why where we can.
+      If you disagree with a decision, or want to complain about anything else on the site, email
+      <a href="mailto:treetroupe@protonmail.com" class="text-green-700 underline">treetroupe@protonmail.com</a>
+      and we'll look at it again and reply.
+    </p>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
+      The service and our liability
+    </h2>
+    <p class="mb-4">
+      Tree Troupe is free and run by volunteers. It isn't a company or a registered organisation. We provide it
+      "as is" and "as available": we'll do our best to keep it running and your data safe, but we can't promise
+      it will always be available, accurate or error-free, and we may change or stop it at any time.
+    </p>
+    <p class="mb-4">
+      To the fullest extent Dutch law allows, we are not liable for any damage or loss arising from your use of
+      the site, or from not being able to use it. This includes:
+    </p>
+    <ul class="list-disc pl-6 my-4 space-y-2">
+      <li>loss of data, photos, points or rewards, and any indirect or consequential damage;</li>
+      <li>anything posted by other members, and any information, advice or suggested planting spot on the site;</li>
+      <li>planting itself: you plant trees at your own risk, and are responsible for having the landowner's permission, following local rules, and working safely;</li>
+      <li>services run by others that the site relies on or links to.</li>
+    </ul>
+    <p class="mb-4">
+      This applies to Tree Troupe and to each of the volunteers who run it. Nothing in these terms excludes or
+      limits liability for damage caused by our intent or deliberate recklessness, or any other liability or
+      consumer right that cannot be excluded under Dutch law.
+    </p>
+    <p class="mb-4">
+      These terms are governed by Dutch law.
     </p>
 
     <p class="mt-10">

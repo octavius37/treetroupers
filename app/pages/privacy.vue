@@ -17,9 +17,11 @@ const UPDATED = '12 November 2026'
     </p>
 
     <p class="mb-6">
-      Tree Troupe is run by a small team based in The Hague, the Netherlands. This page explains what we
-      collect when you use the site, why, and what you can do about it. If anything is unclear, email us at
+      Tree Troupe is run by a group of volunteers based in The Hague, the Netherlands. It isn't a company or a
+      registered organisation. The volunteers who run it are responsible for your data (under the GDPR, the
+      "controller") and can be reached at
       <a href="mailto:treetroupe@protonmail.com" class="text-green-700 underline">treetroupe@protonmail.com</a>.
+      This page explains what we collect when you use the site, why, and what you can do about it.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
@@ -30,7 +32,7 @@ const UPDATED = '12 November 2026'
       <li><strong>Trees you log:</strong> the photo you upload as proof, the species, date and notes, the quantity for donated or earned trees, and, for trees you plant, the GPS location of the tree.</li>
       <li><strong>Your activity:</strong> the communities you join, planting spots you suggest, your points, the posts you like, and updates you post about your trees.</li>
       <li><strong>Messages</strong> you send through the contact form: your name, email address and message.</li>
-      <li><strong>Abuse prevention:</strong> to stop automated spam, we count how often each account uploads, posts and logs trees, and how often each IP address sends contact-form messages. These counts, including the IP address, are deleted within a day.</li>
+      <li><strong>Abuse prevention:</strong> to stop automated spam, we count how often each account uploads, posts and logs trees, and how often each IP address sends contact-form messages. These counts, including the IP address, are deleted within two days.</li>
     </ul>
     <p class="mb-4">
       Before a photo is uploaded, the site shrinks it and removes its hidden metadata (including any GPS
@@ -45,11 +47,10 @@ const UPDATED = '12 November 2026'
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
       Why we use it
     </h2>
-    <p class="mb-4">
-      We use your information to run your account and the platform you signed up for (our legal basis is the
-      performance of our agreement with you): showing your trees, checking logs before awarding points, running
-      leaderboards and community feeds, and replying when you contact us.
-    </p>
+    <ul class="list-disc pl-6 my-4 space-y-2">
+      <li><strong>To provide the service you signed up for</strong> (performance of our agreement with you): your account, showing your trees, reviewing logs and awarding points, leaderboards, community feeds and rewards, and emails about your tree logs.</li>
+      <li><strong>To keep the site working, safe and free of spam, to count page visits, and to reply when you contact us</strong> (our legitimate interest in running a safe, working community platform). You can object to this use by emailing us.</li>
+    </ul>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
       What other members can see
@@ -75,6 +76,12 @@ const UPDATED = '12 November 2026'
       <li><strong>Vercel</strong>: hosting the website, and counting page visits (without cookies).</li>
       <li><strong>Resend</strong>: sending emails, such as contact-form messages and notices about your tree logs.</li>
     </ul>
+    <p class="mb-4">
+      Some of these providers are based in the United States, so your data may be stored or processed outside
+      the European Economic Area. Where it is, the transfer is covered by the safeguards the GDPR requires, such
+      as the EU&ndash;US Data Privacy Framework or the European Commission's standard contractual clauses. By
+      creating an account and using the site, you acknowledge that your data may be transferred in this way.
+    </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
       How long we keep it
@@ -84,7 +91,12 @@ const UPDATED = '12 November 2026'
       memberships, suggestions, updates and uploaded photos are deleted. The trees you logged stay in the
       community totals and on the map, but are no longer linked to you, and their photos and notes are removed.
       Photos you upload but never attach to a tree log (for example, a form you didn't finish) are deleted
-      after a day.
+      within two days.
+    </p>
+    <p class="mb-4">
+      Messages you send through the contact form go to our email inbox, not to your account, so deleting your
+      account doesn't delete them. We keep them only as long as we need them to deal with your message, but we
+      can't promise to remove them on a fixed timetable. To ask us to delete a message, email us.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
@@ -104,7 +116,8 @@ const UPDATED = '12 November 2026'
       Children
     </h2>
     <p class="mb-4">
-      You need to be 16 or older to create an account.
+      You need to be 16 or older to create an account. We don't check ages: we rely on you confirming it when
+      you sign up. If we learn that someone under 16 has an account, we'll delete it.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
