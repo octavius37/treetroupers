@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   const name = text(body.name, 80)
   if (!name || name.length < 2) { throw createError({ statusCode: 400, message: 'Give the community a name' }) }
 
+  await enforceRateLimit(event, 'community-request', profile.id)
   const client = serverSupabaseServiceRole(event)
 
   const { count } = await client

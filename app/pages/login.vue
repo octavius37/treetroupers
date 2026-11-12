@@ -10,6 +10,9 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+// Set when sign-in fails because the email address isn't confirmed yet.
+const unconfirmed = ref(false)
+const resent = ref(false)
 
 watch(user, (val) => {
   if (val) { navigateTo('/dashboard') }
@@ -17,14 +20,32 @@ watch(user, (val) => {
 
 async function handleLogin() {
   error.value = ''
+  unconfirmed.value = false
+  resent.value = false
   loading.value = true
   const { error: err } = await supabase.auth.signInWithPassword({
     email: email.value,
     password: password.value,
   })
-  if (err) {
+  if (err?.code === 'email_not_confirmed') {
+    unconfirmed.value = true
+    error.value = 'Please confirm your email address first, using the link we sent when you signed up.'
+  }
+  else if (err) {
     error.value = err.message
   }
+  loading.value = false
+}
+
+async function resendConfirmation() {
+  loading.value = true
+  const { error: err } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.value,
+    options: { emailRedirectTo: `${window.location.origin}/login` },
+  })
+  if (err) { error.value = err.message }
+  else { resent.value = true }
   loading.value = false
 }
 </script>
@@ -44,6 +65,12 @@ async function handleLogin() {
       <form class="space-y-5" @submit.prevent="handleLogin">
         <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
           {{ error }}
+          <p v-if="resent" class="mt-2 text-green-700">
+            We've sent a new confirmation link to {{ email }}.
+          </p>
+          <button v-else-if="unconfirmed" type="button" class="mt-2 font-medium underline" :disabled="loading" @click="resendConfirmation">
+            Send the link again
+          </button>
         </div>
 
         <div>

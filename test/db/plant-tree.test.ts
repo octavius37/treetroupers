@@ -163,15 +163,21 @@ describe('logging a planted tree', () => {
     expect(data).toEqual([])
   })
 
-  it('finds the tree by distance with trees_near_point', async () => {
-    const { data, error } = await (await asMember())
+  // It returns whole rows, proof photos included, so only the server may call it.
+  it('finds the tree by distance with trees_near_point, for the service role only', async () => {
+    const { data, error } = await serviceClient
       .rpc('trees_near_point', { p_lat: 52.3676, p_lng: 4.9041, p_metres: 10 })
     expect(error).toBeNull()
     expect(data?.map(tree => tree.id)).toContain(firstTreeId)
+
+    const asMemberCall = await (await asMember()).rpc('trees_near_point', { p_lat: 52.3676, p_lng: 4.9041, p_metres: 10 })
+    expect(asMemberCall.error?.code).toBe('42501')
   })
 
+  // The endpoint refuses it (400); trees_location_required_when_planted would
+  // refuse it again in the database.
   it('rejects a planted tree with no location', async () => {
-    await expect(logAs(authUser, { species_id: speciesId })).rejects.toMatchObject({ statusCode: 500 })
+    await expect(logAs(authUser, { species_id: speciesId })).rejects.toMatchObject({ statusCode: 400 })
 
     const { count } = await serviceClient
       .from('trees')

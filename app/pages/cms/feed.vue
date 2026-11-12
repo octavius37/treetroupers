@@ -147,7 +147,7 @@ onMounted(load)
             Remove
           </button>
         </div>
-        <input v-else type="file" accept="image/*" :disabled="uploading" class="text-sm" aria-label="Photo" @change="handlePhoto">
+        <input v-else type="file" accept="image/jpeg,image/png,image/webp" :disabled="uploading" class="text-sm" aria-label="Photo" @change="handlePhoto">
       </div>
       <div class="md:col-span-2">
         <button

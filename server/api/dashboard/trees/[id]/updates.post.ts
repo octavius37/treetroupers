@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'The photo must be uploaded through Tree Troupe' })
   }
 
+  await enforceRateLimit(event, 'tree-update', uid)
   const { data: tree } = await client.from('trees').select('id, planted_by').eq('id', id).maybeSingle()
   if (!tree || tree.planted_by !== profile.id) { throw createError({ statusCode: 404, message: 'Tree not found' }) }
 
