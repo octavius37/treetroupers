@@ -34,7 +34,7 @@ async function handleSubmit() {
   <div>
     <section class="relative h-[300px] overflow-hidden">
       <ImageSlot
-        src="/images/contact-hero-hands-seedling.jpg"
+        src="/images/contact-hero-hands-seedling.webp"
         alt="Circle of hands holding a small seedling together"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -135,7 +135,7 @@ async function handleSubmit() {
 
     <section class="relative h-64 overflow-hidden">
       <ImageSlot
-        src="/images/home-how-community.jpg"
+        src="/images/home-how-community.webp"
         alt="River winding through a valley at sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />

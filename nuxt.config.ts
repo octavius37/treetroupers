@@ -36,6 +36,20 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    // Standard security headers on every response. frame-ancestors/X-Frame-Options
+    // stop other sites embedding Tree Troupe (clickjacking); the site itself
+    // never needs framing from elsewhere. geolocation stays allowed for the
+    // site's own "use my location" buttons.
+    '/**': {
+      headers: {
+        'Content-Security-Policy': 'frame-ancestors \'self\'',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), payment=(), geolocation=(self)',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+    },
     // Signed-in and admin pages have nothing for search engines.
     '/dashboard/**': { headers: { 'X-Robots-Tag': 'noindex' } },
     '/cms/**': { headers: { 'X-Robots-Tag': 'noindex' } },

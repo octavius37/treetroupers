@@ -91,6 +91,7 @@ async function handleRegister() {
               id="reg-name"
               v-model="displayName"
               type="text"
+              maxlength="50"
               required
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
               placeholder="Your name"
@@ -166,7 +167,7 @@ async function handleRegister() {
 
     <div class="hidden md:block relative">
       <ImageSlot
-        src="/images/register-hero-lake.jpg"
+        src="/images/register-hero-lake.webp"
         alt="Turquoise alpine lake framed by jagged peaks and pink wildflowers"
         class="absolute inset-0 w-full h-full object-cover"
       />

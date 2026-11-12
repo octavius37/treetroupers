@@ -940,6 +940,27 @@ tree updates, feed posts, likes, suggestions and community requests; per IP for
 the contact form. If the check itself errors, the request is allowed. The
 contact form also has a hidden honeypot field (`website`) and length limits.
 
+### Security headers, input limits and images
+
+- **Security headers** are set for every route in `nuxt.config.ts`
+  (`routeRules['/**']`): `frame-ancestors 'self'` / `X-Frame-Options`,
+  `nosniff`, a referrer policy, a permissions policy that allows only
+  geolocation (the "use my location" buttons), and HSTS. A new feature that
+  needs the camera or microphone through the browser API, or that must be
+  embedded on another site, has to loosen these.
+- **Input limits**: `trees.post.ts` refuses quantities outside 1–10,000 (a
+  sanity limit, not a cap the reviewer relies on), notes over 2,000 characters,
+  project/activity names over 200, future dates (a day's grace for time zones)
+  and planted logs without a valid location. `profile.put.ts` limits the name to
+  50 and the bio to 500 characters. Both refuse non-text values.
+- **Admin uploads** (`/api/cms/upload`) identify images from their bytes like
+  tree photos (JPEG, PNG, WebP only) and check the whole batch before storing
+  any of it.
+- **Images in `public/images/` are WebP**, at most 1600×1400 (team photos
+  600×600). `home-hero-tree-sunset.jpg` stays as a 1200px JPEG because it is the
+  share-preview `og:image`, which not every platform reads as WebP. Convert new
+  artwork the same way before committing it.
+
 ### Tree log review
 
 Every tree log (planted, donated or earned) starts as `review_status =

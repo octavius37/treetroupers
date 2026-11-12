@@ -207,6 +207,7 @@ async function handleDeleteAccount() {
           <input
             id="profile-name"
             v-model="form.display_name"
+            maxlength="50"
             type="text"
             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
           >
@@ -217,6 +218,7 @@ async function handleDeleteAccount() {
           <textarea
             id="profile-bio"
             v-model="form.bio"
+            maxlength="500"
             rows="3"
             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition resize-none"
             placeholder="Tell us about yourself..."

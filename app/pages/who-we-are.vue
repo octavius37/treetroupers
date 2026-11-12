@@ -9,7 +9,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
   <div>
     <section class="relative h-[400px] overflow-hidden">
       <ImageSlot
-        src="/images/who-we-are-hero-sunset.jpg"
+        src="/images/who-we-are-hero-sunset.webp"
         alt="Silhouette of a tree against a vivid purple and orange sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -40,7 +40,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
             </p>
           </div>
           <ImageSlot
-            src="/images/who-we-are-story-seedling.jpg"
+            src="/images/who-we-are-story-seedling.webp"
             alt="Cupped hands holding soil with a small seedling"
             class="rounded-lg w-full h-80 object-cover"
           />
@@ -51,7 +51,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <div class="text-center">
-            <ImageSlot src="/images/team-jessica-howley.jpg" alt="Jessica Howley" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot src="/images/team-jessica-howley.webp" alt="Jessica Howley" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Jessica Howley
             </h3>
@@ -60,7 +60,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
             </p>
           </div>
           <div class="text-center">
-            <ImageSlot alt="Charlotte Howley" src="/images/team-charlotte-howley.jpg" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot alt="Charlotte Howley" src="/images/team-charlotte-howley.webp" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Charlotte Howley
             </h3>
@@ -69,7 +69,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
             </p>
           </div>
           <div class="text-center">
-            <ImageSlot src="/images/team-paul-bollerman.jpg" alt="Paul Bollerman" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
+            <ImageSlot src="/images/team-paul-bollerman.webp" alt="Paul Bollerman" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover bg-gray-100" />
             <h3 class="font-semibold text-gray-900">
               Paul Bollerman
             </h3>
@@ -121,7 +121,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
 
     <section class="relative py-20 px-4 overflow-hidden">
       <ImageSlot
-        src="/images/home-cta-forest-path.jpg"
+        src="/images/home-cta-forest-path.webp"
         alt="Dirt path leading through a sunlit pine forest"
         class="absolute inset-0 w-full h-full object-cover"
       />

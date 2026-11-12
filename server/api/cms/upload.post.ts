@@ -12,19 +12,26 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'No file uploaded' })
   }
 
-  const client = serverSupabaseServiceRole(event)
-
-  const uploadFile = async (file: typeof files[number]) => {
-    if (!file.type?.startsWith('image/')) {
-      throw createError({ statusCode: 400, message: `${file.filename} is not an image` })
+  // Identify every file from its first bytes before uploading any, as the tree
+  // photo upload does. The browser's type and filename are client-controlled,
+  // and the bucket is public: trusting them would let anyone with an admin
+  // session host an SVG with a script in it, or any other file, here.
+  const checked = files.map((file) => {
+    const contentType = imageTypeOf(file.data)
+    if (!contentType) {
+      throw createError({ statusCode: 400, message: `${file.filename} is not a JPEG, PNG or WebP image` })
     }
     if (file.data.length > MAX_FILE_SIZE) {
       throw createError({ statusCode: 400, message: `${file.filename} exceeds the 5MB limit` })
     }
+    return { data: file.data, contentType }
+  })
 
-    const ext = file.filename!.includes('.') ? file.filename!.split('.').pop() : ''
-    const path = `${crypto.randomUUID()}${ext ? `.${ext}` : ''}`
-    const options = { contentType: file.type, cacheControl: '31536000' }
+  const client = serverSupabaseServiceRole(event)
+
+  const uploadFile = async (file: typeof checked[number]) => {
+    const path = `${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.contentType]}`
+    const options = { contentType: file.contentType, cacheControl: '31536000' }
 
     let { error } = await client.storage.from(BUCKET).upload(path, file.data, options)
 
@@ -35,6 +42,7 @@ export default defineEventHandler(async (event) => {
       const { error: bucketError } = await client.storage.createBucket(BUCKET, {
         public: true,
         fileSizeLimit: MAX_FILE_SIZE,
+        allowedMimeTypes: Object.keys(IMAGE_EXTENSIONS),
       })
       if (bucketError && !/already exists/i.test(bucketError.message)) {
         throw createError({ statusCode: 500, message: `Could not create storage bucket: ${bucketError.message}` })
@@ -49,7 +57,7 @@ export default defineEventHandler(async (event) => {
     return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
   }
 
-  const urls = await Promise.all(files.map(uploadFile))
+  const urls = await Promise.all(checked.map(uploadFile))
 
   // GrapesJS's default asset manager reads the uploaded asset URLs from `data`.
   return { data: urls }

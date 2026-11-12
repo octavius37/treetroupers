@@ -174,8 +174,10 @@ describe('logging a planted tree', () => {
     expect(asMemberCall.error?.code).toBe('42501')
   })
 
+  // The endpoint refuses it (400); trees_location_required_when_planted would
+  // refuse it again in the database.
   it('rejects a planted tree with no location', async () => {
-    await expect(logAs(authUser, { species_id: speciesId })).rejects.toMatchObject({ statusCode: 500 })
+    await expect(logAs(authUser, { species_id: speciesId })).rejects.toMatchObject({ statusCode: 400 })
 
     const { count } = await serviceClient
       .from('trees')
