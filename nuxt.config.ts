@@ -2,7 +2,6 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
-    '@bg-dev/nuxt-naiveui',
     '@nuxtjs/supabase',
     // Cookie-free page views, collected by Vercel. Turn on Web Analytics in the
     // Vercel project for data to arrive.

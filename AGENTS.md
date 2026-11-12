@@ -9,7 +9,7 @@ The long-term vision includes:
 - An interactive map of all community-planted trees (Leaflet + OpenStreetMap — done)
 - Mobile apps via Capacitor wrapping the same Nuxt codebase
 - AR overlay showing nearby planted trees on a phone camera
-- A headless CMS (Payload) for non-developer content management
+- Non-developer content management through the built-in CMS at `/cms` (done; see "Public pages are code")
 
 ## Tech Stack
 
@@ -17,10 +17,14 @@ The long-term vision includes:
 |-------|-----------|------|
 | Framework | **Nuxt 4.1** (Vue 3.5, file-based routing, SSR) | https://nuxt.com/docs |
 | Styling | **Tailwind CSS** via `@nuxtjs/tailwindcss` | https://tailwindcss.nuxt.dev |
-| UI Components | **Naive UI** via `@bg-dev/nuxt-naiveui` | https://www.naiveui.com |
 | Database + Auth | **Supabase** (Postgres, Auth, Storage, Realtime) via `@nuxtjs/supabase` | https://supabase.nuxtjs.org |
-| CMS | **Payload CMS 3** with `@payloadcms/db-postgres` | https://payloadcms.com/docs |
-| Validation | **Zod 4** | https://zod.dev |
+| CMS | Own admin pages at `/cms` on the Supabase `pages` table, with a **GrapesJS** page builder | https://grapesjs.com/docs |
+| Maps | **Leaflet** + OpenStreetMap tiles | https://leafletjs.com |
+
+Components are plain Vue + Tailwind; there is no component library. Request
+bodies are validated by hand in each endpoint. Naive UI and Zod used to be
+listed here but nothing used them, and Payload CMS was never installed; all
+three were removed in November 2026.
 
 ## Architecture
 
@@ -38,9 +42,9 @@ server/
   api/dashboard/   signed-in member endpoints (authUserId)
   api/cms/         admin endpoints (requireAdmin)
   api/public/      unauthenticated endpoints
-  api/payload/     Payload CMS REST endpoints (pages CRUD)
-  payload/         Collections (Pages, Users)
-  utils/           payload.ts — singleton Payload client getter
+  api/cron/        scheduled jobs (CRON_SECRET), run by Vercel Cron
+  routes/          robots.txt, sitemap.xml
+  utils/           shared helpers (requireViewer, rateLimit, email, photos, …)
 ```
 
 ## Supabase Schema
