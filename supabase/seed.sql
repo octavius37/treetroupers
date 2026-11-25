@@ -407,7 +407,7 @@ values
 insert into public.rewards (id, title, description, points_required, type, active)
 values
   ('00000000-0000-4000-f000-000000000001', 'Seedling Badge',
-   'Awarded for planting your first tree.', 50, 'badge', true),
+   'Awarded at 50 points.', 50, 'badge', true),
   ('00000000-0000-4000-f000-000000000002', 'Sapling Badge',
    'Awarded at 100 points.', 100, 'badge', true),
   ('00000000-0000-4000-f000-000000000003', 'Local Nursery Discount',
