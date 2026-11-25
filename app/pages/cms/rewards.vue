@@ -12,8 +12,17 @@ const form = reactive({
   title: '',
   description: '',
   points_required: 100,
+  // An achievement the badge also needs (BADGE_CRITERIA key), or '' for none.
+  criteria: '' as string,
+  criteria_count: 1,
   active: true,
 })
+
+// "5 species planted" for a reward that needs an achievement.
+function achievementText(reward: { criteria: string | null, criteria_count: number | null }) {
+  if (!reward.criteria || !isBadgeCriteria(reward.criteria)) { return '' }
+  return `${reward.criteria_count} ${BADGE_CRITERIA[reward.criteria]}`
+}
 
 async function loadRewards() {
   loading.value = true
@@ -26,6 +35,8 @@ function openCreate() {
   form.title = ''
   form.description = ''
   form.points_required = 100
+  form.criteria = ''
+  form.criteria_count = 1
   form.active = true
   showForm.value = true
   error.value = ''
@@ -36,6 +47,8 @@ function openEdit(reward: any) {
   form.title = reward.title
   form.description = reward.description || ''
   form.points_required = reward.points_required
+  form.criteria = reward.criteria ?? ''
+  form.criteria_count = reward.criteria_count ?? 1
   form.active = reward.active
   showForm.value = true
   error.value = ''
@@ -54,6 +67,8 @@ async function handleSave() {
     title: form.title,
     description: form.description || null,
     points_required: form.points_required,
+    criteria: form.criteria || null,
+    criteria_count: form.criteria ? form.criteria_count : null,
     active: form.active,
   }
   try {
@@ -217,6 +232,35 @@ onMounted(() => Promise.all([loadRewards(), loadClaims()]))
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
             >
           </div>
+          <div>
+            <label for="reward-criteria" class="block text-sm font-medium text-gray-700 mb-1">Also needs (badges only)</label>
+            <div class="flex gap-2">
+              <input
+                v-if="form.criteria"
+                v-model.number="form.criteria_count"
+                type="number"
+                min="1"
+                required
+                aria-label="How many"
+                class="w-24 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+              >
+              <select
+                id="reward-criteria"
+                v-model="form.criteria"
+                class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-white"
+              >
+                <option value="">
+                  Nothing else: points only
+                </option>
+                <option v-for="(label, key) in BADGE_CRITERIA" :key="key" :value="key">
+                  {{ label }}
+                </option>
+              </select>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              An achievement badge unlocks once a member has the points and the achievement. Set points to 0 for an achievement alone.
+            </p>
+          </div>
           <div class="flex items-center gap-3">
             <input
               id="reward-active"
@@ -287,6 +331,7 @@ onMounted(() => Promise.all([loadRewards(), loadClaims()]))
             </td>
             <td class="px-6 py-4">
               <span class="text-sm font-semibold text-green-600">{{ reward.points_required }}</span>
+              <span v-if="achievementText(reward)" class="block text-xs text-gray-500">+ {{ achievementText(reward) }}</span>
             </td>
             <td class="px-6 py-4">
               <button

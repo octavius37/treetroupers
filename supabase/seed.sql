@@ -411,7 +411,7 @@ values
   ('00000000-0000-4000-f000-000000000002', 'Sapling Badge',
    'Awarded at 100 points.', 100, 'badge', true),
   ('00000000-0000-4000-f000-000000000003', 'Local Nursery Discount',
-   '10% off at participating nurseries.', 250, 'discount', true),
+   '10% off at participating nurseries. Paused until there are partner discounts.', 250, 'discount', false),
   ('00000000-0000-4000-f000-000000000004', 'Retired Reward',
    'Inactive — should not appear in public listings.', 500, 'custom', false);
 

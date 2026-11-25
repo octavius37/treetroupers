@@ -544,6 +544,8 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          criteria: string | null
+          criteria_count: number | null
           description: string | null
           id: string
           points_required: number
@@ -553,6 +555,8 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          criteria?: string | null
+          criteria_count?: number | null
           description?: string | null
           id?: string
           points_required: number
@@ -562,6 +566,8 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          criteria?: string | null
+          criteria_count?: number | null
           description?: string | null
           id?: string
           points_required?: number
@@ -778,6 +784,7 @@ export type Database = {
         Args: { p_request_id: string; p_slug: string }
         Returns: string
       }
+      badge_progress: { Args: { p_profile_id: string }; Returns: Json }
       hit_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean

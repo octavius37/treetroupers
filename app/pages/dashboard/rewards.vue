@@ -9,6 +9,8 @@ interface Reward {
   pointsRequired: number
   type: string
   unlocked: boolean
+  // For an achievement badge: how far along the member is.
+  achievement: { current: number, target: number, label: string } | null
   claimable: boolean
   claim: 'pending' | 'fulfilled' | null
 }
@@ -51,10 +53,31 @@ async function claim(reward: Reward) {
   claiming.value = null
 }
 
+// An achievement badge shows its achievement; any other reward its points.
 function progress(reward: Reward) {
   if (!data.value) { return 0 }
-  return Math.min(100, Math.round((data.value.points / reward.pointsRequired) * 100))
+  const { current, target } = reward.achievement ?? { current: data.value.points, target: reward.pointsRequired }
+  return target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 100
 }
+
+function progressText(reward: Reward) {
+  const points = `${data.value?.points ?? 0} / ${reward.pointsRequired} points`
+  if (!reward.achievement) { return points }
+  const { current, target, label } = reward.achievement
+  // A one-off ("your first donation") reads better without "0 / 1 donations".
+  const done = target === 1 ? 'Not yet' : `${Math.min(current, target)} / ${target} ${label}`
+  return reward.pointsRequired > 0 ? `${done} · ${points}` : done
+}
+
+// Achievement badges first, then the points milestones and other rewards.
+const groups = computed(() => {
+  const rewards = data.value?.rewards ?? []
+  return [
+    // Unlocked first, then the closest to unlocking.
+    { title: 'Achievements', rewards: rewards.filter(r => r.achievement).toSorted((a, b) => Number(b.unlocked) - Number(a.unlocked) || progress(b) - progress(a)) },
+    { title: 'Points milestones and rewards', rewards: rewards.filter(r => !r.achievement) },
+  ].filter(g => g.rewards.length)
+})
 
 onMounted(load)
 </script>
@@ -91,57 +114,64 @@ onMounted(load)
       <div v-if="data.rewards.length === 0" class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
         No rewards yet. Check back soon!
       </div>
-      <ul v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <li
-          v-for="reward in data.rewards"
-          :key="reward.id"
-          class="bg-white rounded-2xl border p-5 flex flex-col"
-          :class="reward.unlocked ? 'border-green-300' : 'border-gray-200'"
-        >
-          <div class="flex items-start gap-3">
-            <span class="text-3xl" :class="reward.unlocked ? '' : 'grayscale opacity-50'" aria-hidden="true">
-              {{ reward.type === 'badge' ? '🏅' : '🎁' }}
-            </span>
-            <div class="flex-1">
-              <h2 class="font-semibold text-gray-900">
-                {{ reward.title }}
-              </h2>
-              <p v-if="reward.description" class="text-sm text-gray-600 mt-0.5">
-                {{ reward.description }}
-              </p>
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <template v-if="!reward.unlocked">
-              <div class="h-2 bg-gray-100 rounded-full overflow-hidden" role="progressbar" :aria-valuenow="progress(reward)" aria-valuemin="0" aria-valuemax="100">
-                <div class="h-full bg-green-500" :style="{ width: `${progress(reward)}%` }" />
-              </div>
-              <p class="text-xs text-gray-500 mt-1">
-                {{ data.points }} / {{ reward.pointsRequired }} points
-              </p>
-            </template>
-            <p v-else-if="!reward.claimable" class="text-sm font-medium text-green-700">
-              ✓ Unlocked
-            </p>
-            <p v-else-if="reward.claim === 'fulfilled'" class="text-sm font-medium text-green-700">
-              ✓ Sent to you
-            </p>
-            <p v-else-if="reward.claim === 'pending'" class="text-sm text-amber-700">
-              Claimed: we'll be in touch by email
-            </p>
-            <button
-              v-else
-              type="button"
-              :disabled="claiming === reward.id"
-              class="bg-green-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-              @click="claim(reward)"
+      <template v-else>
+        <section v-for="group in groups" :key="group.title" class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            {{ group.title }}
+          </h2>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <li
+              v-for="reward in group.rewards"
+              :key="reward.id"
+              class="bg-white rounded-2xl border p-5 flex flex-col"
+              :class="reward.unlocked ? 'border-green-300' : 'border-gray-200'"
             >
-              {{ claiming === reward.id ? 'Claiming...' : 'Claim reward' }}
-            </button>
-          </div>
-        </li>
-      </ul>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl" :class="reward.unlocked ? '' : 'grayscale opacity-50'" aria-hidden="true">
+                  {{ reward.type === 'badge' ? '🏅' : '🎁' }}
+                </span>
+                <div class="flex-1">
+                  <h2 class="font-semibold text-gray-900">
+                    {{ reward.title }}
+                  </h2>
+                  <p v-if="reward.description" class="text-sm text-gray-600 mt-0.5">
+                    {{ reward.description }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <template v-if="!reward.unlocked">
+                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden" role="progressbar" :aria-valuenow="progress(reward)" aria-valuemin="0" aria-valuemax="100">
+                    <div class="h-full bg-green-500" :style="{ width: `${progress(reward)}%` }" />
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {{ progressText(reward) }}
+                  </p>
+                </template>
+                <p v-else-if="!reward.claimable" class="text-sm font-medium text-green-700">
+                  ✓ Unlocked
+                </p>
+                <p v-else-if="reward.claim === 'fulfilled'" class="text-sm font-medium text-green-700">
+                  ✓ Sent to you
+                </p>
+                <p v-else-if="reward.claim === 'pending'" class="text-sm text-amber-700">
+                  Claimed: we'll be in touch by email
+                </p>
+                <button
+                  v-else
+                  type="button"
+                  :disabled="claiming === reward.id"
+                  class="bg-green-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                  @click="claim(reward)"
+                >
+                  {{ claiming === reward.id ? 'Claiming...' : 'Claim reward' }}
+                </button>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </template>
 
       <section class="mt-10">
         <h2 class="text-lg font-semibold text-gray-900 mb-3">

@@ -1,4 +1,5 @@
 import { beforeEach } from 'vitest'
+import * as badges from '../../server/utils/badges'
 import * as email from '../../server/utils/email'
 import * as feed from '../../server/utils/feed'
 import * as images from '../../server/utils/images'
@@ -20,7 +21,7 @@ installNitroGlobals()
 // requireViewer is real too: it goes through the stubbed authUserId and the
 // mocked client, so tests drive it the same way. enforceRateLimit goes through
 // the mocked client's rpc, which allows the request unless a test says otherwise.
-Object.assign(globalThis, co2, email, feed, images, photos, rank, rateLimit, slugify, text, viewer)
+Object.assign(globalThis, badges, co2, email, feed, images, photos, rank, rateLimit, slugify, text, viewer)
 
 beforeEach(() => {
   resetNitroGlobals()

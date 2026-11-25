@@ -869,6 +869,24 @@ auto-imports them; stub the ones that touch auth per test.
   check `profiles.total_points`, `profiles: own update` now pins it alongside
   `role` (`20261102125441_close_member_write_paths_to_points_and_trees.sql`);
   before that, a member could set their own points with one REST call.
+- **Achievement badges**: a badge can also need an achievement,
+  `rewards.criteria` (what is counted) and `rewards.criteria_count` (how many),
+  as well as `points_required`; it unlocks when the member has both. The
+  counts come live from `badge_progress(p_profile_id)`: approved planted trees,
+  trees by quantity, donations, earned logs, streak bonuses kept, current
+  suggestions, distinct species planted, communities founded and likes given.
+  Nothing is stored, so deleting what earned a badge takes it back.
+  `rewardStatus` (`server/utils/badges.ts`) decides, for `/dashboard/rewards`
+  and member profiles. The list of criteria is in three places, so change them
+  together: the check constraint and `badge_progress()` in
+  `20261125140000_achievement_badges_and_pause_discounts.sql`, and
+  `BADGE_CRITERIA` (`shared/utils/badgeCriteria.ts`, which also feeds the
+  "Also needs" select on `/cms/rewards`). The same migration added the points
+  badges Young Tree (250) to Ancient Forest (5,000) and nine achievement badges,
+  each only where no badge of that title existed.
+- **Partner discounts are paused** (`active = false` on every `discount`
+  reward) until there are real partners; switch them back on at `/cms/rewards`.
+  Rewards created on `/cms/rewards` are always badges (the column default).
 - **Analytics**: `@vercel/analytics/nuxt` (in `nuxt.config.ts` modules) adds
   Vercel Web Analytics: cookie-free page views, no consent banner needed. Data
   only arrives once Web Analytics is enabled in the Vercel project. The privacy
