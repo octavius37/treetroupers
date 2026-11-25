@@ -48,7 +48,7 @@ function isActive(path: string) {
       <!-- Desktop Sidebar -->
       <aside class="hidden lg:flex w-64 relative flex-col flex-shrink-0 overflow-hidden">
         <ImageSlot
-          src="/images/dashboard-sidebar-tree.jpg"
+          src="/images/dashboard-sidebar-tree.webp"
           alt="Leafy tree silhouetted against a sunset in a grassy field"
           class="absolute inset-0 w-full h-full object-cover"
         />

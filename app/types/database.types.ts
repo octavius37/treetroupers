@@ -476,6 +476,21 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_hits: {
+        Row: {
+          hit_at: string
+          key: string
+        }
+        Insert: {
+          hit_at?: string
+          key: string
+        }
+        Update: {
+          hit_at?: string
+          key?: string
+        }
+        Relationships: []
+      }
       reward_redemptions: {
         Row: {
           fulfilled_at: string | null
@@ -763,6 +778,10 @@ export type Database = {
         Args: { p_request_id: string; p_slug: string }
         Returns: string
       }
+      hit_rate_limit: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number }
+        Returns: boolean
+      }
       insert_tree: {
         Args: {
           p_community_id: string
@@ -806,6 +825,11 @@ export type Database = {
       leaderboard_points: {
         Args: { p_community_ids?: string[]; p_since?: string }
         Returns: Json
+      }
+      member_tree_map: { Args: { p_viewer: string }; Returns: Json }
+      orphaned_tree_photos: {
+        Args: { p_limit?: number; p_older_than_hours?: number }
+        Returns: string[]
       }
       public_tree_map: { Args: never; Returns: Json }
       tree_stats: {

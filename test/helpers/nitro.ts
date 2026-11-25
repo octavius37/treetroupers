@@ -3,7 +3,7 @@ import { createError, defineEventHandler } from 'h3'
 
 /**
  * Nitro auto-imports `defineEventHandler`, `createError`, `readBody`,
- * `readMultipartFormData`, `getRouterParam` and `getQuery` into every server file, so those
+ * `readMultipartFormData`, `getRouterParam`, `getQuery`, `getHeader` and `getRequestIP` into every server file, so those
  * bare identifiers resolve to globals at runtime and are simply missing under
  * plain Vitest.
  *
@@ -16,6 +16,8 @@ let requestBody: unknown = {}
 let multipartParts: MultiPartData[] | undefined
 let routerParams: Record<string, string | undefined> = {}
 let query: Record<string, unknown> = {}
+let headers: Record<string, string | undefined> = {}
+let requestIP: string | undefined
 
 /** The body the next `readBody(event)` call will resolve to. */
 export function setRequestBody(body: unknown) {
@@ -37,11 +39,23 @@ export function setQuery(params: Record<string, unknown>) {
   query = params
 }
 
+/** The request headers `getHeader(event, name)` will read (lower-case names). */
+export function setHeaders(values: Record<string, string | undefined>) {
+  headers = values
+}
+
+/** The client IP `getRequestIP(event)` will return. */
+export function setRequestIP(ip: string | undefined) {
+  requestIP = ip
+}
+
 export function resetNitroGlobals() {
   requestBody = {}
   multipartParts = undefined
   routerParams = {}
   query = {}
+  headers = {}
+  requestIP = undefined
 }
 
 export function installNitroGlobals() {
@@ -52,6 +66,8 @@ export function installNitroGlobals() {
     readMultipartFormData: async () => multipartParts,
     getRouterParam: (_event: H3Event, name: string) => routerParams[name],
     getQuery: () => query,
+    getHeader: (_event: H3Event, name: string) => headers[name.toLowerCase()],
+    getRequestIP: () => requestIP,
     useRuntimeConfig: () => ({ public: { siteUrl: 'http://localhost:3000' } }),
   })
 }

@@ -15,7 +15,7 @@ const route = useRoute()
     </div>
     <section class="relative h-[400px] overflow-hidden">
       <ImageSlot
-        src="/images/home-hero-tree-sunset.jpg"
+        src="/images/home-hero-tree-sunset.webp"
         alt="Silhouette of a large tree against a vivid sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -74,7 +74,7 @@ const route = useRoute()
             </ol>
           </div>
           <ImageSlot
-            src="/images/home-mission-seedling.jpg"
+            src="/images/home-mission-seedling.webp"
             alt="Cupped hands holding soil with a small seedling"
             class="rounded-lg w-full h-80 object-cover"
           />
@@ -89,7 +89,7 @@ const route = useRoute()
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="text-center p-8">
-            <ImageSlot src="/images/home-how-community.jpg" alt="River winding through a valley at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
+            <ImageSlot src="/images/home-how-community.webp" alt="River winding through a valley at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Join a Community
             </h3>
@@ -98,7 +98,7 @@ const route = useRoute()
             </p>
           </div>
           <div class="text-center p-8">
-            <ImageSlot src="/images/home-how-plant-log.jpg" alt="Mountain peak framed by pine trees" class="h-40 w-full rounded-lg object-cover mb-4" />
+            <ImageSlot src="/images/home-how-plant-log.webp" alt="Mountain peak framed by pine trees" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Plant &amp; Log Trees
             </h3>
@@ -107,7 +107,7 @@ const route = useRoute()
             </p>
           </div>
           <div class="text-center p-8">
-            <ImageSlot src="/images/home-how-celebrate.jpg" alt="Bird perched atop a tree at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
+            <ImageSlot src="/images/home-how-celebrate.webp" alt="Bird perched atop a tree at sunset" class="h-40 w-full rounded-lg object-cover mb-4" />
             <h3 class="text-xl font-semibold text-gray-900 mb-3">
               Earn &amp; Celebrate
             </h3>
@@ -121,7 +121,7 @@ const route = useRoute()
 
     <section class="relative h-64 overflow-hidden">
       <ImageSlot
-        src="/images/home-band-cliff-pine.jpg"
+        src="/images/home-band-cliff-pine.webp"
         alt="Lone pine tree growing from a cliff edge at sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -140,7 +140,7 @@ const route = useRoute()
 
     <section class="relative py-20 px-4 overflow-hidden">
       <ImageSlot
-        src="/images/home-cta-forest-path.jpg"
+        src="/images/home-cta-forest-path.webp"
         alt="Dirt path leading through a sunlit pine forest"
         class="absolute inset-0 w-full h-full object-cover"
       />

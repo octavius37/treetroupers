@@ -9,7 +9,7 @@ useSeoMeta({ description: 'Trusted organisations planting trees around the world
   <div>
     <section class="relative py-16 px-4 overflow-hidden">
       <ImageSlot
-        src="/images/global-orgs-hero-bathtub.jpg"
+        src="/images/global-orgs-hero-bathtub.webp"
         alt="Vintage bathtub repurposed as a planter, overflowing with tulips and daffodils"
         class="absolute inset-0 w-full h-full object-cover"
       />

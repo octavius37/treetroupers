@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
   const postId = getRouterParam(event, 'id')
   if (!postId) { throw createError({ statusCode: 400, message: 'Missing post id' }) }
 
+  await enforceRateLimit(event, 'like', uid)
   const client = serverSupabaseServiceRole(event)
 
   const { data: profile, error: profileError } = await client

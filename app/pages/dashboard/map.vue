@@ -2,32 +2,49 @@
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 useHead({ title: 'Tree map' })
 
-const supabase = useSupabaseClient()
-const trees = ref<any[]>([])
+interface MapTree {
+  id: string
+  source: string
+  quantity: number
+  status: string
+  reviewStatus: string
+  plantedAt: string
+  lat: number | null
+  lng: number | null
+  species: string | null
+  plantedById: string | null
+  plantedBy: string
+  photoUrl: string | null
+  isMine: boolean
+}
+
+const trees = ref<MapTree[]>([])
 const loading = ref(true)
 const focus = ref<{ lat: number, lng: number } | null>(null)
+
+// The shape treeLogLabel reads.
+function label(t: MapTree) {
+  return treeLogLabel({ source: t.source, quantity: t.quantity, tree_species: t.species ? { common_name: t.species } : null })
+}
 
 // Donated and earned trees have no location, so only planted ones go on the map.
 const mappedTrees = computed(() => trees.value
   .filter(t => t.lat != null && t.lng != null)
   .map(t => ({
-    id: t.id as string,
+    id: t.id,
     lat: Number(t.lat),
     lng: Number(t.lng),
-    species: t.tree_species?.common_name || 'Unknown species',
-    plantedBy: t.profiles?.display_name || 'Unknown',
-    plantedAt: t.planted_at as string,
-    status: t.status as string,
+    species: t.species || 'Unknown species',
+    plantedBy: t.plantedBy,
+    plantedAt: t.plantedAt,
+    status: t.status,
+    photoUrl: t.photoUrl,
   })))
 
 onMounted(async () => {
-  const { data } = await supabase
-    .from('trees')
-    .select('*, tree_species(common_name), profiles!planted_by(display_name)')
-    // Pending trees show while they wait for review; rejected ones don't.
-    .neq('review_status', 'rejected')
-    .order('planted_at', { ascending: false })
-  trees.value = data || []
+  // Pending trees show while they wait for review; rejected ones don't. Photos
+  // follow the privacy rules, applied by the endpoint.
+  trees.value = await $fetch<MapTree[]>('/api/dashboard/tree-map').catch(() => [])
   loading.value = false
 })
 </script>
@@ -78,18 +95,23 @@ onMounted(async () => {
         No trees have been planted yet.
       </div>
       <div v-else class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-        <div v-for="tree in trees" :key="tree.id" class="px-6 py-4 flex items-center justify-between">
+        <div v-for="tree in trees" :key="tree.id" class="px-6 py-4 flex items-center gap-4">
+          <img v-if="tree.photoUrl" :src="tree.photoUrl" alt="" loading="lazy" class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0">
+          <div v-else class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-xl flex-shrink-0" aria-hidden="true">
+            🌳
+          </div>
           <button
             type="button"
-            class="text-left disabled:cursor-default"
+            class="text-left disabled:cursor-default min-w-0 flex-1"
             :disabled="tree.lat == null || tree.lng == null"
             @click="focus = { lat: Number(tree.lat), lng: Number(tree.lng) }"
           >
             <div class="font-medium text-gray-900">
-              {{ treeLogLabel(tree) }}
+              {{ label(tree) }}
             </div>
             <div class="text-sm text-gray-500">
-              {{ tree.source === 'planted' ? 'Planted' : 'Logged' }} by {{ tree.profiles?.display_name || 'Unknown' }} · {{ new Date(tree.planted_at).toLocaleDateString() }}
+              {{ tree.source === 'planted' ? 'Planted' : 'Logged' }} by {{ tree.isMine ? 'you' : tree.plantedBy }} · {{ new Date(tree.plantedAt).toLocaleDateString() }}
+              <span v-if="tree.reviewStatus === 'pending'" class="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending review</span>
             </div>
             <div v-if="tree.lat != null && tree.lng != null" class="text-xs text-gray-400 mt-1">
               📍 {{ Number(tree.lat).toFixed(4) }}, {{ Number(tree.lng).toFixed(4) }}

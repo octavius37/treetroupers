@@ -183,4 +183,42 @@ describe('POST /api/dashboard/trees', () => {
 
     expect(supabase.callFor('trees').payload).not.toHaveProperty('review_status')
   })
+
+  it.each([
+    ['a quantity over the sanity limit', { source: 'donated', quantity: '10001' }],
+    ['a zero quantity', { source: 'earned', quantity: '0' }],
+    ['notes over 2000 characters', { notes: 'x'.repeat(2001) }],
+    ['notes that aren\'t text', { notes: { html: '<b>' } }],
+    ['a project name over 200 characters', { source: 'donated', donation_project: 'x'.repeat(201) }],
+    ['a date in the future', { planted_at: '2999-01-01' }],
+    ['a date that isn\'t one', { planted_at: 'yesterday-ish' }],
+    ['a planted tree without a location', { lat: undefined, lng: undefined }],
+    ['a location off the globe', { lat: 91, lng: 4.9 }],
+    ['a location that isn\'t a number', { lat: '52) ; drop', lng: 4.9 }],
+  ])('throws 400 for %s, before touching the database', async (_case, change) => {
+    setRequestBody({ ...VALID_BODY, ...change })
+    const supabase = withTables()
+
+    const error = await captureError(() => handler(createTestEvent()))
+
+    expect(error.statusCode).toBe(400)
+    expect(supabase.calls).toHaveLength(0)
+  })
+
+  it('accepts a large donation within the limit, trims notes and builds the location from numbers', async () => {
+    setRequestBody({ ...VALID_BODY, source: 'donated', quantity: '10000', notes: '  For the forest  ', lat: undefined, lng: undefined })
+    const supabase = withTables()
+
+    await handler(createTestEvent())
+
+    expect(supabase.callFor('trees').payload).toMatchObject({ quantity: 10000, notes: 'For the forest', location: null })
+  })
+
+  it('stores a planted tree\'s location as a point', async () => {
+    const supabase = withTables()
+
+    await handler(createTestEvent())
+
+    expect(supabase.callFor('trees').payload).toMatchObject({ location: 'SRID=4326;POINT(4.9041 52.3676)' })
+  })
 })

@@ -44,6 +44,7 @@ function relative(path: string) {
 
 const cmsHandlers = await handlersUnder('cms')
 const dashboardHandlers = await handlersUnder('dashboard')
+const cronHandlers = await handlersUnder('cron')
 
 describe('server/api/cms/** authorization', () => {
   it('finds handlers to check, so this suite cannot silently pass on an empty list', () => {
@@ -86,6 +87,25 @@ describe('server/api/dashboard/** authorization', () => {
       // identity even though they don't need admin.
       // requireViewer (server/utils/viewer.ts) wraps authUserId.
       expect(await read(path)).toMatch(/\bawait\s+(authUserId|requireAdmin|requireViewer)\s*\(/)
+    },
+  )
+})
+
+// Cron jobs run without a user, so their guard is the CRON_SECRET Vercel sends.
+describe('server/api/cron/** authorization', () => {
+  it('finds the cron handlers', () => {
+    expect(cronHandlers.length).toBeGreaterThan(0)
+  })
+
+  it.each(cronHandlers.map(path => [relative(path), path] as const))(
+    '%s checks CRON_SECRET before its first query',
+    async (_name, path) => {
+      const source = await read(path)
+      const check = source.indexOf('process.env.CRON_SECRET')
+      expect(check).toBeGreaterThan(-1)
+      const firstQuery = Math.min(...['.from(', '.rpc(', '.storage'].map(q => source.indexOf(q)).filter(i => i >= 0))
+      expect(check).toBeLessThan(firstQuery)
+      expect(source).toMatch(/`Bearer \$\{secret\}`/)
     },
   )
 })

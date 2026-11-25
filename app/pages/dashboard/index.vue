@@ -56,13 +56,8 @@ onMounted(async () => {
       communities: communitiesRes.count || 0,
     }
 
-    const { data: treesData } = await supabase
-      .from('trees')
-      .select('*, tree_species(common_name)')
-      .eq('planted_by', profileData.id)
-      .order('planted_at', { ascending: false })
-      .limit(5)
-    recentTrees.value = treesData || []
+    // Through the endpoint: photos aren't readable over the REST API.
+    recentTrees.value = await $fetch('/api/dashboard/trees', { query: { limit: 5 } }).catch(() => [])
   }
 
   loading.value = false
@@ -218,8 +213,12 @@ onMounted(async () => {
         </NuxtLink>
       </div>
       <div v-else class="divide-y divide-gray-100">
-        <NuxtLink v-for="tree in recentTrees" :key="tree.id" :to="`/dashboard/trees/${tree.id}`" class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-          <div>
+        <NuxtLink v-for="tree in recentTrees" :key="tree.id" :to="`/dashboard/trees/${tree.id}`" class="px-6 py-4 flex items-center gap-4 hover:bg-gray-50">
+          <img v-if="tree.photoUrl" :src="tree.photoUrl" alt="" loading="lazy" class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0">
+          <div v-else class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-xl flex-shrink-0" aria-hidden="true">
+            🌳
+          </div>
+          <div class="min-w-0 flex-1">
             <div class="font-medium text-gray-900">
               {{ treeLogLabel(tree) }}
             </div>

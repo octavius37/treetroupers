@@ -33,7 +33,7 @@ function getPublicUrl(path: string) {
  * resolves to the next queued result, so a test can make the first upload hit a
  * missing bucket and the retry succeed.
  */
-function withStorage(uploadResults: Array<{ message: string } | null> = [null]) {
+function withStorage(uploadResults: Array<{ message: string } | null> = [null], { rateLimited = false } = {}) {
   const uploads: Array<{ bucket: string, path: string, options: unknown }> = []
   const results = [...uploadResults]
 
@@ -46,9 +46,11 @@ function withStorage(uploadResults: Array<{ message: string } | null> = [null]) 
   })
   const createBucket = vi.fn(async (id: string) => ({ data: { name: id }, error: null }))
 
-  const client = { storage: { from: () => ({ upload, getPublicUrl }), createBucket } }
+  // hit_rate_limit: true while the caller is under the limit.
+  const rpc = vi.fn(async () => ({ data: !rateLimited, error: null }))
+  const client = { storage: { from: () => ({ upload, getPublicUrl }), createBucket }, rpc }
   vi.mocked(serverSupabaseServiceRole).mockReturnValue(client)
-  return { uploads, createBucket }
+  return { uploads, createBucket, rpc }
 }
 
 describe('POST /api/dashboard/tree-photo', () => {
@@ -170,5 +172,22 @@ describe('POST /api/dashboard/tree-photo', () => {
 
     expect(error.statusCode).toBe(500)
     expect(storage.createBucket).not.toHaveBeenCalled()
+  })
+
+  it('counts the upload against the caller\'s rate limit', async () => {
+    const storage = withStorage()
+
+    await handler(createTestEvent())
+
+    expect(storage.rpc).toHaveBeenCalledWith('hit_rate_limit', { p_key: 'tree-photo:auth-user-1', p_limit: 30, p_window_seconds: 3600 })
+  })
+
+  it('throws 429 without storing anything once the rate limit is reached', async () => {
+    const storage = withStorage([null], { rateLimited: true })
+
+    const error = await captureError(() => handler(createTestEvent()))
+
+    expect(error.statusCode).toBe(429)
+    expect(storage.uploads).toHaveLength(0)
   })
 })

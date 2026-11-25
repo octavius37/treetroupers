@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: `${file.filename} exceeds the 4MB limit` })
   }
 
+  await enforceRateLimit(event, 'tree-photo', uid)
   const client = serverSupabaseServiceRole(event)
 
   const path = `${uid}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[contentType]}`

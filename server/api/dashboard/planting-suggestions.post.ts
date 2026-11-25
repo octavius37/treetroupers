@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const notes = typeof body.notes === 'string' ? body.notes.trim().slice(0, 500) : ''
 
+  await enforceRateLimit(event, 'suggestion', uid)
   const client = serverSupabaseServiceRole(event)
 
   const { data: profile, error: profileError } = await client

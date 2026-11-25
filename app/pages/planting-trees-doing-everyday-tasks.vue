@@ -54,7 +54,7 @@ const services = [
   <div>
     <section class="relative py-16 px-4 overflow-hidden">
       <ImageSlot
-        src="/images/everyday-tasks-hero-sunset.jpg"
+        src="/images/everyday-tasks-hero-sunset.webp"
         alt="Lone crooked tree silhouetted against a pink and orange sunset"
         class="absolute inset-0 w-full h-full object-cover"
       />

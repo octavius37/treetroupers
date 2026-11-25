@@ -4,7 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 interface Point { lat: number, lng: number }
-interface MappedTree extends Point { id: string, species: string, plantedBy?: string, plantedAt: string, status: string }
+interface MappedTree extends Point { id: string, species: string, plantedBy?: string, plantedAt: string, status: string, photoUrl?: string | null }
 
 // `publicView` is the signed-out visitor map: no planter names, and no links
 // into the dashboard.
@@ -29,6 +29,14 @@ let treeLayer: LayerGroup | null = null
 // inject markup into the popup.
 function popupFor(t: MappedTree) {
   const el = document.createElement('div')
+  if (t.photoUrl && !props.publicView) {
+    const img = document.createElement('img')
+    img.src = t.photoUrl
+    img.alt = ''
+    img.loading = 'lazy'
+    img.className = 'w-48 h-32 object-cover rounded-md mb-2'
+    el.append(img)
+  }
   const title = document.createElement('div')
   title.className = 'font-medium text-gray-900'
   title.textContent = t.species
