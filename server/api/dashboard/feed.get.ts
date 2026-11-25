@@ -58,7 +58,7 @@ function toPost(row: PostRow, viewer: Viewer) {
     communityName: row.communities?.name ?? null,
     author: {
       id: row.author_id,
-      name: row.profiles?.display_name || 'A Tree Trouper',
+      name: row.profiles?.display_name || 'A tree trouper',
       avatarUrl: row.profiles?.avatar_url ?? null,
     },
     tree: row.trees
@@ -82,7 +82,7 @@ function toPost(row: PostRow, viewer: Viewer) {
     likedByMe: likes.some(like => like.profile_id === viewerId),
     likers: likes
       .filter(like => like.profile_id !== viewerId)
-      .map(like => like.profiles?.display_name || 'A Tree Trouper'),
+      .map(like => like.profiles?.display_name || 'A tree trouper'),
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'Privacy policy' })
-useSeoMeta({ description: 'What Tree Troupe collects about you, why, who we share it with, and your rights.' })
+useSeoMeta({ description: 'What tree troupe collects about you, why, who we share it with, and your rights.' })
 
 // Bump this when the policy changes; it is shown at the top of the page.
 const UPDATED = '12 November 2026'
@@ -17,7 +17,7 @@ const UPDATED = '12 November 2026'
     </p>
 
     <p class="mb-6">
-      Tree Troupe is run by a group of volunteers based in The Hague, the Netherlands. It isn't a company or a
+      tree troupe is run by a group of volunteers based in The Hague, the Netherlands. It isn't a company or a
       registered organisation. The volunteers who run it are responsible for your data (under the GDPR, the
       "controller") and can be reached at
       <a href="mailto:treetroupe@protonmail.com" class="text-green-700 underline">treetroupe@protonmail.com</a>.

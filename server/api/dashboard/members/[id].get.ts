@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     id: member.id,
-    name: member.display_name || 'A Tree Trouper',
+    name: member.display_name || 'A tree trouper',
     avatarUrl: member.avatar_url,
     bio: member.bio,
     points: member.total_points ?? 0,

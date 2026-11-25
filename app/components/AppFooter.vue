@@ -5,7 +5,7 @@
         <!-- Brand -->
         <div class="md:col-span-1">
           <div class="flex items-center gap-2 mb-4">
-            <img src="/images/logo-icon.png" alt="Tree Troupe logo" class="h-8 w-auto">
+            <img src="/images/logo-icon.png" alt="tree troupe logo" class="h-8 w-auto">
             <span class="text-sm font-medium tracking-wide">tree troupe</span>
           </div>
           <p class="text-gray-400 text-sm leading-relaxed">
@@ -50,7 +50,7 @@
           <ul class="space-y-2">
             <li>
               <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white text-sm transition-colors">
-                My Tree Troupe
+                My tree troupe
               </NuxtLink>
             </li>
             <li>
@@ -95,7 +95,7 @@
             Location
           </h3>
           <p class="text-gray-400 text-sm leading-relaxed">
-            The Tree Troupe team is based in The Hague, the Netherlands
+            The tree troupe team is based in The Hague, the Netherlands
           </p>
         </div>
         <div>
@@ -148,7 +148,7 @@
       </div>
 
       <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
-        <span>&copy; {{ new Date().getFullYear() }} Tree Troupe. All rights reserved.</span>
+        <span>&copy; {{ new Date().getFullYear() }} tree troupe. All rights reserved.</span>
         <span class="flex gap-5">
           <NuxtLink to="/privacy" class="hover:text-white transition-colors">Privacy policy</NuxtLink>
           <NuxtLink to="/terms" class="hover:text-white transition-colors">Terms of use</NuxtLink>

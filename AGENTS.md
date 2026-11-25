@@ -119,6 +119,9 @@ version, so re-check auth and SSR afterwards.
   rule applies when a password is set. After changing `[auth]` settings in
   `config.toml`, run `supabase stop` then `supabase start`: a plain `start`
   reuses the running auth container and keeps the old settings.
+- **The name is "tree troupe", lowercase, everywhere**, including page titles
+  (`titleTemplate: '%s · tree troupe'`), emails, legal pages and the start of a
+  sentence; a member without a display name is "A tree trouper".
 - **Styling**: Tailwind utility classes. Primary colour is `green-600`. Design is clean/white with rounded elements and green accents, matching the original Squarespace site aesthetic.
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
@@ -788,10 +791,19 @@ the map (list and popups), the feed's activity posts and `/cms/trees`.
   (`onboarding@resend.dev`, also used by the contact form) only delivers to the
   Resend account owner. Links in emails use `runtimeConfig.public.siteUrl`.
 - **CO₂** is estimated by `co2KgPerYear` (`shared/utils/co2.ts`, auto-imported
-  in app and server) from each approved planted tree's species
-  `avg_co2_kg_per_year`. Donated and earned trees have no species, so they don't
-  count. It shows on the dashboard, the community banner and the tree page,
-  formatted by `formatCo2`.
+  in app and server) for **every** approved tree, planted, donated or earned,
+  times its `quantity`: at the species' `avg_co2_kg_per_year`, or at
+  `DEFAULT_CO2_KG_PER_YEAR` (22 kg, a typical mature tree, close to the
+  species table's mean) when the species isn't known. Donated and earned logs
+  may name a species ("Kind of tree" on their forms) for this, and
+  `treeLogLabel` adds it ("Donated 3 trees (Silver Birch)"). The `tree_stats` SQL
+  function applies the same rule, with the 22 written into it
+  (`20261125120000_co2_for_all_trees_and_lowercase_name.sql`), so change both
+  together. It shows on the dashboard, member profiles, the community banner,
+  `/map` and the tree page, formatted by `formatCo2`.
+- **Updates are for planted trees only.** A donated or earned tree was planted
+  by someone else, so the tree page hides the Updates section for them and
+  `POST …/updates` refuses them (400).
 
 Server helpers worth reusing: `requireViewer(event)` (`server/utils/viewer.ts`)
 returns the caller's profile or throws 401/404, and `isOwnPhotoUrl` /

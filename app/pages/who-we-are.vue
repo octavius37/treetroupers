@@ -2,7 +2,7 @@
 definePageMeta({ layout: 'default' })
 
 useHead({ title: 'Who We Are' })
-useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and why we started a community for tree planters.' })
+useSeoMeta({ description: 'Meet the tree troupe team, based in The Hague, and why we started a community for tree planters.' })
 </script>
 
 <template>
@@ -24,7 +24,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
     <section class="py-16 px-4">
       <div class="max-w-3xl mx-auto">
         <p class="text-xl text-gray-600 leading-relaxed mb-10">
-          Tree Troupe was born from a simple idea: that planting trees together is one of the most powerful things a community can do for the planet — and for each other.
+          tree troupe was born from a simple idea: that planting trees together is one of the most powerful things a community can do for the planet — and for each other.
         </p>
 
         <div class="grid md:grid-cols-2 gap-10 items-center mb-12">
@@ -36,7 +36,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
               We started as a small group of neighbours who wanted to do something tangible about climate change. We quickly realised that the act of planting trees together created something beyond environmental impact — it built real community connections.
             </p>
             <p class="text-gray-600 leading-relaxed">
-              Today, Tree Troupe is a growing platform that helps communities around the world coordinate tree planting, track their impact, and celebrate their collective progress.
+              Today, tree troupe is a growing platform that helps communities around the world coordinate tree planting, track their impact, and celebrate their collective progress.
             </p>
           </div>
           <ImageSlot
@@ -131,7 +131,7 @@ useSeoMeta({ description: 'Meet the Tree Troupe team, based in The Hague, and wh
           Ready to make a difference?
         </h2>
         <p class="text-green-100 text-lg mb-8">
-          Join Tree Troupe and start planting trees with your local community today.
+          Join tree troupe and start planting trees with your local community today.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <NuxtLink to="/register" class="bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">

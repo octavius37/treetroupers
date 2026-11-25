@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-useHead({ title: 'Tree Troupe — plant trees together', titleTemplate: '%s' })
+useHead({ title: 'tree troupe — plant trees together', titleTemplate: '%s' })
 useSeoMeta({ description: 'Join a local tree troupe, log the trees you plant, donate or earn, and see your community\'s impact grow on the map.' })
 
 const user = useSupabaseUser()
@@ -41,7 +41,7 @@ const route = useRoute()
           Our Mission
         </h2>
         <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed text-center mb-12">
-          Tree Troupe connects communities around the world to plant, track, and celebrate trees together. We believe that collective action starts locally — one tree, one neighbourhood, one community at a time.
+          tree troupe connects communities around the world to plant, track, and celebrate trees together. We believe that collective action starts locally — one tree, one neighbourhood, one community at a time.
         </p>
         <h3 class="text-xl font-semibold text-gray-900 mb-3">
           The Climate Emergency
@@ -58,10 +58,10 @@ const route = useRoute()
               Many people do not just worry about climate change — they feel a sense of helplessness about their ability to change the status quo. A substantial proportion of people believe governments are failing to respond adequately, but also that they are personally doing too little to address climate change.
             </p>
             <p class="text-gray-600 leading-relaxed mb-4">
-              Enter Tree Troupe.
+              Enter tree troupe.
             </p>
             <p class="text-gray-600 leading-relaxed mb-4">
-              Tree Troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. Tree Troupers harness collective helplessness to drive climate ambition. Tree Troupe is founded on three key tenets:
+              tree troupe allows individuals to maximize and collate scaleable personal actions that can meaningfully influence the trajectory of the climate crisis. tree troupers harness collective helplessness to drive climate ambition. tree troupe is founded on three key tenets:
             </p>
             <!-- list-decimal and my-4 are added here: the source CMS markup relied
                  on the .tt-page-content stylesheet for its numbering and vertical
@@ -69,7 +69,7 @@ const route = useRoute()
                  space-y-2 still wins margin-top on items 2 and 3. -->
             <ol class="space-y-2 pl-6 text-gray-600 list-decimal my-4">
               <li>Planting trees is one of the easiest, most effective ways to combat climate change;</li>
-              <li>Tree planting on a mass scale could be a game-changer for our planet's health</li>
+              <li>Tree planting on a mass scale could be a game-changer for our planet's health;</li>
               <li>Tree-planting is something anyone can do - individually, collectively or globally.</li>
             </ol>
           </div>
@@ -150,7 +150,7 @@ const route = useRoute()
           Ready to make a difference?
         </h2>
         <p class="text-green-100 text-lg mb-8">
-          Join Tree Troupe and start planting trees with your local community today.
+          Join tree troupe and start planting trees with your local community today.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <NuxtLink to="/register" class="bg-white text-green-700 px-8 py-3 rounded-full font-medium hover:bg-green-50 transition-colors">

@@ -71,7 +71,7 @@ where u.email in ('admin@example.com', 'member@example.com');
 update public.profiles
 set id = '00000000-0000-4000-b000-000000000001',
     display_name = 'Ada Admin',
-    bio = 'Maintains the Tree Troupers platform.',
+    bio = 'Maintains the tree troupers platform.',
     role = 'admin'
 where auth_user_id = '00000000-0000-4000-a000-000000000001';
 
@@ -426,7 +426,7 @@ values
 insert into public.pages (id, title, slug, content, status, nav_order, show_in_nav, parent_id)
 values
   ('00000000-0000-4000-0a00-000000000001', 'About', 'about',
-   '<h1>About Tree Troupers</h1><p>We help neighbours plant and track trees together.</p>',
+   '<h1>About tree troupers</h1><p>We help neighbours plant and track trees together.</p>',
    'published', 1, true, null),
   ('00000000-0000-4000-0a00-000000000002', 'Our Mission', 'our-mission',
    '<h1>Our Mission</h1><p>A million community-planted trees.</p>',

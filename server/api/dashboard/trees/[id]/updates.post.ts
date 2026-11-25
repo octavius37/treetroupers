@@ -2,8 +2,9 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 
 const MAX_LENGTH = 2000
 
-// The planter posts an update on their own tree ("first leaves are out"), with
-// an optional photo. Earns no points.
+// The planter posts an update on their own planted tree ("first leaves are
+// out"), with an optional photo. Earns no points. Donated and earned trees were
+// planted by someone else, somewhere else, so there is nothing to update.
 export default defineEventHandler(async (event) => {
   const { uid, profile } = await requireViewer(event)
 
@@ -18,12 +19,13 @@ export default defineEventHandler(async (event) => {
   const client = serverSupabaseServiceRole(event)
 
   if (body.photo_url && !isOwnPhotoUrl(client, uid, body.photo_url)) {
-    throw createError({ statusCode: 400, message: 'The photo must be uploaded through Tree Troupe' })
+    throw createError({ statusCode: 400, message: 'The photo must be uploaded through tree troupe' })
   }
 
   await enforceRateLimit(event, 'tree-update', uid)
-  const { data: tree } = await client.from('trees').select('id, planted_by').eq('id', id).maybeSingle()
+  const { data: tree } = await client.from('trees').select('id, planted_by, source').eq('id', id).maybeSingle()
   if (!tree || tree.planted_by !== profile.id) { throw createError({ statusCode: 404, message: 'Tree not found' }) }
+  if (tree.source !== 'planted') { throw createError({ statusCode: 400, message: 'Only planted trees have updates' }) }
 
   const { data, error } = await client
     .from('tree_updates')

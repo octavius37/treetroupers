@@ -6,6 +6,7 @@ describe('treeLogLabel', () => {
     [{ source: 'donated', quantity: 1 }, 'Donated 1 tree'],
     [{ source: 'donated', quantity: 10 }, 'Donated 10 trees'],
     [{ source: 'earned', quantity: 3 }, 'Earned 3 trees'],
+    [{ source: 'donated', quantity: 5, tree_species: { common_name: 'Silver Birch' } }, 'Donated 5 trees (Silver Birch)'],
     [{ source: 'planted', quantity: 1, tree_species: { common_name: 'English Oak' } }, 'English Oak'],
     [{ source: 'planted', quantity: 1, tree_species: null }, 'Unknown species'],
   ])('labels %o as %s', (tree, label) => {

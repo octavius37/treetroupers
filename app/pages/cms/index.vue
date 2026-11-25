@@ -19,7 +19,7 @@ const { data: stats, status } = useFetch<{
         CMS Overview
       </h1>
       <p class="text-gray-600 mt-1">
-        Manage your Tree Troupe content and data.
+        Manage your tree troupe content and data.
       </p>
     </div>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'Sign in' })
-useSeoMeta({ description: 'Sign in to your Tree Troupe account.' })
+useSeoMeta({ description: 'Sign in to your tree troupe account.' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -58,7 +58,7 @@ async function resendConfirmation() {
           Welcome back
         </h1>
         <p class="text-gray-600 mt-2">
-          Sign in to your Tree Troupe account
+          Sign in to your tree troupe account
         </p>
       </div>
 

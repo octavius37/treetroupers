@@ -71,7 +71,7 @@ onMounted(async () => {
         Welcome back{{ profile?.display_name ? `, ${profile.display_name}` : '' }}
       </h1>
       <p class="text-gray-600 mt-1">
-        Here's an overview of your Tree Troupe activity.
+        Here's an overview of your tree troupe activity.
       </p>
     </div>
 

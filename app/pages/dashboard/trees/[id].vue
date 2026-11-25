@@ -117,6 +117,17 @@ async function postUpdate() {
   posting.value = false
 }
 
+// Every log counts towards CO₂: at its species' figure or, when unknown, at an
+// average tree's (DEFAULT_CO2_KG_PER_YEAR in shared/utils/co2.ts).
+const co2 = computed(() => {
+  const perTree = co2PerTreeKg(tree.value?.species ? { avg_co2_kg_per_year: tree.value.species.co2KgPerYear } : null)
+  return {
+    perTree,
+    total: perTree * (tree.value?.quantity ?? 1),
+    speciesKnown: tree.value?.species?.co2KgPerYear != null,
+  }
+})
+
 const sourceLine = computed(() => {
   const t = tree.value
   if (!t) { return '' }
@@ -227,12 +238,16 @@ onMounted(load)
                 </a>
               </dd>
             </div>
-            <div v-if="tree.species?.co2KgPerYear">
+            <div>
               <dt class="text-gray-500">
                 CO₂ absorbed
               </dt>
               <dd class="text-gray-900 mt-1">
-                About {{ formatCo2(tree.species.co2KgPerYear) }} a year once grown
+                About {{ formatCo2(co2.total) }} a year once grown
+                <span v-if="tree.quantity > 1" class="text-gray-500">({{ formatCo2(co2.perTree) }} per tree)</span>
+                <span v-if="!co2.speciesKnown" class="block text-xs text-gray-500 mt-0.5">
+                  Estimated for an average tree, as the species isn't known.
+                </span>
               </dd>
             </div>
           </dl>
@@ -285,8 +300,9 @@ onMounted(load)
         </div>
       </article>
 
-      <!-- Updates -->
-      <section class="mt-8">
+      <!-- Updates: planted trees only. A donated or earned tree was planted by
+           someone else, so there is nothing for the member to update. -->
+      <section v-if="tree.source === 'planted'" class="mt-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">
           Updates
         </h2>

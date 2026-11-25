@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
-      titleTemplate: '%s · Tree Troupe',
+      titleTemplate: '%s · tree troupe',
       link: [{ rel: 'icon', href: '/favicon.ico' }],
     },
   },
@@ -37,7 +37,7 @@ export default defineNuxtConfig({
   },
   routeRules: {
     // Standard security headers on every response. frame-ancestors/X-Frame-Options
-    // stop other sites embedding Tree Troupe (clickjacking); the site itself
+    // stop other sites embedding tree troupe (clickjacking); the site itself
     // never needs framing from elsewhere. geolocation stays allowed for the
     // site's own "use my location" buttons.
     '/**': {

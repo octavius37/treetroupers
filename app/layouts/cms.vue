@@ -62,7 +62,7 @@ watch(onPagesSection, (inSection) => {
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
             <NuxtLink to="/cms" class="flex items-center gap-2.5">
-              <img src="/images/logo-icon.png" alt="Tree Troupe logo" class="h-9 w-auto">
+              <img src="/images/logo-icon.png" alt="tree troupe logo" class="h-9 w-auto">
               <span class="text-base font-medium text-gray-800 tracking-wide">tree troupe</span>
             </NuxtLink>
             <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">CMS</span>
