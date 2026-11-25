@@ -913,7 +913,7 @@ auto-imports them; stub the ones that touch auth per test.
   the auth user; the profile and everything referencing it cascade. Trees stay,
   with `planted_by` null, so community totals don't drop. Files go first, so a
   storage failure leaves the account intact and the request can be retried.
-- **Titles** use `titleTemplate: '%s · Tree Troupe'` (`nuxt.config.ts`); give
+- **Titles** use `titleTemplate: '%s · tree troupe'` (`nuxt.config.ts`); give
   every new page `useHead({ title })`. `app.vue` sets the default description
   and share preview (`og:image` is the homepage hero); public pages override the
   description with `useSeoMeta`. Absolute URLs come from
