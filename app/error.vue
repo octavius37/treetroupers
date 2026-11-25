@@ -39,7 +39,7 @@ useHead({ title: notFound.value ? 'Page not found' : 'Something went wrong' })
             class="border border-gray-300 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
             @click="clearError({ redirect: '/dashboard' })"
           >
-            My Tree Troupe
+            My tree troupe
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'Contact us' })
-useSeoMeta({ description: 'Get in touch with the Tree Troupe team.' })
+useSeoMeta({ description: 'Get in touch with the tree troupe team.' })
 
 const form = reactive({
   name: '',

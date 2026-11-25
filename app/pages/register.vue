@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
-useHead({ title: 'Join Tree Troupe' })
-useSeoMeta({ description: 'Create your free Tree Troupe account and start logging the trees you plant.' })
+useHead({ title: 'Join tree troupe' })
+useSeoMeta({ description: 'Create your free tree troupe account and start logging the trees you plant.' })
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -65,7 +65,7 @@ async function handleRegister() {
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
           <h1 class="text-3xl font-bold text-gray-900">
-            Join Tree Troupe
+            Join tree troupe
           </h1>
           <p class="text-gray-600 mt-2">
             Create your account and start planting

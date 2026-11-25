@@ -44,7 +44,7 @@ async function handleLogout() {
       <div class="flex items-center justify-between h-20">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-2.5">
-          <img src="/images/logo-icon.png" alt="Tree Troupe logo" class="h-10 w-auto">
+          <img src="/images/logo-icon.png" alt="tree troupe logo" class="h-10 w-auto">
           <span class="text-lg font-medium text-gray-800 tracking-wide">tree troupe</span>
         </NuxtLink>
 
@@ -106,7 +106,7 @@ async function handleLogout() {
             :to="user ? '/dashboard' : '/register'"
             class="bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
           >
-            {{ user ? 'My Tree Troupe' : 'Join for free' }}
+            {{ user ? 'My tree troupe' : 'Join for free' }}
           </NuxtLink>
         </div>
 
@@ -161,7 +161,7 @@ async function handleLogout() {
               class="block mx-3 mt-2 text-center bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium"
               @click="mobileMenuOpen = false"
             >
-              {{ user ? 'My Tree Troupe' : 'Join for free' }}
+              {{ user ? 'My tree troupe' : 'Join for free' }}
             </NuxtLink>
           </div>
         </nav>

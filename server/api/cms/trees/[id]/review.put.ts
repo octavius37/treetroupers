@@ -71,11 +71,11 @@ async function notifyPlanter(event: Parameters<typeof serverSupabaseServiceRole>
     ? {
         to: email,
         subject: 'Your tree log was approved 🌳',
-        text: `${hello}\n\nGreat news: your ${describe(tree)} has been approved, and your points have been added.${reason}\n\nSee it here: ${link}\n\nThank you for planting with Tree Troupe!`,
+        text: `${hello}\n\nGreat news: your ${describe(tree)} has been approved, and your points have been added.${reason}\n\nSee it here: ${link}\n\nThank you for planting with tree troupe!`,
       }
     : {
         to: email,
         subject: 'About your tree log',
-        text: `${hello}\n\nWe couldn't approve your ${describe(tree)} this time.${reason}\n\nYou can see it here, and log it again with a clearer photo: ${link}\n\nThe Tree Troupe team`,
+        text: `${hello}\n\nWe couldn't approve your ${describe(tree)} this time.${reason}\n\nYou can see it here, and log it again with a clearer photo: ${link}\n\nThe tree troupe team`,
       })
 }

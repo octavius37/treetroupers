@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     .maybeSingle()
   if (!member) { throw createError({ statusCode: 404, message: 'Member not found' }) }
 
-  const [treesRes, communitiesRes, rankRes, badgesRes] = await Promise.all([
+  const [treesRes, communitiesRes, rankRes, badgesRes, progressRes] = await Promise.all([
     client
       .from('trees')
       .select('id, source, quantity, status, planted_at, tree_species(common_name, avg_co2_kg_per_year)')
@@ -26,14 +26,15 @@ export default defineEventHandler(async (event) => {
       .order('planted_at', { ascending: false }),
     client.from('community_members').select('role, communities(id, name)').eq('profile_id', id),
     client.from('profiles').select('id', { count: 'exact', head: true }).gt('total_points', member.total_points ?? 0),
-    // Badges unlock at a points threshold; points are never spent.
+    // Badges unlock at a points threshold and, for achievement badges, when
+    // badge_progress() shows enough done; points are never spent.
     client
       .from('rewards')
-      .select('id, title, description, points_required')
+      .select('id, title, description, points_required, criteria, criteria_count')
       .eq('active', true)
       .eq('type', 'badge')
-      .lte('points_required', member.total_points ?? 0)
       .order('points_required'),
+    client.rpc('badge_progress', { p_profile_id: id }),
   ])
   if (treesRes.error) { throw createError({ statusCode: 500, message: treesRes.error.message }) }
 
@@ -48,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     id: member.id,
-    name: member.display_name || 'A Tree Trouper',
+    name: member.display_name || 'A tree trouper',
     avatarUrl: member.avatar_url,
     bio: member.bio,
     points: member.total_points ?? 0,
@@ -60,7 +61,9 @@ export default defineEventHandler(async (event) => {
       trees: trees.reduce((sum, t) => sum + t.quantity, 0),
       co2KgPerYear: co2KgPerYear(trees),
     },
-    badges: (badgesRes.data ?? []).map(b => ({ id: b.id, title: b.title, description: b.description })),
+    badges: (badgesRes.data ?? [])
+      .filter(b => rewardStatus(b, member.total_points ?? 0, (progressRes.data ?? {}) as BadgeProgress).unlocked)
+      .map(b => ({ id: b.id, title: b.title, description: b.description })),
     communities: (communitiesRes.data ?? [])
       .map((m: any) => m.communities ? { id: m.communities.id, name: m.communities.name, role: m.role } : null)
       .filter(Boolean),

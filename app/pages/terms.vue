@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'Terms of use' })
-useSeoMeta({ description: 'The rules for using Tree Troupe: your account, what you post, points and rewards.' })
+useSeoMeta({ description: 'The rules for using tree troupe: your account, what you post, points and rewards.' })
 
 const UPDATED = '12 November 2026'
 </script>
@@ -16,7 +16,7 @@ const UPDATED = '12 November 2026'
     </p>
 
     <p class="mb-6">
-      Tree Troupe is a free community platform for logging and celebrating trees. By creating an account you
+      tree troupe is a free community platform for logging and celebrating trees. By creating an account you
       agree to these terms. Questions? Email
       <a href="mailto:treetroupe@protonmail.com" class="text-green-700 underline">treetroupe@protonmail.com</a>.
     </p>
@@ -43,7 +43,7 @@ const UPDATED = '12 November 2026'
       What you post
     </h2>
     <p class="mb-4">
-      You keep ownership of the photos and text you upload. You give Tree Troupe permission to show them on the
+      You keep ownership of the photos and text you upload. You give tree troupe permission to show them on the
       platform (for example, a planted tree's photo in your community's feed) for as long as they're on the site.
       Don't post anything that's illegal, offensive, or someone else's without their permission, and don't
       include other people's personal details in photos.
@@ -75,7 +75,7 @@ const UPDATED = '12 November 2026'
       The service and our liability
     </h2>
     <p class="mb-4">
-      Tree Troupe is free and run by volunteers. It isn't a company or a registered organisation. We provide it
+      tree troupe is free and run by volunteers. It isn't a company or a registered organisation. We provide it
       "as is" and "as available": we'll do our best to keep it running and your data safe, but we can't promise
       it will always be available, accurate or error-free, and we may change or stop it at any time.
     </p>
@@ -90,7 +90,7 @@ const UPDATED = '12 November 2026'
       <li>services run by others that the site relies on or links to.</li>
     </ul>
     <p class="mb-4">
-      This applies to Tree Troupe and to each of the volunteers who run it. Nothing in these terms excludes or
+      This applies to tree troupe and to each of the volunteers who run it. Nothing in these terms excludes or
       limits liability for damage caused by our intent or deliberate recklessness, or any other liability or
       consumer right that cannot be excluded under Dutch law.
     </p>

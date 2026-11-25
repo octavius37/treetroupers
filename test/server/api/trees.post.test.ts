@@ -221,4 +221,13 @@ describe('POST /api/dashboard/trees', () => {
 
     expect(supabase.callFor('trees').payload).toMatchObject({ location: 'SRID=4326;POINT(4.9041 52.3676)' })
   })
+
+  it('keeps the kind of tree on a donated log, for the CO₂ estimate', async () => {
+    setRequestBody({ ...VALID_BODY, source: 'donated', quantity: '4', species_id: 'species-9', lat: undefined, lng: undefined })
+    const supabase = withTables()
+
+    await handler(createTestEvent())
+
+    expect(supabase.callFor('trees').payload).toMatchObject({ source: 'donated', species_id: 'species-9', quantity: 4 })
+  })
 })

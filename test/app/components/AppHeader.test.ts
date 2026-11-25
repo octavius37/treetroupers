@@ -133,7 +133,7 @@ describe('AppHeader', () => {
     const { wrapper, hrefs } = await render()
 
     expect(hrefs()).toContain('/dashboard')
-    expect(wrapper.text()).toContain('My Tree Troupe')
+    expect(wrapper.text()).toContain('My tree troupe')
   })
 
   // The handler used to be written `handleLogout; mobileMenuOpen = false`,

@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Please add a photo as proof' })
   }
   if (!isOwnPhotoUrl(client, uid, body.photo_url)) {
-    throw createError({ statusCode: 400, message: 'The photo must be uploaded through Tree Troupe' })
+    throw createError({ statusCode: 400, message: 'The photo must be uploaded through tree troupe' })
   }
   const photoUrl = body.photo_url
 
@@ -68,7 +68,9 @@ export default defineEventHandler(async (event) => {
     .insert({
       planted_by: profile.id,
       source,
-      species_id: source === 'planted' ? (body.species_id || null) : null,
+      // Optional for every kind of log: donated and earned trees may say what
+      // was planted, which feeds the CO₂ estimate.
+      species_id: body.species_id || null,
       community_id: body.community_id || null,
       location,
       quantity,

@@ -4,8 +4,8 @@ const { public: { siteUrl } } = useRuntimeConfig()
 const route = useRoute()
 
 useSeoMeta({
-  description: 'Tree Troupe turns climate worry into action: join a local troupe, log the trees you plant, donate or earn, and celebrate them together.',
-  ogSiteName: 'Tree Troupe',
+  description: 'tree troupe turns climate worry into action: join a local troupe, log the trees you plant, donate or earn, and celebrate them together.',
+  ogSiteName: 'tree troupe',
   ogType: 'website',
   ogImage: `${siteUrl}/images/home-hero-tree-sunset.jpg`,
   ogUrl: () => `${siteUrl}${route.path}`,

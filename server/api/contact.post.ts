@@ -14,7 +14,7 @@ function field(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-// Sends contact-form submissions to the Tree Troupe inbox via Resend.
+// Sends contact-form submissions to the tree troupe inbox via Resend.
 // Requires RESEND_API_KEY (Vercel project env vars); RESEND_FROM sets the
 // sender, as for the review emails (server/utils/email.ts).
 export default defineEventHandler(async (event) => {
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Tree Troupe Contact Form <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM || 'tree troupe Contact Form <onboarding@resend.dev>',
       to: 'treetroupe@protonmail.com',
       reply_to: email,
       subject: `[Contact form] ${subject}`,

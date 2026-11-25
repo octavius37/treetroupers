@@ -6,6 +6,7 @@ const supabase = useSupabaseClient()
 const authUserId = useAuthUserId()
 
 const communities = ref<any[]>([])
+const species = ref<any[]>([])
 const profile = ref<any>(null)
 const loading = ref(true)
 const submitting = ref(false)
@@ -16,6 +17,7 @@ const error = ref('')
 const form = reactive({
   donation_project: '',
   community_id: '',
+  species_id: '',
   quantity: 1,
   notes: '',
   planted_at: new Date().toISOString().split('T')[0],
@@ -25,11 +27,11 @@ const form = reactive({
 onMounted(async () => {
   if (!authUserId.value) { return }
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('auth_user_id', authUserId.value)
-    .single()
+  const [speciesRes, { data: profileData }] = await Promise.all([
+    supabase.from('tree_species').select('id, common_name, scientific_name').order('common_name'),
+    supabase.from('profiles').select('*').eq('auth_user_id', authUserId.value).single(),
+  ])
+  species.value = speciesRes.data || []
   profile.value = profileData
 
   if (profileData) {
@@ -46,6 +48,7 @@ onMounted(async () => {
 function resetForm() {
   form.donation_project = ''
   form.community_id = ''
+  form.species_id = ''
   form.quantity = 1
   form.notes = ''
   form.planted_at = new Date().toISOString().split('T')[0]
@@ -64,6 +67,7 @@ async function handleSubmit() {
         source: 'donated',
         donation_project: form.donation_project,
         community_id: form.community_id || null,
+        species_id: form.species_id || null,
         quantity: form.quantity,
         notes: form.notes,
         planted_at: form.planted_at,
@@ -145,6 +149,26 @@ async function handleSubmit() {
           required
           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
         >
+      </div>
+
+      <!-- Species -->
+      <div>
+        <label for="species" class="block text-sm font-medium text-gray-700 mb-1">Kind of Tree</label>
+        <select
+          id="species"
+          v-model="form.species_id"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-white"
+        >
+          <option value="">
+            Not sure / mixed
+          </option>
+          <option v-for="sp in species" :key="sp.id" :value="sp.id">
+            {{ sp.common_name }} ({{ sp.scientific_name }})
+          </option>
+        </select>
+        <p class="text-xs text-gray-500 mt-1">
+          If you know it, we use it to estimate the CO₂ your trees absorb. Otherwise we use an average tree.
+        </p>
       </div>
 
       <!-- Community -->

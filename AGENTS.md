@@ -119,6 +119,9 @@ version, so re-check auth and SSR afterwards.
   rule applies when a password is set. After changing `[auth]` settings in
   `config.toml`, run `supabase stop` then `supabase start`: a plain `start`
   reuses the running auth container and keeps the old settings.
+- **The name is "tree troupe", lowercase, everywhere**, including page titles
+  (`titleTemplate: '%s · tree troupe'`), emails, legal pages and the start of a
+  sentence; a member without a display name is "A tree trouper".
 - **Styling**: Tailwind utility classes. Primary colour is `green-600`. Design is clean/white with rounded elements and green accents, matching the original Squarespace site aesthetic.
 - **Dashboard routes** are protected by the `auth` middleware and use the `dashboard` layout (sidebar + mobile bottom nav).
 - **Public routes** use the `default` layout (header + footer).
@@ -788,10 +791,19 @@ the map (list and popups), the feed's activity posts and `/cms/trees`.
   (`onboarding@resend.dev`, also used by the contact form) only delivers to the
   Resend account owner. Links in emails use `runtimeConfig.public.siteUrl`.
 - **CO₂** is estimated by `co2KgPerYear` (`shared/utils/co2.ts`, auto-imported
-  in app and server) from each approved planted tree's species
-  `avg_co2_kg_per_year`. Donated and earned trees have no species, so they don't
-  count. It shows on the dashboard, the community banner and the tree page,
-  formatted by `formatCo2`.
+  in app and server) for **every** approved tree, planted, donated or earned,
+  times its `quantity`: at the species' `avg_co2_kg_per_year`, or at
+  `DEFAULT_CO2_KG_PER_YEAR` (22 kg, a typical mature tree, close to the
+  species table's mean) when the species isn't known. Donated and earned logs
+  may name a species ("Kind of tree" on their forms) for this, and
+  `treeLogLabel` adds it ("Donated 3 trees (Silver Birch)"). The `tree_stats` SQL
+  function applies the same rule, with the 22 written into it
+  (`20261125120000_co2_for_all_trees_and_lowercase_name.sql`), so change both
+  together. It shows on the dashboard, member profiles, the community banner,
+  `/map` and the tree page, formatted by `formatCo2`.
+- **Updates are for planted trees only.** A donated or earned tree was planted
+  by someone else, so the tree page hides the Updates section for them and
+  `POST …/updates` refuses them (400).
 
 Server helpers worth reusing: `requireViewer(event)` (`server/utils/viewer.ts`)
 returns the caller's profile or throws 401/404, and `isOwnPhotoUrl` /
@@ -857,6 +869,30 @@ auto-imports them; stub the ones that touch auth per test.
   check `profiles.total_points`, `profiles: own update` now pins it alongside
   `role` (`20261102125441_close_member_write_paths_to_points_and_trees.sql`);
   before that, a member could set their own points with one REST call.
+- **Achievement badges**: a badge can also need an achievement,
+  `rewards.criteria` (what is counted) and `rewards.criteria_count` (how many),
+  as well as `points_required`; it unlocks when the member has both. The
+  counts come live from `badge_progress(p_profile_id)`: approved planted trees,
+  trees by quantity, donations, earned logs, streak bonuses kept, current
+  suggestions, distinct species planted, communities founded and likes given.
+  Nothing is stored, so deleting what earned a badge takes it back.
+  `rewardStatus` (`server/utils/badges.ts`) decides, for `/dashboard/rewards`
+  and member profiles. The list of criteria is in three places, so change them
+  together: the check constraint and `badge_progress()` in
+  `20261125140000_achievement_badges_and_pause_discounts.sql`, and
+  `BADGE_CRITERIA` (`shared/utils/badgeCriteria.ts`, which also feeds the
+  "Also needs" select on `/cms/rewards`). The same migration added the points
+  badges Young Tree (250) to Ancient Forest (5,000) and nine achievement badges,
+  each only where no badge of that title existed.
+- **Claimable rewards**: a Seed Pack (`physical`, 300 points) and A Tree
+  Planted in Your Name (`custom`, 1,000 points), from
+  `20261125150000_seed_pack_and_tree_in_your_name_rewards.sql`. Admins arrange
+  them by email from `/cms/rewards`. A postal address for a seed pack is asked
+  for by email, never stored in the database, and deleted once sent; the
+  privacy policy says so, so keep it that way or update the policy.
+- **Partner discounts are paused** (`active = false` on every `discount`
+  reward) until there are real partners; switch them back on at `/cms/rewards`.
+  Rewards created on `/cms/rewards` are always badges (the column default).
 - **Analytics**: `@vercel/analytics/nuxt` (in `nuxt.config.ts` modules) adds
   Vercel Web Analytics: cookie-free page views, no consent banner needed. Data
   only arrives once Web Analytics is enabled in the Vercel project. The privacy
@@ -877,7 +913,7 @@ auto-imports them; stub the ones that touch auth per test.
   the auth user; the profile and everything referencing it cascade. Trees stay,
   with `planted_by` null, so community totals don't drop. Files go first, so a
   storage failure leaves the account intact and the request can be retried.
-- **Titles** use `titleTemplate: '%s · Tree Troupe'` (`nuxt.config.ts`); give
+- **Titles** use `titleTemplate: '%s · tree troupe'` (`nuxt.config.ts`); give
   every new page `useHead({ title })`. `app.vue` sets the default description
   and share preview (`og:image` is the homepage hero); public pages override the
   description with `useSeoMeta`. Absolute URLs come from

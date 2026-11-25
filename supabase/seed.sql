@@ -71,7 +71,7 @@ where u.email in ('admin@example.com', 'member@example.com');
 update public.profiles
 set id = '00000000-0000-4000-b000-000000000001',
     display_name = 'Ada Admin',
-    bio = 'Maintains the Tree Troupers platform.',
+    bio = 'Maintains the tree troupers platform.',
     role = 'admin'
 where auth_user_id = '00000000-0000-4000-a000-000000000001';
 
@@ -407,11 +407,11 @@ values
 insert into public.rewards (id, title, description, points_required, type, active)
 values
   ('00000000-0000-4000-f000-000000000001', 'Seedling Badge',
-   'Awarded for planting your first tree.', 50, 'badge', true),
+   'Awarded at 50 points.', 50, 'badge', true),
   ('00000000-0000-4000-f000-000000000002', 'Sapling Badge',
    'Awarded at 100 points.', 100, 'badge', true),
   ('00000000-0000-4000-f000-000000000003', 'Local Nursery Discount',
-   '10% off at participating nurseries.', 250, 'discount', true),
+   '10% off at participating nurseries. Paused until there are partner discounts.', 250, 'discount', false),
   ('00000000-0000-4000-f000-000000000004', 'Retired Reward',
    'Inactive — should not appear in public listings.', 500, 'custom', false);
 
@@ -426,7 +426,7 @@ values
 insert into public.pages (id, title, slug, content, status, nav_order, show_in_nav, parent_id)
 values
   ('00000000-0000-4000-0a00-000000000001', 'About', 'about',
-   '<h1>About Tree Troupers</h1><p>We help neighbours plant and track trees together.</p>',
+   '<h1>About tree troupers</h1><p>We help neighbours plant and track trees together.</p>',
    'published', 1, true, null),
   ('00000000-0000-4000-0a00-000000000002', 'Our Mission', 'our-mission',
    '<h1>Our Mission</h1><p>A million community-planted trees.</p>',

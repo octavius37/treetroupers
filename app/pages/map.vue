@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 useHead({ title: 'The tree map' })
-useSeoMeta({ description: 'Every tree planted by the Tree Troupe community, on one map.' })
+useSeoMeta({ description: 'Every tree planted by the tree troupe community, on one map.' })
 
 interface PublicTree { id: string, species: string, status: string, plantedAt: string, lat: number, lng: number }
 
@@ -17,7 +17,7 @@ const { data } = await useFetch<{ totals: { trees: number, communities: number, 
           The tree map
         </h1>
         <p class="text-green-50 max-w-2xl">
-          Every tree planted by the Tree Troupe community. Locations are shown approximately, to respect planters' privacy.
+          Every tree planted by the tree troupe community. Locations are shown approximately, to respect planters' privacy.
         </p>
         <dl v-if="data" class="grid grid-cols-3 gap-3 sm:gap-6 mt-8 max-w-2xl">
           <div class="bg-white/15 rounded-2xl px-4 py-3">

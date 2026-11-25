@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       : null,
     community: tree.communities as { id: string, name: string } | null,
     planter: planter
-      ? { id: planter.id, name: planter.display_name || 'A Tree Trouper', avatarUrl: planter.avatar_url }
+      ? { id: planter.id, name: planter.display_name || 'A tree trouper', avatarUrl: planter.avatar_url }
       : null,
     isMine,
     updates: (updates ?? []).map((u) => {
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
         content: u.content,
         photoUrl: u.photo_urls?.[0] ?? null,
         createdAt: u.created_at,
-        author: author ? { id: author.id, name: author.display_name || 'A Tree Trouper', avatarUrl: author.avatar_url } : null,
+        author: author ? { id: author.id, name: author.display_name || 'A tree trouper', avatarUrl: author.avatar_url } : null,
       }
     }),
   }

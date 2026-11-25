@@ -82,7 +82,7 @@ useSeoMeta({ description: 'Trusted organisations planting trees around the world
           </div>
         </div>
         <p class="text-gray-500 text-sm italic text-center mt-12">
-          The Tree Troupe platform provides our analysis of the best bang for your buck in tree-planting efforts globally.
+          The tree troupe platform provides our analysis of the best bang for your buck in tree-planting efforts globally.
         </p>
       </div>
     </section>

@@ -3,7 +3,7 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 const STATUSES = ['planted', 'growing', 'mature', 'removed']
 
 // The planter edits their own tree: notes, how it's doing (status) and, for a
-// planted tree, its species. Proof, quantity and location are what the review
+// planted tree, its species (any log may set its species). Proof, quantity and location are what the review
 // checked, so they stay as logged.
 export default defineEventHandler(async (event) => {
   const { profile } = await requireViewer(event)
@@ -32,9 +32,6 @@ export default defineEventHandler(async (event) => {
 
   const { data: tree } = await client.from('trees').select('id, planted_by, source').eq('id', id).maybeSingle()
   if (!tree || tree.planted_by !== profile.id) { throw createError({ statusCode: 404, message: 'Tree not found' }) }
-  if ('species_id' in changes && tree.source !== 'planted') {
-    throw createError({ statusCode: 400, message: 'Only planted trees have a species' })
-  }
 
   const { data, error } = await client
     .from('trees')
