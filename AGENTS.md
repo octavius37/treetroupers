@@ -884,6 +884,12 @@ auto-imports them; stub the ones that touch auth per test.
   "Also needs" select on `/cms/rewards`). The same migration added the points
   badges Young Tree (250) to Ancient Forest (5,000) and nine achievement badges,
   each only where no badge of that title existed.
+- **Claimable rewards**: a Seed Pack (`physical`, 300 points) and A Tree
+  Planted in Your Name (`custom`, 1,000 points), from
+  `20261125150000_seed_pack_and_tree_in_your_name_rewards.sql`. Admins arrange
+  them by email from `/cms/rewards`. A postal address for a seed pack is asked
+  for by email, never stored in the database, and deleted once sent; the
+  privacy policy says so, so keep it that way or update the policy.
 - **Partner discounts are paused** (`active = false` on every `discount`
   reward) until there are real partners; switch them back on at `/cms/rewards`.
   Rewards created on `/cms/rewards` are always badges (the column default).

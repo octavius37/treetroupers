@@ -4,7 +4,7 @@ useHead({ title: 'Privacy policy' })
 useSeoMeta({ description: 'What tree troupe collects about you, why, who we share it with, and your rights.' })
 
 // Bump this when the policy changes; it is shown at the top of the page.
-const UPDATED = '12 November 2026'
+const UPDATED = '25 November 2026'
 </script>
 
 <template>
@@ -32,6 +32,7 @@ const UPDATED = '12 November 2026'
       <li><strong>Trees you log:</strong> the photo you upload as proof, the species, date and notes, the quantity for donated or earned trees, and, for trees you plant, the GPS location of the tree.</li>
       <li><strong>Your activity:</strong> the communities you join, planting spots you suggest, your points, the posts you like, and updates you post about your trees.</li>
       <li><strong>Messages</strong> you send through the contact form: your name, email address and message.</li>
+      <li><strong>Rewards you claim:</strong> which reward and when. If a reward is sent by post, such as a seed pack, we ask for your postal address by email.</li>
       <li><strong>Abuse prevention:</strong> to stop automated spam, we count how often each account uploads, posts and logs trees, and how often each IP address sends contact-form messages. These counts, including the IP address, are deleted within two days.</li>
     </ul>
     <p class="mb-4">
@@ -61,7 +62,8 @@ const UPDATED = '12 November 2026'
       <li>The photo of a tree you planted, once an admin has approved it. Photos of donation or earning proof are only seen by you and admins.</li>
     </ul>
     <p class="mb-4">
-      Your email address is never shown to other members.
+      Your email address is never shown to other members. When you claim a reward, our admins see your email
+      address so they can arrange it with you.
     </p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-10 mb-3">
@@ -92,6 +94,10 @@ const UPDATED = '12 November 2026'
       community totals and on the map, but are no longer linked to you, and their photos and notes are removed.
       Photos you upload but never attach to a tree log (for example, a form you didn't finish) are deleted
       within two days.
+    </p>
+    <p class="mb-4">
+      If you give us a postal address for a reward, we use it only to send that reward, and delete it once
+      it has been sent.
     </p>
     <p class="mb-4">
       Messages you send through the contact form go to our email inbox, not to your account, so deleting your
